@@ -10,9 +10,17 @@
 
 # Keep dependency, build, test, and diagnostic output local.
 node_modules/
+.pnpm-store/
 dist/
 coverage/
+.vite/
+.wrangler/
 *.log
+
+# Keep local Worker and backend-emulator state or credentials out of Git.
+.dev.vars*
+supabase/.branches/
+supabase/.temp/
 
 # Keep operating-system metadata out of the repository.
 .DS_Store

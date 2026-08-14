@@ -1,0 +1,36 @@
+{
+  "name": "@realmofgod/workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local workspace for the Realm of God private prayer retreat.",
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": "24.19.x",
+    "pnpm": "11.21.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @realmofgod/sanctuary dev",
+    "build": "pnpm --filter @realmofgod/sanctuary build",
+    "preview": "pnpm --filter @realmofgod/sanctuary preview",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "pnpm --filter @realmofgod/sanctuary typecheck",
+    "test": "pnpm --filter @realmofgod/sanctuary test",
+    "config:check": "node scripts/validate-bootstrap-config.mjs",
+    "source:check": "node scripts/verify-source-comments.mjs",
+    "security:check": "node scripts/verify-sanctuary-boundary.mjs",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm config:check && pnpm source:check && pnpm security:check && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.8.1",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.4",
+    "globals": "17.11.0",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.67.0"
+  }
+}

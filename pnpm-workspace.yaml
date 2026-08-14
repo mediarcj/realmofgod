@@ -1,0 +1,33 @@
+# File: pnpm-workspace.yaml
+# Description: Defines the small package workspace and approved dependency build scripts.
+# Purpose: Keeps the sanctuary bundle isolated while limiting install-time executable code.
+# Notes: New packages or lifecycle-script approvals require an intentional dependency review.
+
+# Keep each future browser security boundary in its own application package.
+packages:
+  - apps/*
+
+# Refuse unsupported runtimes, implicit peers, and unreviewed lifecycle scripts.
+engineStrict: true
+saveExact: true
+autoInstallPeers: false
+strictPeerDependencies: true
+strictDepBuilds: true
+
+# Keep the verified content-addressable store local and recheck its package content.
+storeDir: .pnpm-store
+verifyStoreIntegrity: true
+
+# Hold ordinary new releases for one day; these exact current Worker pins were reviewed together.
+minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
+
+minimumReleaseAgeExclude:
+  - "@cloudflare/vite-plugin@1.52.1"
+  - miniflare@5.20260811.1-alpha
+  - wrangler@4.123.0
+
+# Permit only the native tool packages required by the approved Vite and Worker bootstrap.
+allowBuilds:
+  esbuild: true
+  workerd: true
