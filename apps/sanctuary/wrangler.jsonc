@@ -1,0 +1,30 @@
+// File: apps/sanctuary/wrangler.jsonc
+// Description: Declares the local-only Cloudflare Worker and static-asset boundary.
+// Purpose: Runs the same-origin BFF shell in workerd without creating or contacting provider resources.
+// Notes: No account, route, credential, remote binding, or deployment command is configured.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "realmofgod-sanctuary-local",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-08-14",
+
+  // Disable provider-hosted convenience endpoints even if this config is misused later.
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_metrics": false,
+  "observability": {
+    "enabled": false,
+  },
+
+  // Route every local request through the boundary before serving a packaged asset.
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true,
+  },
+
+  // Carry only a non-secret local-mode marker; no hosted environment is represented here.
+  "vars": {
+    "APP_ENV": "local",
+  },
+}

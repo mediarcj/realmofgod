@@ -10,6 +10,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "types": ["node"],
+    // Check project configuration strictly while ignoring known optional CLI-only declaration gaps.
+    "skipLibCheck": true,
     "tsBuildInfoFile": "../../node_modules/.cache/typescript/sanctuary-tools.tsbuildinfo"
   },
   "include": ["types/tooling-env.d.ts", "vite.config.ts", "vitest.config.ts"]
