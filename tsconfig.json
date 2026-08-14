@@ -1,0 +1,13 @@
+{
+  // File: tsconfig.json
+  // Description: Coordinates the TypeScript projects in the local Realm of God workspace.
+  // Purpose: Lets one root command verify the browser, Worker, and build-tool boundaries together.
+  // Notes: This solution file emits no JavaScript of its own.
+  "files": [],
+  "references": [
+    // Keep browser, Worker, and Node-based configuration libraries separate.
+    { "path": "./apps/sanctuary/tsconfig.browser.json" },
+    { "path": "./apps/sanctuary/tsconfig.worker.json" },
+    { "path": "./apps/sanctuary/tsconfig.tools.json" }
+  ]
+}

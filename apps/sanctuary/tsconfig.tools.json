@@ -1,0 +1,16 @@
+{
+  // File: apps/sanctuary/tsconfig.tools.json
+  // Description: Configures strict TypeScript checks for local Vite and test configuration.
+  // Purpose: Keeps Node-only build-tool types out of the browser and Worker projects.
+  // Notes: Tooling remains local and has no production credential or provider-resource access.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Vite configuration executes under the exact pinned Node 24 runtime.
+    "lib": ["ES2024"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "tsBuildInfoFile": "../../node_modules/.cache/typescript/sanctuary-tools.tsbuildinfo"
+  },
+  "include": ["types/tooling-env.d.ts", "vite.config.ts", "vitest.config.ts"]
+}

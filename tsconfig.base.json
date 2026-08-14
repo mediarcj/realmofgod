@@ -1,0 +1,33 @@
+{
+  // File: tsconfig.base.json
+  // Description: Defines strict TypeScript rules shared by browser, Worker, and tooling projects.
+  // Purpose: Makes unsafe assumptions and incomplete control flow visible during local verification.
+  // Notes: Runtime-specific libraries and module resolution are selected by each child project.
+  "compilerOptions": {
+    // Compile against the modern language level supported by the pinned local toolchain.
+    "target": "ES2024",
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Keep type checking deliberately strict across every source boundary.
+    "strict": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "useUnknownInCatchVariables": true,
+
+    // Type checking is a verification step; Vite remains responsible for build output.
+    "noEmit": true,
+    "skipLibCheck": false
+  }
+}

@@ -1,0 +1,17 @@
+{
+  // File: apps/sanctuary/tsconfig.browser.json
+  // Description: Configures strict TypeScript checks for the isolated sanctuary browser bundle.
+  // Purpose: Limits browser code to web-platform and React/Vite types without server globals.
+  // Notes: Browser source is added by a later Phase 2 journey checkpoint.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Use Vite's browser-oriented module resolution and React's modern JSX transform.
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "tsBuildInfoFile": "../../node_modules/.cache/typescript/sanctuary-browser.tsbuildinfo"
+  },
+  "include": ["src"]
+}

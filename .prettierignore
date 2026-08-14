@@ -1,0 +1,15 @@
+# File: .prettierignore
+# Description: Excludes generated and local-only files from formatting checks.
+# Purpose: Prevents format tooling from rewriting machine output or dependency artifacts.
+# Notes: Human-authored source and configuration remain in the formatting scope.
+
+# Generated package, build, test, and emulator state is never hand-formatted.
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+.vite/
+.wrangler/
+supabase/.branches/
+supabase/.temp/
+pnpm-lock.yaml

@@ -1,0 +1,13 @@
+{
+  // File: apps/sanctuary/tsconfig.json
+  // Description: Coordinates the sanctuary package's TypeScript projects.
+  // Purpose: Provides one package-local type-check entry without mixing browser and server globals.
+  // Notes: Root verification invokes this solution through the package script.
+  "files": [],
+  "references": [
+    // Each execution environment keeps its own library and global type surface.
+    { "path": "./tsconfig.browser.json" },
+    { "path": "./tsconfig.worker.json" },
+    { "path": "./tsconfig.tools.json" }
+  ]
+}

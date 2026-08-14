@@ -10,18 +10,18 @@
     "pnpm": "11.21.0"
   },
   "scripts": {
-    "dev": "pnpm --filter @realmofgod/sanctuary dev",
-    "build": "pnpm --filter @realmofgod/sanctuary build",
-    "preview": "pnpm --filter @realmofgod/sanctuary preview",
+    "dev": "corepack pnpm --filter @realmofgod/sanctuary dev",
+    "build": "corepack pnpm --filter @realmofgod/sanctuary build",
+    "preview": "corepack pnpm --filter @realmofgod/sanctuary preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "pnpm --filter @realmofgod/sanctuary typecheck",
-    "test": "pnpm --filter @realmofgod/sanctuary test",
+    "typecheck": "corepack pnpm --filter @realmofgod/sanctuary typecheck",
+    "test": "corepack pnpm --filter @realmofgod/sanctuary test",
     "config:check": "node scripts/validate-bootstrap-config.mjs",
     "source:check": "node scripts/verify-source-comments.mjs",
     "security:check": "node scripts/verify-sanctuary-boundary.mjs",
-    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm config:check && pnpm source:check && pnpm security:check && pnpm build"
+    "verify": "corepack pnpm format:check && corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test && corepack pnpm config:check && corepack pnpm source:check && corepack pnpm security:check && corepack pnpm build"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
