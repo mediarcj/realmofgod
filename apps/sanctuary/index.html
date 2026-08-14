@@ -1,0 +1,23 @@
+<!--
+File: apps/sanctuary/index.html
+Description: Provides the single HTML entry document for the private sanctuary bundle.
+Purpose: Loads only the local React entry point without inline or third-party executable code.
+Notes: Authentication, prayer entry, and real private-data behavior are intentionally absent.
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Keep document metadata small, local, and privacy-preserving. -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="dark" />
+    <title>Realm of God</title>
+  </head>
+  <body>
+    <!-- React owns this one local mount point; no private content is embedded in HTML. -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

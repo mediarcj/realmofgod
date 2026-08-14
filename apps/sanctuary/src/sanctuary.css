@@ -1,0 +1,109 @@
+/*
+ * File: apps/sanctuary/src/sanctuary.css
+ * Description: Styles the first static sanctuary placeholder with local platform features.
+ * Purpose: Creates a calm readable surface without fonts, images, scripts, or animation packages.
+ * Notes: The design remains intentionally modest until product design work is authorized.
+ */
+
+/* Define a small sanctuary-owned palette without importing any remote visual resource. */
+:root {
+  color: #f6f1e8;
+  background: #0b1714;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* Keep sizing predictable and remove browser-default page spacing. */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 20rem;
+  min-height: 100%;
+  background: #0b1714;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Center the reading surface while allowing comfortable small-screen padding. */
+.sanctuary-shell {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  gap: 2rem;
+  padding: clamp(2rem, 8vw, 6rem);
+  background:
+    radial-gradient(circle at 50% 30%, rgb(57 91 73 / 45%), transparent 42rem),
+    linear-gradient(155deg, #0b1714 0%, #12251f 55%, #0a1412 100%);
+}
+
+/* Limit line length and use natural hierarchy for an unhurried first impression. */
+.sanctuary-introduction {
+  max-width: 42rem;
+}
+
+.sanctuary-name {
+  margin: 0 0 1rem;
+  color: #d8cba9;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 16ch;
+  margin: 0;
+  font-size: clamp(2.5rem, 8vw, 5.75rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.sanctuary-summary {
+  max-width: 34rem;
+  margin: 1.75rem 0 0;
+  color: #ddd7c9;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  line-height: 1.7;
+}
+
+/* Present the honest bootstrap limit as quiet supporting information. */
+.foundation-note {
+  max-width: 34rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgb(216 203 169 / 35%);
+  color: #b8b2a5;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.foundation-note p {
+  margin: 0;
+}
+
+/* Respect high-contrast preferences without depending on a scripted theme. */
+@media (prefers-contrast: more) {
+  :root {
+    color: #ffffff;
+    background: #000000;
+  }
+
+  .sanctuary-shell {
+    background: #000000;
+  }
+
+  .sanctuary-summary,
+  .foundation-note {
+    color: #ffffff;
+  }
+}
