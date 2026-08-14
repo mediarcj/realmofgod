@@ -1,0 +1,18 @@
+# File: .gitignore
+# Description: Lists local and generated files that Git should not track.
+# Purpose: Keeps secrets, dependencies, build output, logs, and operating-system files out of repository history.
+# Notes: None.
+
+# Keep local environment values and common secret-bearing variants out of Git.
+.env
+.env.*
+!.env.example
+
+# Keep dependency, build, test, and diagnostic output local.
+node_modules/
+dist/
+coverage/
+*.log
+
+# Keep operating-system metadata out of the repository.
+.DS_Store

@@ -1,0 +1,7 @@
+# File: .gitattributes
+# Description: Defines repository-wide Git attribute defaults.
+# Purpose: Keeps text line endings stable across development environments.
+# Notes: None.
+
+# Normalize text files to line-feed endings in the repository.
+* text=auto eol=lf
