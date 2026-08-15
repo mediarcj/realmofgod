@@ -1,24 +1,38 @@
 /**
  * File: apps/sanctuary/src/SanctuaryShell.tsx
- * Description: Renders the first quiet, non-interactive sanctuary placeholder.
- * Purpose: Proves the isolated React entry point without collecting or displaying prayer data.
- * Notes: Product interaction, accounts, persistence, and vault behavior belong to later phases.
+ * Description: Renders the semantic document surface around the sanctuary visual environment.
+ * Purpose: Keeps primary sanctuary meaning and accessibility in ordinary React and DOM content.
+ * Notes: This component has no account, prayer-input, persistence, provider, or network behavior.
  */
 
-// Keep the first component intentionally static so no private-data pathway exists yet.
+// Import the visual boundary without allowing rendering-library code to spread through the document UI.
+import { ExperienceViewport } from "./rendering/ExperienceViewport";
+
+// Keep the primary sanctuary content semantic and readable before the optional visual environment.
 export function SanctuaryShell() {
   return (
     <main className="sanctuary-shell" aria-labelledby="sanctuary-title">
       <section className="sanctuary-introduction">
         <p className="sanctuary-name">Realm of God</p>
-        <h1 id="sanctuary-title">A quiet place is being prepared.</h1>
+        <h1 id="sanctuary-title">A quiet place to pause and reflect.</h1>
         <p className="sanctuary-summary">
-          This local foundation will grow into a private retreat for prayer and reflection.
+          This is an anonymous contemplative sanctuary. Its visual environment is optional; the
+          words and structure remain available without graphics.
         </p>
       </section>
 
-      <aside className="foundation-note" aria-label="Current foundation status">
-        <p>No account, prayer entry, or saved content is active in this foundation.</p>
+      <ExperienceViewport />
+
+      <section className="sanctuary-reading" aria-labelledby="sanctuary-reading-title">
+        <h2 id="sanctuary-reading-title">A gentle beginning</h2>
+        <p>
+          Take a slow breath. This visual space stays local to this page. No response is requested,
+          recorded, or sent anywhere.
+        </p>
+      </section>
+
+      <aside className="sanctuary-note" aria-label="Local sanctuary status">
+        <p>No account, prayer entry, saved content, or browser persistence is active here.</p>
       </aside>
     </main>
   );

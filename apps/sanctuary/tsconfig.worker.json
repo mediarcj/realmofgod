@@ -1,11 +1,11 @@
 {
   // File: apps/sanctuary/tsconfig.worker.json
-  // Description: Configures strict TypeScript checks for the same-origin Worker boundary.
-  // Purpose: Gives Worker code web-worker primitives without browser DOM or Node authority.
-  // Notes: Provider bindings and generated Worker types are intentionally absent in this bootstrap.
+  // Description: Reserves a strict TypeScript project for a future Worker boundary.
+  // Purpose: Keeps any later server code separate from browser DOM and Node authority.
+  // Notes: Provider bindings, generated Worker types, and handlers are intentionally absent.
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    // Model only standardized Worker runtime primitives for the inert BFF shell.
+    // Model only standardized Worker runtime primitives for this empty boundary.
     "lib": ["ES2024", "WebWorker"],
     "module": "ESNext",
     "moduleResolution": "Bundler",

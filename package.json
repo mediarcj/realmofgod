@@ -2,7 +2,7 @@
   "name": "@realmofgod/workspace",
   "version": "0.0.0",
   "private": true,
-  "description": "Local workspace for the Realm of God private prayer retreat.",
+  "description": "Local workspace for the Realm of God anonymous interactive sanctuary.",
   "type": "module",
   "packageManager": "pnpm@11.21.0",
   "engines": {

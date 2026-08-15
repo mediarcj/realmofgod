@@ -2,7 +2,7 @@
   "name": "@realmofgod/sanctuary",
   "version": "0.0.0",
   "private": true,
-  "description": "Isolated browser and same-origin Worker package for the Realm of God sanctuary.",
+  "description": "Local browser package for the Realm of God anonymous interactive sanctuary.",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -22,6 +22,7 @@
     "@types/node": "24.13.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
+    "@types/three": "0.185.4",
     "@vitejs/plugin-react": "6.0.5",
     "typescript": "6.0.3",
     "vite": "8.2.1",

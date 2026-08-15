@@ -2,7 +2,7 @@
  * File: apps/sanctuary/vite.config.ts
  * Description: Configures the local Vite browser build for the isolated sanctuary package.
  * Purpose: Keeps development loopback-only and produces a source-map-free local bundle.
- * Notes: Worker integration is introduced as its own later Phase 2 journey checkpoint.
+ * Notes: Remote bindings, tunnels, and provider deployment commands are absent.
  */
 
 // Import only the official React integration and Vite's typed configuration helper.
@@ -32,6 +32,10 @@ export default defineConfig({
     cors: false,
   },
   build: {
+    // Avoid inserting a convenience fetch polyfill into the intentionally local browser bundle.
+    modulePreload: {
+      polyfill: false,
+    },
     sourcemap: false,
   },
 });

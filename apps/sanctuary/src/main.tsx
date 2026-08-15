@@ -19,7 +19,7 @@ if (!(rootElement instanceof HTMLElement)) {
   throw new Error("Sanctuary root element is unavailable.");
 }
 
-// StrictMode keeps the initial component honest while the local foundation is built.
+// StrictMode surfaces unsafe React patterns during local development.
 createRoot(rootElement).render(
   <StrictMode>
     <SanctuaryShell />

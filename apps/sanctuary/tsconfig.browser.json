@@ -2,7 +2,7 @@
   // File: apps/sanctuary/tsconfig.browser.json
   // Description: Configures strict TypeScript checks for the isolated sanctuary browser bundle.
   // Purpose: Limits browser code to web-platform and React/Vite types without server globals.
-  // Notes: Browser source is added by a later Phase 2 journey checkpoint.
+  // Notes: Server and build-tool globals remain outside this browser project.
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     // Use Vite's browser-oriented module resolution and React's modern JSX transform.
