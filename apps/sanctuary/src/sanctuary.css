@@ -132,17 +132,74 @@ h2 {
   text-align: center;
 }
 
-/* Keep narrative text outside Canvas so it remains available to all visitors. */
-.sanctuary-reading {
+/* Keep journey content outside Canvas so it remains available to all visitors. */
+.journey-panel {
   max-width: 42rem;
 }
 
-.sanctuary-reading p {
+/* Make changing-stage text comfortable to read without treating it as a game interface. */
+.journey-panel p {
   margin: 0.85rem 0 0;
   color: #ddd7c9;
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.7;
+}
+
+/* Give the entry question modest emphasis while keeping it distinct from the main document heading. */
+.journey-prompt {
+  color: #e6dcc1;
+  font-size: clamp(1.15rem, 3vw, 1.4rem);
+}
+
+/* Keep touch and keyboard actions large, quiet, and easy to distinguish without color alone. */
+.journey-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.journey-actions button {
+  min-height: 2.85rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgb(216 203 169 / 48%);
+  border-radius: 0.65rem;
+  color: #f6f1e8;
+  background: rgb(18 47 38 / 82%);
+  font: inherit;
+  cursor: pointer;
+}
+
+.journey-actions button:hover {
+  background: rgb(44 83 64 / 90%);
+}
+
+.journey-actions button:focus-visible,
+.journey-panel h2:focus-visible {
+  outline: 3px solid #e6dcc1;
+  outline-offset: 4px;
+}
+
+/* Frame the reference-only Scripture slot so it cannot be confused with reflection text. */
+.scripture-slot {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border-left: 3px solid #d8cba9;
+  background: rgb(7 18 14 / 44%);
+}
+
+.scripture-label {
+  margin: 0;
+  color: #d8cba9;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.scripture-slot h2 {
+  margin-top: 0.55rem;
 }
 
 /* Present the local-only boundary as quiet supporting information. */
@@ -172,7 +229,7 @@ h2 {
   }
 
   .sanctuary-summary,
-  .sanctuary-reading p,
+  .journey-panel p,
   .sanctuary-note {
     color: #ffffff;
   }

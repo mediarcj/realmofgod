@@ -7,6 +7,7 @@
 
 // Import the visual boundary without allowing rendering-library code to spread through the document UI.
 import { ExperienceViewport } from "./rendering/ExperienceViewport";
+import { JourneyExperience } from "./journey/JourneyExperience";
 
 // Keep the primary sanctuary content semantic and readable before the optional visual environment.
 export function SanctuaryShell() {
@@ -23,13 +24,7 @@ export function SanctuaryShell() {
 
       <ExperienceViewport />
 
-      <section className="sanctuary-reading" aria-labelledby="sanctuary-reading-title">
-        <h2 id="sanctuary-reading-title">A gentle beginning</h2>
-        <p>
-          Take a slow breath. This visual space stays local to this page. No response is requested,
-          recorded, or sent anywhere.
-        </p>
-      </section>
+      <JourneyExperience />
 
       <aside className="sanctuary-note" aria-label="Local sanctuary status">
         <p>No account, prayer entry, saved content, or browser persistence is active here.</p>
