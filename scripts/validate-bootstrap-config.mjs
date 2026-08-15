@@ -14,6 +14,11 @@ import { dirname, resolve } from "node:path";
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const packagePath = resolve(repositoryRoot, "apps/sanctuary/package.json");
 const viteConfigPath = resolve(repositoryRoot, "apps/sanctuary/vite.config.ts");
+const viewportPath = resolve(repositoryRoot, "apps/sanctuary/src/rendering/ExperienceViewport.tsx");
+const canvasExperiencePath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/CanvasExperience.tsx",
+);
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
 function readRepositoryFile(path) {
@@ -58,8 +63,30 @@ function verifyLoopbackViteSettings(viteConfig) {
   }
 }
 
+// Require the renderer-only imports to remain behind the local dynamic-import boundary.
+function verifyAsynchronousRendererBoundary(viewportSource, canvasExperienceSource) {
+  if (!viewportSource.includes('lazy(async () => import("./CanvasExperience"))')) {
+    throw new Error("ExperienceViewport must lazy-load CanvasExperience.");
+  }
+
+  if (viewportSource.includes("@react-three/fiber") || viewportSource.includes("./ProofScene")) {
+    throw new Error("ExperienceViewport must not eagerly import renderer-specific code.");
+  }
+
+  if (
+    !canvasExperienceSource.includes("@react-three/fiber") ||
+    !canvasExperienceSource.includes("./ProofScene")
+  ) {
+    throw new Error("CanvasExperience must contain the renderer-specific imports.");
+  }
+}
+
 // Parse and validate the small package contract before reporting one clear success line.
 const sanctuaryPackage = JSON.parse(readRepositoryFile(packagePath));
 verifyExactRenderingPins(sanctuaryPackage);
 verifyLoopbackViteSettings(readRepositoryFile(viteConfigPath));
+verifyAsynchronousRendererBoundary(
+  readRepositoryFile(viewportPath),
+  readRepositoryFile(canvasExperiencePath),
+);
 console.log("Bootstrap configuration checks passed.");

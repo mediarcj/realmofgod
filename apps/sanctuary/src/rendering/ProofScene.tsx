@@ -10,6 +10,8 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import type { Mesh } from "three";
 
+import { shouldAnimateProofScene } from "./capabilities";
+
 // Describe the single visitor-preference input that controls optional proof-scene motion.
 interface ProofSceneProps {
   readonly reducedMotion: boolean;
@@ -20,7 +22,7 @@ export function ProofScene({ reducedMotion }: ProofSceneProps) {
   const formRef = useRef<Mesh>(null);
 
   useFrame((_state, delta) => {
-    if (!reducedMotion && formRef.current !== null) {
+    if (shouldAnimateProofScene(reducedMotion) && formRef.current !== null) {
       formRef.current.rotation.y += delta * 0.18;
     }
   });

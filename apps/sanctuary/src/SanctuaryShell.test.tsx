@@ -10,6 +10,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { SanctuaryShell } from "./SanctuaryShell";
+import { ExperienceFallback, ExperienceLoading } from "./rendering/ExperienceViewport";
 
 // Confirm essential sanctuary copy remains in ordinary semantic HTML without a WebGL context.
 describe("SanctuaryShell", () => {
@@ -18,5 +19,16 @@ describe("SanctuaryShell", () => {
 
     expect(markup).toContain("A quiet place to pause and reflect.");
     expect(markup).toContain("No account, prayer entry, saved content, or browser persistence");
+  });
+});
+
+// Confirm an unavailable or still-loading visual module always leaves a quiet local surface in place.
+describe("ExperienceViewport fallback surfaces", () => {
+  it("renders the same calm fallback during asynchronous loading", () => {
+    const fallbackMarkup = renderToStaticMarkup(<ExperienceFallback />);
+    const loadingMarkup = renderToStaticMarkup(<ExperienceLoading />);
+
+    expect(loadingMarkup).toBe(fallbackMarkup);
+    expect(loadingMarkup).toContain("A still clearing remains here for this visit.");
   });
 });
