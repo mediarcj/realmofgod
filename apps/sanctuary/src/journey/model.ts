@@ -38,8 +38,22 @@ export type JourneyAction =
   | { readonly type: "remain" }
   | { readonly type: "return-to-realm" };
 
+// Limit the decorative layer to the two presentation facts it needs from the journey engine.
+export interface JourneyVisualState {
+  readonly stage: JourneyStage;
+  readonly choice: PeaceChoice | null;
+}
+
 // Keep the entry state reusable and make a reset visibly return to the same safe starting point.
 export const initialJourneyState: JourneyState = { stage: "entry" };
+
+// Derive a read-only visual projection without giving the renderer actions or a second state machine.
+export function deriveJourneyVisualState(state: JourneyState): JourneyVisualState {
+  return {
+    stage: state.stage,
+    choice: state.stage === "reflection" ? state.choice : null,
+  };
+}
 
 // Move through the approved path only; unsupported actions intentionally preserve the current state.
 export function transitionJourney(state: JourneyState, action: JourneyAction): JourneyState {

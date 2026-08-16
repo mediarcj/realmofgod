@@ -1,7 +1,7 @@
 /**
  * File: apps/sanctuary/src/rendering/capabilities.test.ts
  * Description: Covers local graphics and motion decisions without requiring actual graphics hardware.
- * Purpose: Proves unsupported graphics select the DOM fallback and reduced motion stops proof-scene animation.
+ * Purpose: Proves unsupported graphics select the DOM fallback and reduced motion stops atmosphere animation.
  * Notes: These tests use only synthetic in-memory probes and do not inspect visitor devices.
  */
 
@@ -10,8 +10,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   hasUsableGraphicsContext,
+  selectLocalVisualCheck,
   selectExperienceMode,
-  shouldAnimateProofScene,
+  shouldAnimateAtmosphere,
 } from "./capabilities";
 
 // Cover supported and unsupported Canvas probes without creating a real browser canvas.
@@ -38,13 +39,23 @@ describe("graphics capability decisions", () => {
   });
 });
 
+// Keep local-only visual verification fragments exact so unrelated hashes cannot change the experience.
+describe("local visual check selection", () => {
+  it("recognizes only the two narrow verification fragments", () => {
+    expect(selectLocalVisualCheck("#verify-fallback")).toBe("fallback");
+    expect(selectLocalVisualCheck("#verify-reduced-motion")).toBe("reduced-motion");
+    expect(selectLocalVisualCheck("#other")).toBeNull();
+    expect(selectLocalVisualCheck("")).toBeNull();
+  });
+});
+
 // Cover the reduced-motion decision independently from the browser media-query adapter.
-describe("proof-scene motion", () => {
+describe("sanctuary atmosphere motion", () => {
   it("stops animation when reduced motion is requested", () => {
-    expect(shouldAnimateProofScene(true)).toBe(false);
+    expect(shouldAnimateAtmosphere(true)).toBe(false);
   });
 
   it("allows restrained animation when reduced motion is not requested", () => {
-    expect(shouldAnimateProofScene(false)).toBe(true);
+    expect(shouldAnimateAtmosphere(false)).toBe(true);
   });
 });

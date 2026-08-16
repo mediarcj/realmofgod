@@ -9,23 +9,25 @@
 import { Canvas } from "@react-three/fiber";
 import type { ReactNode } from "react";
 
-import { ProofScene } from "./ProofScene";
+import type { JourneyVisualState } from "../journey/model";
+import { RealmScene } from "./RealmScene";
 
 // Describe the single local preference forwarded from the lightweight viewport boundary.
 interface CanvasExperienceProps {
   readonly reducedMotion: boolean;
+  readonly visualState: JourneyVisualState;
 }
 
-// Render a modest Canvas surface while keeping all meaningful sanctuary content in ordinary DOM elements.
-export function CanvasExperience({ reducedMotion }: CanvasExperienceProps): ReactNode {
+// Render a full atmospheric background while keeping every meaningful word and action in the DOM.
+export function CanvasExperience({ reducedMotion, visualState }: CanvasExperienceProps): ReactNode {
   return (
     <div className="experience-canvas" aria-hidden="true">
       <Canvas
-        camera={{ fov: 42, position: [0, 0.2, 5.2] }}
+        camera={{ fov: 48, near: 0.1, far: 60, position: [0, 1.65, 5.3] }}
         dpr={[1, 1.5]}
         gl={{ antialias: false, powerPreference: "low-power" }}
       >
-        <ProofScene reducedMotion={reducedMotion} />
+        <RealmScene reducedMotion={reducedMotion} visualState={visualState} />
       </Canvas>
     </div>
   );

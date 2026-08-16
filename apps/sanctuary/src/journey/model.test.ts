@@ -9,7 +9,12 @@
 import { describe, expect, it } from "vitest";
 
 import { choiceReflections, peaceScripture } from "./content";
-import { initialJourneyState, transitionJourney, type JourneyState } from "./model";
+import {
+  deriveJourneyVisualState,
+  initialJourneyState,
+  transitionJourney,
+  type JourneyState,
+} from "./model";
 
 // Move a synthetic visitor through the common states until the approved choice point.
 function reachChoice(): JourneyState {
@@ -56,6 +61,30 @@ describe("peace journey progression", () => {
     expect(transitionJourney({ stage: "threshold" }, { type: "return-to-realm" })).toEqual({
       stage: "threshold",
     });
+  });
+});
+
+// Prove the renderer receives only a read-only stage and the short branch choice where it is useful.
+describe("peace journey visual projection", () => {
+  it("derives sanctuary and nature stages without creating another journey state", () => {
+    expect(deriveJourneyVisualState(initialJourneyState)).toEqual({
+      stage: "entry",
+      choice: null,
+    });
+    expect(deriveJourneyVisualState({ stage: "reflection", choice: "sit" })).toEqual({
+      stage: "reflection",
+      choice: "sit",
+    });
+    expect(deriveJourneyVisualState({ stage: "scripture" })).toEqual({
+      stage: "scripture",
+      choice: null,
+    });
+  });
+
+  it("does not expose actions, scoring, identity, or history to the visual layer", () => {
+    const projection = deriveJourneyVisualState({ stage: "reflection", choice: "listen" });
+
+    expect(Object.keys(projection).sort()).toEqual(["choice", "stage"]);
   });
 });
 

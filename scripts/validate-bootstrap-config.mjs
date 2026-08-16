@@ -19,6 +19,13 @@ const canvasExperiencePath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/rendering/CanvasExperience.tsx",
 );
+const realmScenePath = resolve(repositoryRoot, "apps/sanctuary/src/rendering/RealmScene.tsx");
+const sanctuaryShellPath = resolve(repositoryRoot, "apps/sanctuary/src/SanctuaryShell.tsx");
+const journeyExperiencePath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/journey/JourneyExperience.tsx",
+);
+const sanctuaryCssPath = resolve(repositoryRoot, "apps/sanctuary/src/sanctuary.css");
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
 function readRepositoryFile(path) {
@@ -69,15 +76,50 @@ function verifyAsynchronousRendererBoundary(viewportSource, canvasExperienceSour
     throw new Error("ExperienceViewport must lazy-load CanvasExperience.");
   }
 
-  if (viewportSource.includes("@react-three/fiber") || viewportSource.includes("./ProofScene")) {
+  if (viewportSource.includes("@react-three/fiber") || viewportSource.includes("./RealmScene")) {
     throw new Error("ExperienceViewport must not eagerly import renderer-specific code.");
   }
 
   if (
     !canvasExperienceSource.includes("@react-three/fiber") ||
-    !canvasExperienceSource.includes("./ProofScene")
+    !canvasExperienceSource.includes("./RealmScene")
   ) {
     throw new Error("CanvasExperience must contain the renderer-specific imports.");
+  }
+}
+
+// Prove the reducer remains singular and renderer modules have no action path back into progression.
+function verifyJourneyVisualBoundary(shellSource, journeySource, canvasSource, sceneSource) {
+  if ((shellSource.match(/useReducer\s*\(/gu) ?? []).length !== 1) {
+    throw new Error("SanctuaryShell must own exactly one journey reducer.");
+  }
+
+  if (journeySource.includes("useReducer") || canvasSource.includes("dispatch")) {
+    throw new Error(
+      "JourneyExperience and CanvasExperience must not create or advance journey state.",
+    );
+  }
+
+  if (sceneSource.includes("dispatch") || sceneSource.includes("transitionJourney")) {
+    throw new Error("RealmScene must remain a read-only visual projection.");
+  }
+}
+
+// Require both CSS and renderer motion paths to keep an intentional reduced-motion behavior.
+function verifyMotionBoundary(cssSource, sceneSource) {
+  if (!cssSource.includes("@media (prefers-reduced-motion: reduce)")) {
+    throw new Error("Sanctuary CSS must preserve a reduced-motion composition.");
+  }
+
+  if (!sceneSource.includes("if (reducedMotion)")) {
+    throw new Error("RealmScene must settle immediately when reduced motion is requested.");
+  }
+}
+
+// Keep local visual-check fragments out of production behavior while retaining repeatable browser evidence.
+function verifyLocalVisualChecks(capabilitySource) {
+  if (!capabilitySource.includes("import.meta.env.DEV")) {
+    throw new Error("Local visual-check fragments must remain development-only.");
   }
 }
 
@@ -88,5 +130,15 @@ verifyLoopbackViteSettings(readRepositoryFile(viteConfigPath));
 verifyAsynchronousRendererBoundary(
   readRepositoryFile(viewportPath),
   readRepositoryFile(canvasExperiencePath),
+);
+verifyJourneyVisualBoundary(
+  readRepositoryFile(sanctuaryShellPath),
+  readRepositoryFile(journeyExperiencePath),
+  readRepositoryFile(canvasExperiencePath),
+  readRepositoryFile(realmScenePath),
+);
+verifyMotionBoundary(readRepositoryFile(sanctuaryCssPath), readRepositoryFile(realmScenePath));
+verifyLocalVisualChecks(
+  readRepositoryFile(resolve(repositoryRoot, "apps/sanctuary/src/rendering/capabilities.ts")),
 );
 console.log("Bootstrap configuration checks passed.");

@@ -5,17 +5,11 @@
  * Notes: Choices shape the immediate reflection beat, not a visitor's worth or a lasting profile.
  */
 
-// Import React's native local-state tools and type-only journey content/model contracts.
-import { useEffect, useReducer, useRef, type ReactNode } from "react";
+// Import React's focus tools and type-only journey content/model contracts.
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { choiceReflections, peaceScripture } from "./content";
-import {
-  initialJourneyState,
-  transitionJourney,
-  type JourneyAction,
-  type JourneyState,
-  type PeaceChoice,
-} from "./model";
+import { type JourneyAction, type JourneyState, type PeaceChoice } from "./model";
 
 // Describe one display choice without assigning a score, rank, or hidden meaning.
 interface ChoiceButton {
@@ -159,13 +153,24 @@ function JourneyStageContent({
   }
 }
 
-// Keep the journey in React memory and place focus on the changed state heading after an intentional action.
-export function JourneyExperience() {
-  const [state, dispatch] = useReducer(transitionJourney, initialJourneyState);
+// Describe the controlled semantic surface without exposing any renderer concern to journey content.
+interface JourneyExperienceProps {
+  readonly state: JourneyState;
+  readonly dispatch: (action: JourneyAction) => void;
+}
+
+// Place focus on the changed stage heading while the parent retains the one authoritative reducer.
+export function JourneyExperience({ state, dispatch }: JourneyExperienceProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const hasMounted = useRef(false);
 
   useEffect(() => {
-    headingRef.current?.focus();
+    // Leave ordinary document focus untouched on arrival, then announce intentional stage changes.
+    if (hasMounted.current) {
+      headingRef.current?.focus();
+    } else {
+      hasMounted.current = true;
+    }
   }, [state.stage]);
 
   return (

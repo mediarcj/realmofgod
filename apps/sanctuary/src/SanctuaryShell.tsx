@@ -5,30 +5,38 @@
  * Notes: This component has no account, prayer-input, persistence, provider, or network behavior.
  */
 
-// Import the visual boundary without allowing rendering-library code to spread through the document UI.
-import { ExperienceViewport } from "./rendering/ExperienceViewport";
+// Import React's one local reducer together with the semantic journey and lazy visual boundary.
+import { useReducer } from "react";
+
 import { JourneyExperience } from "./journey/JourneyExperience";
+import { deriveJourneyVisualState, initialJourneyState, transitionJourney } from "./journey/model";
+import { ExperienceViewport } from "./rendering/ExperienceViewport";
 
-// Keep the primary sanctuary content semantic and readable before the optional visual environment.
+// Keep one journey state authoritative while the DOM and decorative background receive narrow views of it.
 export function SanctuaryShell() {
+  const [journeyState, dispatch] = useReducer(transitionJourney, initialJourneyState);
+  const visualState = deriveJourneyVisualState(journeyState);
+
   return (
-    <main className="sanctuary-shell" aria-labelledby="sanctuary-title">
-      <section className="sanctuary-introduction">
-        <p className="sanctuary-name">Realm of God</p>
-        <h1 id="sanctuary-title">A quiet place to pause and reflect.</h1>
-        <p className="sanctuary-summary">
-          This is an anonymous contemplative sanctuary. Its visual environment is optional; the
-          words and structure remain available without graphics.
-        </p>
-      </section>
+    <main
+      className={`sanctuary-shell sanctuary-shell--${journeyState.stage}`}
+      aria-labelledby="sanctuary-title"
+    >
+      <ExperienceViewport visualState={visualState} />
 
-      <ExperienceViewport />
+      <div className="sanctuary-content">
+        <header className="sanctuary-introduction">
+          <p className="sanctuary-name">Realm of God</p>
+          <h1 id="sanctuary-title">A place to be still.</h1>
+          <p className="sanctuary-summary">Enter slowly. Nothing here asks you to hurry.</p>
+        </header>
 
-      <JourneyExperience />
+        <JourneyExperience state={journeyState} dispatch={dispatch} />
 
-      <aside className="sanctuary-note" aria-label="Local sanctuary status">
-        <p>No account, prayer entry, saved content, or browser persistence is active here.</p>
-      </aside>
+        <aside className="sanctuary-note" aria-label="Private visit status">
+          <p>This visit is anonymous. Nothing you choose here is saved.</p>
+        </aside>
+      </div>
     </main>
   );
 }

@@ -8,9 +8,15 @@
 // Import React hooks only for the local browser preference lifecycle.
 import { useEffect, useState } from "react";
 
+import { readLocalVisualCheck } from "./capabilities";
+
 // Read the media query defensively so a non-browser render remains calm by default.
 export function readReducedMotionPreference(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return true;
+  }
+
+  if (readLocalVisualCheck() === "reduced-motion") {
     return true;
   }
 
