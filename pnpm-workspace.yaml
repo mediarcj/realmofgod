@@ -27,7 +27,12 @@ minimumReleaseAgeExclude:
   - miniflare@5.20260811.1-alpha
   - wrangler@4.123.0
 
-# Permit only the native tool packages required by the approved Vite and Worker bootstrap.
+# Keep the exact glTF Transform CLI while replacing its vulnerable Sharp range with the patched line.
+overrides:
+  "@gltf-transform/cli>sharp": 0.35.2
+
+# Permit only reviewed native tools used by the application and offline asset pipeline.
 allowBuilds:
   esbuild: true
+  sharp: true
   workerd: true

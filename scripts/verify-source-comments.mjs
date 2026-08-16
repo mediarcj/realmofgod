@@ -23,6 +23,7 @@ const commentCapableExtensions = new Set([
   ".jsonc",
   ".mjs",
   ".md",
+  ".py",
   ".ts",
   ".tsx",
   ".yaml",

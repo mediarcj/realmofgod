@@ -1,17 +1,18 @@
 /**
  * File: apps/sanctuary/src/rendering/RealmScene.tsx
- * Description: Builds the original procedural wooden refuge and grounded woodland peace journey.
- * Purpose: Gives the approved journey a recognizable local visual home without remote art or game controls.
- * Notes: The scene is decorative, first-person, low-complexity, and contains no readable book text.
+ * Description: Composes the authored timber refuge with the existing temporary woodland peace journey.
+ * Purpose: Gives the DOM-led journey a tactile local hero room while preserving its lightweight outdoor branches.
+ * Notes: The renderer receives read-only stage and choice values and contains no text, controls, or persistence.
  */
 
-// Import only renderer-local frame access, React helpers, and Three primitives used by this scene.
+// Import only renderer-local frame access, React helpers, and Three values used by this scene composition.
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { Group, MathUtils, Vector3 } from "three";
 
 import type { JourneyVisualState, PeaceChoice } from "../journey/model";
 import { shouldAnimateAtmosphere } from "./capabilities";
+import { Hf01SanctuaryAsset } from "./Hf01SanctuaryAsset";
 
 // Keep positions explicit and deterministic so the same small woodland is composed on every visit.
 type Position = [number, number, number];
@@ -42,11 +43,11 @@ function cameraDestination(visualState: JourneyVisualState): {
 } {
   switch (visualState.stage) {
     case "entry":
-      return { position: [0, 1.65, 5.3], target: [0, 1.05, 0.15] };
+      return { position: [-1.2, 1.72, -1.25], target: [0.65, 0.95, 0.55] };
     case "threshold":
-      return { position: [0.35, 1.65, 4.45], target: [0, 1.35, -2.8] };
+      return { position: [-0.15, 1.62, -0.62], target: [0, 1.35, -2.45] };
     case "movement":
-      return { position: [0, 1.68, -1.6], target: [0, 1.35, -8] };
+      return { position: [0, 1.68, -2.7], target: [0, 1.35, -8] };
     case "choice":
       return { position: [0, 1.62, -7.2], target: [0, 1.25, -13.8] };
     case "reflection":
@@ -56,7 +57,7 @@ function cameraDestination(visualState: JourneyVisualState): {
     case "stillness":
       return { position: [-0.1, 1.5, -12.9], target: [0, 1.18, -18.4] };
     case "sanctuary":
-      return { position: [-0.2, 1.62, 5], target: [0, 1.03, 0.2] };
+      return { position: [-1.2, 1.72, -1.25], target: [0.65, 0.95, 0.55] };
   }
 }
 
@@ -77,7 +78,7 @@ function choiceDestination(choice: PeaceChoice | null): {
   }
 }
 
-// Build one stylized evergreen from inexpensive geometry and grounded natural colors.
+// Build one temporary evergreen used only after leaving the authored hero sanctuary.
 function WoodlandTree({ position, scale, tone }: TreeSpec) {
   const foliage = tone === "near" ? "#244b38" : "#2f5142";
   const lowerFoliage = tone === "near" ? "#173b2b" : "#29483a";
@@ -100,99 +101,7 @@ function WoodlandTree({ position, scale, tone }: TreeSpec) {
   );
 }
 
-// Compose the intimate refuge from simple timber planes, beams, and a clear outdoor opening.
-function WoodenSanctuary() {
-  return (
-    <group>
-      <mesh position={[0, -0.08, 2]}>
-        <boxGeometry args={[8, 0.16, 8]} />
-        <meshStandardMaterial color="#5b3a24" roughness={0.92} />
-      </mesh>
-
-      {/* Narrow floor boards create timber rhythm without a texture download. */}
-      {[-3.5, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5].map((x) => (
-        <mesh key={x} position={[x, 0.015, 2]}>
-          <boxGeometry args={[0.94, 0.035, 7.9]} />
-          <meshStandardMaterial color={x % 2 === 0 ? "#6a452b" : "#704a2e"} roughness={1} />
-        </mesh>
-      ))}
-
-      {/* Side walls and back wall keep the refuge small while leaving the doorway open to nature. */}
-      <mesh position={[-4, 1.9, 2]}>
-        <boxGeometry args={[0.2, 3.8, 8]} />
-        <meshStandardMaterial color="#51331f" roughness={1} />
-      </mesh>
-      <mesh position={[4, 1.9, 2]}>
-        <boxGeometry args={[0.2, 3.8, 8]} />
-        <meshStandardMaterial color="#51331f" roughness={1} />
-      </mesh>
-      <mesh position={[0, 1.9, 6]}>
-        <boxGeometry args={[8, 3.8, 0.2]} />
-        <meshStandardMaterial color="#4a2f1d" roughness={1} />
-      </mesh>
-
-      {/* Structural beams frame the room and the natural opening without ornament or spectacle. */}
-      {[-3.7, 3.7].map((x) => (
-        <mesh key={x} position={[x, 2.05, 2]}>
-          <boxGeometry args={[0.32, 4.1, 0.32]} />
-          <meshStandardMaterial color="#2d1d14" roughness={0.95} />
-        </mesh>
-      ))}
-      {[-2.2, 2.2].map((x) => (
-        <mesh key={x} position={[x, 1.75, -1.9]}>
-          <boxGeometry args={[0.35, 3.5, 0.35]} />
-          <meshStandardMaterial color="#352116" roughness={0.95} />
-        </mesh>
-      ))}
-      <mesh position={[0, 3.45, -1.9]}>
-        <boxGeometry args={[4.75, 0.38, 0.38]} />
-        <meshStandardMaterial color="#352116" roughness={0.95} />
-      </mesh>
-      <mesh position={[0, 3.75, 2]}>
-        <boxGeometry args={[8, 0.26, 0.34]} />
-        <meshStandardMaterial color="#2f1e14" roughness={1} />
-      </mesh>
-
-      <SanctuaryTable />
-    </group>
-  );
-}
-
-// Place a short grounded table and a quiet open book at the center of the refuge composition.
-function SanctuaryTable() {
-  return (
-    <group position={[0, 0, 0.75]}>
-      <mesh position={[0, 0.82, 0]}>
-        <boxGeometry args={[1.75, 0.16, 0.9]} />
-        <meshStandardMaterial color="#744929" roughness={0.88} />
-      </mesh>
-      {[-0.68, 0.68].flatMap((x) =>
-        [-0.3, 0.3].map((z) => (
-          <mesh key={[x, z].join(":")} position={[x, 0.39, z]}>
-            <boxGeometry args={[0.13, 0.78, 0.13]} />
-            <meshStandardMaterial color="#4b2e1c" roughness={1} />
-          </mesh>
-        )),
-      )}
-
-      {/* Two unmarked page forms suggest an open Bible without displaying unapproved wording. */}
-      <mesh position={[-0.34, 0.94, 0]} rotation={[-0.06, 0.08, 0.035]}>
-        <boxGeometry args={[0.68, 0.055, 0.58]} />
-        <meshStandardMaterial color="#d8cda9" roughness={0.95} />
-      </mesh>
-      <mesh position={[0.34, 0.94, 0]} rotation={[-0.06, -0.08, -0.035]}>
-        <boxGeometry args={[0.68, 0.055, 0.58]} />
-        <meshStandardMaterial color="#d8cda9" roughness={0.95} />
-      </mesh>
-      <mesh position={[0, 0.9, 0.02]}>
-        <boxGeometry args={[1.5, 0.045, 0.66]} />
-        <meshStandardMaterial color="#3e2619" roughness={0.9} />
-      </mesh>
-    </group>
-  );
-}
-
-// Build a narrow earth path, low ground forms, and layered trees beyond the refuge doorway.
+// Build the existing narrow earth path and woodland only when the journey is physically outdoors.
 function Woodland() {
   return (
     <group>
@@ -219,7 +128,7 @@ function Woodland() {
   );
 }
 
-// Coordinate camera settling and almost-imperceptible natural movement from the read-only journey view.
+// Coordinate camera settling and almost-imperceptible woodland movement from the read-only journey view.
 export function RealmScene({
   reducedMotion,
   visualState,
@@ -229,7 +138,7 @@ export function RealmScene({
 }) {
   const woodlandRef = useRef<Group>(null);
   const elapsedRef = useRef(0);
-  const currentLookTarget = useRef(new Vector3(0, 1.05, 0.15));
+  const currentLookTarget = useRef(new Vector3(0.75, 1.1, 0.7));
   const { camera } = useThree();
   const destination = useMemo(() => cameraDestination(visualState), [visualState]);
   const desiredPosition = useMemo(
@@ -241,6 +150,12 @@ export function RealmScene({
     visualState.stage === "scripture" ||
     visualState.stage === "stillness" ||
     (visualState.stage === "reflection" && visualState.choice === "listen");
+  const outdoors =
+    visualState.stage === "movement" ||
+    visualState.stage === "choice" ||
+    visualState.stage === "reflection" ||
+    visualState.stage === "scripture" ||
+    visualState.stage === "stillness";
 
   // Reduced motion moves immediately to each stable composition instead of traveling between states.
   useEffect(() => {
@@ -251,49 +166,49 @@ export function RealmScene({
     }
   }, [camera, desiredPosition, desiredTarget, reducedMotion]);
 
-  // Full motion eases toward the newest state and safely changes course when the visitor advances quickly.
+  // Full motion eases from the fresh threshold camera and safely changes course on an early journey action.
   useFrame(({ camera: frameCamera }, delta) => {
     if (!reducedMotion) {
       frameCamera.position.x = MathUtils.damp(
         frameCamera.position.x,
         desiredPosition.x,
-        1.15,
+        0.9,
         delta,
       );
       frameCamera.position.y = MathUtils.damp(
         frameCamera.position.y,
         desiredPosition.y,
-        1.15,
+        0.9,
         delta,
       );
       frameCamera.position.z = MathUtils.damp(
         frameCamera.position.z,
         desiredPosition.z,
-        1.15,
+        0.9,
         delta,
       );
       currentLookTarget.current.x = MathUtils.damp(
         currentLookTarget.current.x,
         desiredTarget.x,
-        1.25,
+        1.05,
         delta,
       );
       currentLookTarget.current.y = MathUtils.damp(
         currentLookTarget.current.y,
         desiredTarget.y,
-        1.25,
+        1.05,
         delta,
       );
       currentLookTarget.current.z = MathUtils.damp(
         currentLookTarget.current.z,
         desiredTarget.z,
-        1.25,
+        1.05,
         delta,
       );
       frameCamera.lookAt(currentLookTarget.current);
     }
 
-    // Let the woodland breathe only when motion is allowed and the current state is not asking for quiet.
+    // Let the temporary woodland breathe only when motion is allowed and the current state is not asking for quiet.
     if (
       woodlandRef.current !== null &&
       shouldAnimateAtmosphere(reducedMotion) &&
@@ -304,29 +219,26 @@ export function RealmScene({
     }
   });
 
-  const outdoors =
-    visualState.stage === "movement" ||
-    visualState.stage === "choice" ||
-    visualState.stage === "reflection" ||
-    visualState.stage === "scripture" ||
-    visualState.stage === "stillness";
-
   return (
     <>
-      <color attach="background" args={[outdoors ? "#172a23" : "#241810"]} />
-      <fog attach="fog" args={[outdoors ? "#304a3f" : "#35251a", 8, 34]} />
-      <hemisphereLight args={["#d9d0ac", "#17251d", outdoors ? 1.15 : 0.72]} />
-      <directionalLight color="#f0c982" intensity={outdoors ? 1.75 : 1.25} position={[5, 8, 2]} />
-      <pointLight
-        color="#e5a965"
-        intensity={outdoors ? 0.35 : 2.1}
-        distance={10}
-        position={[-1.8, 2.5, 1.8]}
+      <color attach="background" args={[outdoors ? "#172a23" : "#17100c"]} />
+      <fog attach="fog" args={[outdoors ? "#304a3f" : "#2b1d15", 8, 34]} />
+      <hemisphereLight args={["#d9cfb0", "#111b16", outdoors ? 1.05 : 0.48]} />
+      <directionalLight
+        castShadow
+        color="#f0c982"
+        intensity={outdoors ? 1.5 : 0.82}
+        position={[4.5, 7.5, 1.5]}
+        shadow-bias={-0.00035}
+        shadow-mapSize-height={1024}
+        shadow-mapSize-width={1024}
       />
-      <WoodenSanctuary />
-      <group ref={woodlandRef}>
-        <Woodland />
-      </group>
+      <Hf01SanctuaryAsset reducedMotion={reducedMotion} visualState={visualState} />
+      {outdoors ? (
+        <group ref={woodlandRef}>
+          <Woodland />
+        </group>
+      ) : null}
     </>
   );
 }

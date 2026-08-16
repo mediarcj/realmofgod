@@ -12,6 +12,8 @@ import { dirname, resolve } from "node:path";
 
 // Resolve paths from this file so invoking the script from another directory cannot change its scope.
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const workspacePackagePath = resolve(repositoryRoot, "package.json");
+const workspaceDefinitionPath = resolve(repositoryRoot, "pnpm-workspace.yaml");
 const packagePath = resolve(repositoryRoot, "apps/sanctuary/package.json");
 const viteConfigPath = resolve(repositoryRoot, "apps/sanctuary/vite.config.ts");
 const viewportPath = resolve(repositoryRoot, "apps/sanctuary/src/rendering/ExperienceViewport.tsx");
@@ -20,6 +22,10 @@ const canvasExperiencePath = resolve(
   "apps/sanctuary/src/rendering/CanvasExperience.tsx",
 );
 const realmScenePath = resolve(repositoryRoot, "apps/sanctuary/src/rendering/RealmScene.tsx");
+const hf01AssetAdapterPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/Hf01SanctuaryAsset.tsx",
+);
 const sanctuaryShellPath = resolve(repositoryRoot, "apps/sanctuary/src/SanctuaryShell.tsx");
 const journeyExperiencePath = resolve(
   repositoryRoot,
@@ -54,6 +60,42 @@ function verifyExactRenderingPins(sanctuaryPackage) {
   }
 }
 
+// Keep the offline asset CLI development-only and reject optional runtime libraries outside this scope.
+function verifyAssetToolingBoundary(workspacePackage, sanctuaryPackage) {
+  if (workspacePackage.devDependencies?.["@gltf-transform/cli"] !== "4.4.2") {
+    throw new Error("@gltf-transform/cli must remain an exact workspace development pin at 4.4.2.");
+  }
+
+  const forbiddenPackages = [
+    "@react-three/drei",
+    "@theatre/core",
+    "@theatre/studio",
+    "@react-spring/three",
+    "@react-three/postprocessing",
+    "framer-motion",
+    "gsap",
+    "motion",
+  ];
+  const allDependencies = {
+    ...workspacePackage.dependencies,
+    ...workspacePackage.devDependencies,
+    ...sanctuaryPackage.dependencies,
+    ...sanctuaryPackage.devDependencies,
+  };
+  for (const packageName of forbiddenPackages) {
+    if (packageName in allDependencies) {
+      throw new Error(`${packageName} is outside the approved sanctuary asset scope.`);
+    }
+  }
+}
+
+// Keep the reviewed image processor override explicit until the pinned asset CLI adopts a patched range.
+function verifyAssetToolingOverride(workspaceDefinition) {
+  if (!workspaceDefinition.includes('"@gltf-transform/cli>sharp": 0.35.2')) {
+    throw new Error("The glTF Transform Sharp override must remain pinned exactly to 0.35.2.");
+  }
+}
+
 // Require explicit loopback settings and prevent convenience configuration from reopening a public host.
 function verifyLoopbackViteSettings(viteConfig) {
   const requiredFragments = [
@@ -85,6 +127,31 @@ function verifyAsynchronousRendererBoundary(viewportSource, canvasExperienceSour
     !canvasExperienceSource.includes("./RealmScene")
   ) {
     throw new Error("CanvasExperience must contain the renderer-specific imports.");
+  }
+}
+
+// Require the optimized GLB and Meshopt decoder to remain local and inside the lazy renderer module graph.
+function verifyAuthoredAssetBoundary(viewportSource, assetAdapterSource) {
+  if (!assetAdapterSource.includes("realm-hf01-sanctuary.glb?url")) {
+    throw new Error(
+      "HF-01 must load the repository-owned production GLB through Vite's local URL import.",
+    );
+  }
+  if (!assetAdapterSource.includes("three/addons/libs/meshopt_decoder.module.js")) {
+    throw new Error(
+      "HF-01 must use the local Meshopt decoder bundled with the pinned Three.js package.",
+    );
+  }
+  if (/https?:\/\/|\bdispatch\s*\(|\btransitionJourney\b/iu.test(assetAdapterSource)) {
+    throw new Error("The HF-01 asset adapter must have no remote URL or journey-action authority.");
+  }
+  if (assetAdapterSource.includes("uncacheRoot")) {
+    throw new Error("HF-01 must preserve mixer bindings across React development effect replay.");
+  }
+  if (viewportSource.includes("Hf01SanctuaryAsset") || viewportSource.includes(".glb")) {
+    throw new Error(
+      "The lightweight viewport must not eagerly import the production sanctuary asset.",
+    );
   }
 }
 
@@ -125,11 +192,18 @@ function verifyLocalVisualChecks(capabilitySource) {
 
 // Parse and validate the small package contract before reporting one clear success line.
 const sanctuaryPackage = JSON.parse(readRepositoryFile(packagePath));
+const workspacePackage = JSON.parse(readRepositoryFile(workspacePackagePath));
 verifyExactRenderingPins(sanctuaryPackage);
+verifyAssetToolingBoundary(workspacePackage, sanctuaryPackage);
+verifyAssetToolingOverride(readRepositoryFile(workspaceDefinitionPath));
 verifyLoopbackViteSettings(readRepositoryFile(viteConfigPath));
 verifyAsynchronousRendererBoundary(
   readRepositoryFile(viewportPath),
   readRepositoryFile(canvasExperiencePath),
+);
+verifyAuthoredAssetBoundary(
+  readRepositoryFile(viewportPath),
+  readRepositoryFile(hf01AssetAdapterPath),
 );
 verifyJourneyVisualBoundary(
   readRepositoryFile(sanctuaryShellPath),

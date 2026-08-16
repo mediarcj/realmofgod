@@ -2,7 +2,7 @@
  * File: apps/sanctuary/src/sanctuary.css
  * Description: Composes the full-surface sanctuary, semantic journey controls, and state-aware CSS atmosphere.
  * Purpose: Keeps the experience readable, grounded, and emotionally coherent with or without WebGL.
- * Notes: Every visual is locally authored with CSS or procedural geometry; no remote resource is loaded.
+ * Notes: Every visual is locally authored with CSS, a project-owned GLB, or temporary outdoor geometry; no remote resource is loaded.
  */
 
 /* Define a warm timber-and-forest palette without importing fonts or visual resources. */
@@ -119,7 +119,7 @@ select {
   box-shadow: 0 0 5rem rgb(239 183 94 / 18%);
 }
 
-/* A low table and open unmarked book keep the visual home recognizable in the no-WebGL path. */
+/* A low table and blank resting book keep the visual home recognizable in the no-WebGL path. */
 .experience-fallback::after {
   right: 42%;
   bottom: 14%;
@@ -129,8 +129,10 @@ select {
   border-right: 0.55rem solid #4b2e1d;
   border-left: 0.55rem solid #4b2e1d;
   background:
-    linear-gradient(160deg, transparent 27%, #d8cba5 28% 43%, transparent 44%),
-    linear-gradient(200deg, transparent 27%, #e1d6b5 28% 43%, transparent 44%);
+    linear-gradient(150deg, transparent 24%, #d8cba5 25% 58%, transparent 59%) left center / 52%
+      100% no-repeat,
+    linear-gradient(210deg, transparent 24%, #e1d6b5 25% 58%, transparent 59%) right center / 52%
+      100% no-repeat;
 }
 
 /* Threshold keeps the same refuge while making its outdoor opening compositionally clearer. */
