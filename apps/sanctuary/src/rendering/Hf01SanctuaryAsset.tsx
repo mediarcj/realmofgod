@@ -24,6 +24,7 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import sanctuaryAssetUrl from "../assets/production/realm-hf01-sanctuary.glb?url";
 import type { JourneyVisualState } from "../journey/model";
 import { type Hf01ClipCommand, selectHf01MotionPlan } from "./hf01Motion";
+import { readLocalVisualCheck, type RendererVerificationStage } from "./capabilities";
 
 const doorClipName = "Realm_Door_Close";
 const bibleClipName = "Realm_Bible_Settle_Open";
@@ -68,15 +69,28 @@ function applyClipCommand(action: AnimationAction, command: Hf01ClipCommand): vo
   }
 }
 
+// Hold an authored clip at one exact review pose without creating a second animation path.
+function showClipFraction(action: AnimationAction, fraction: number): void {
+  action.reset();
+  action.enabled = true;
+  action.clampWhenFinished = true;
+  action.setLoop(LoopOnce, 1);
+  action.play();
+  action.time = action.getClip().duration * fraction;
+  action.paused = true;
+}
+
 // Mark only important foreground meshes as shadow casters while letting every solid receive soft shade.
-function prepareScene(source: Object3D): Object3D {
+function prepareScene(source: Object3D, dynamicShadows: boolean): Object3D {
   const clone = source.clone(true);
   clone.traverse((object) => {
     if (object instanceof Mesh) {
-      object.receiveShadow = true;
-      object.castShadow = /Bible|Door|PrayerTable|Cushion/iu.test(object.name);
+      object.receiveShadow = dynamicShadows;
+      object.castShadow = dynamicShadows && /Bible|Door|PrayerTable|Cushion/iu.test(object.name);
     }
     if (object instanceof Light) {
+      // Runtime lights are intentionally bounded; Blender review lights are too strong for WebGL units.
+      object.visible = false;
       object.castShadow = false;
     }
   });
@@ -90,14 +104,22 @@ function configureLoader(loader: GLTFLoader): void {
 
 // Render the physical sanctuary and keep its decorative lifecycle subordinate to the current journey stage.
 export function Hf01SanctuaryAsset({
+  onReady,
   reducedMotion,
+  rendererVerificationStage,
   visualState,
 }: {
+  readonly onReady: () => void;
   readonly reducedMotion: boolean;
+  readonly rendererVerificationStage: RendererVerificationStage;
   readonly visualState: JourneyVisualState;
 }) {
   const gltf = useLoader(GLTFLoader, sanctuaryAssetUrl, configureLoader) as GLTF;
-  const authoredScene = useMemo(() => prepareScene(gltf.scene), [gltf.scene]);
+  const dynamicShadows = rendererVerificationStage === "e";
+  const authoredScene = useMemo(
+    () => prepareScene(gltf.scene, dynamicShadows),
+    [dynamicShadows, gltf.scene],
+  );
   const mixer = useMemo(() => new AnimationMixer(authoredScene), [authoredScene]);
   const freshArrivalAvailable = useRef(true);
 
@@ -109,8 +131,40 @@ export function Hf01SanctuaryAsset({
     };
   }, [gltf.animations, mixer]);
 
+  // Tell the camera boundary when the local scene and its required clips are ready for a synchronized reveal.
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
+
   // Resolve arrival, interruption, departure, and return poses from the read-only journey projection.
   useEffect(() => {
+    const localVisualCheck = readLocalVisualCheck();
+    if (localVisualCheck === "door-mid") {
+      showClipFraction(actions.door, 0.82);
+      showClipFraction(actions.bible, 0);
+      mixer.update(0);
+      return;
+    }
+    if (localVisualCheck === "bible-partial") {
+      showClipFraction(actions.door, 1);
+      showClipFraction(actions.bible, 0.52);
+      mixer.update(0);
+      return;
+    }
+    if (localVisualCheck === "bible-open") {
+      showClipFraction(actions.door, 1);
+      showClipFraction(actions.bible, 1);
+      mixer.update(0);
+      return;
+    }
+
+    if (rendererVerificationStage === "b" || rendererVerificationStage === "c") {
+      actions.door.stop();
+      actions.bible.stop();
+      mixer.update(0);
+      return;
+    }
+
     const plan = selectHf01MotionPlan({
       stage: visualState.stage,
       reducedMotion,
@@ -123,11 +177,13 @@ export function Hf01SanctuaryAsset({
     applyClipCommand(actions.door, plan.door);
     applyClipCommand(actions.bible, plan.bible);
     mixer.update(0);
-  }, [actions, mixer, reducedMotion, visualState.stage]);
+  }, [actions, mixer, reducedMotion, rendererVerificationStage, visualState.stage]);
 
   // Advance only authored decorative clips; the mixer cannot dispatch or alter journey state.
   useFrame((_, delta) => {
-    mixer.update(Math.min(delta, 0.05));
+    if (rendererVerificationStage !== "b" && rendererVerificationStage !== "c") {
+      mixer.update(Math.min(delta, 0.05));
+    }
   });
 
   // Stop decorative actions on teardown while allowing React's development effect replay to reuse bindings.
@@ -137,6 +193,6 @@ export function Hf01SanctuaryAsset({
     };
   }, [mixer]);
 
-  // Turn Blender's authored depth toward the existing journey path and reserve the left side for DOM copy.
-  return <primitive object={authoredScene} position={[1.6, 0, 0]} rotation={[0, Math.PI, 0]} />;
+  // glTF already converts Blender's coordinate system, so preserve the authored world transform exactly.
+  return <primitive object={authoredScene} />;
 }

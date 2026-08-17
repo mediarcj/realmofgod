@@ -27,6 +27,7 @@ const hf01AssetAdapterPath = resolve(
   "apps/sanctuary/src/rendering/Hf01SanctuaryAsset.tsx",
 );
 const sanctuaryShellPath = resolve(repositoryRoot, "apps/sanctuary/src/SanctuaryShell.tsx");
+const sanctuaryMainPath = resolve(repositoryRoot, "apps/sanctuary/src/main.tsx");
 const journeyExperiencePath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/journey/JourneyExperience.tsx",
@@ -130,6 +131,46 @@ function verifyAsynchronousRendererBoundary(viewportSource, canvasExperienceSour
   }
 }
 
+// Keep renderer recovery explicit and reject the two initialization options implicated in fragile Chrome sessions.
+function verifyRendererRecoveryBoundary(viewportSource, canvasExperienceSource) {
+  for (const requiredFragment of [
+    "webglcontextlost",
+    "creation-unavailable",
+    "onRendererFailure",
+  ]) {
+    if (!canvasExperienceSource.includes(requiredFragment)) {
+      throw new Error(`CanvasExperience must preserve ${requiredFragment} recovery behavior.`);
+    }
+  }
+
+  for (const forbiddenFragment of [
+    "preserveDrawingBuffer",
+    'powerPreference: "high-performance"',
+  ]) {
+    if (canvasExperienceSource.includes(forbiddenFragment)) {
+      throw new Error(`CanvasExperience must not force ${forbiddenFragment}.`);
+    }
+  }
+
+  if (!viewportSource.includes('rendererState === "failed"')) {
+    throw new Error(
+      "ExperienceViewport must replace a failed renderer with its stable CSS fallback.",
+    );
+  }
+}
+
+// Keep development from mounting a second GPU renderer while preserving ordinary automated checks elsewhere.
+function verifySingleRendererLifecycle(mainSource) {
+  if (mainSource.includes("StrictMode")) {
+    throw new Error(
+      "The sanctuary entry must not replay its WebGL mount through React StrictMode.",
+    );
+  }
+  if ((mainSource.match(/createRoot\s*\(/gu) ?? []).length !== 1) {
+    throw new Error("The sanctuary entry must create exactly one React root.");
+  }
+}
+
 // Require the optimized GLB and Meshopt decoder to remain local and inside the lazy renderer module graph.
 function verifyAuthoredAssetBoundary(viewportSource, assetAdapterSource) {
   if (!assetAdapterSource.includes("realm-hf01-sanctuary.glb?url")) {
@@ -178,7 +219,7 @@ function verifyMotionBoundary(cssSource, sceneSource) {
     throw new Error("Sanctuary CSS must preserve a reduced-motion composition.");
   }
 
-  if (!sceneSource.includes("if (reducedMotion)")) {
+  if (!sceneSource.includes("if (reducedMotion && authoredSceneReady)")) {
     throw new Error("RealmScene must settle immediately when reduced motion is requested.");
   }
 }
@@ -201,6 +242,11 @@ verifyAsynchronousRendererBoundary(
   readRepositoryFile(viewportPath),
   readRepositoryFile(canvasExperiencePath),
 );
+verifyRendererRecoveryBoundary(
+  readRepositoryFile(viewportPath),
+  readRepositoryFile(canvasExperiencePath),
+);
+verifySingleRendererLifecycle(readRepositoryFile(sanctuaryMainPath));
 verifyAuthoredAssetBoundary(
   readRepositoryFile(viewportPath),
   readRepositoryFile(hf01AssetAdapterPath),

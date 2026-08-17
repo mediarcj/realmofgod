@@ -5,16 +5,22 @@
  * Notes: Capability results stay in browser memory and are never sent to a server.
  */
 
-// Model only the one Canvas operation needed to test WebGL availability without reading identifiers.
-export interface GraphicsCanvasProbe {
-  getContext(contextId: "webgl" | "webgl2"): RenderingContext | null;
-}
-
 // Keep visual rendering choices small and explicit for components and tests.
 export type ExperienceMode = "canvas" | "fallback";
 
-// Name two fragment-only local checks that make otherwise hardware-dependent paths reproducible.
-export type LocalVisualCheck = "fallback" | "reduced-motion" | null;
+// Name the fragment-only local checks that make otherwise hardware-dependent paths reproducible.
+export type RendererVerificationStage = "a" | "b" | "c" | "d" | "e" | null;
+
+// Keep failure, motion, and renderer-isolation checks development-only and fragment-exact.
+export type LocalVisualCheck =
+  | "bible-open"
+  | "bible-partial"
+  | "context-loss"
+  | "door-mid"
+  | "fallback"
+  | "reduced-motion"
+  | `renderer-${Exclude<RendererVerificationStage, null>}`
+  | null;
 
 // Interpret only exact non-transmitted URL fragments and ignore every other value.
 export function selectLocalVisualCheck(fragment: string): LocalVisualCheck {
@@ -23,6 +29,24 @@ export function selectLocalVisualCheck(fragment: string): LocalVisualCheck {
       return "fallback";
     case "#verify-reduced-motion":
       return "reduced-motion";
+    case "#verify-context-loss":
+      return "context-loss";
+    case "#verify-door-mid":
+      return "door-mid";
+    case "#verify-bible-partial":
+      return "bible-partial";
+    case "#verify-bible-open":
+      return "bible-open";
+    case "#verify-renderer-a":
+      return "renderer-a";
+    case "#verify-renderer-b":
+      return "renderer-b";
+    case "#verify-renderer-c":
+      return "renderer-c";
+    case "#verify-renderer-d":
+      return "renderer-d";
+    case "#verify-renderer-e":
+      return "renderer-e";
     default:
       return null;
   }
@@ -37,15 +61,17 @@ export function readLocalVisualCheck(): LocalVisualCheck {
   return selectLocalVisualCheck(window.location.hash);
 }
 
-// Check for a usable standard WebGL context without asking the browser for renderer or device details.
-export function hasUsableGraphicsContext(createCanvas: () => GraphicsCanvasProbe): boolean {
-  try {
-    return (
-      createCanvas().getContext("webgl2") !== null || createCanvas().getContext("webgl") !== null
-    );
-  } catch {
-    return false;
-  }
+// Check for a standard browser WebGL API without creating a second, disposable GPU context.
+export function hasUsableGraphicsApi(webgl2Available: boolean, webgl1Available: boolean): boolean {
+  return webgl2Available || webgl1Available;
+}
+
+// Select one repeatable renderer-isolation stage without exposing a production debug control.
+export function readRendererVerificationStage(): RendererVerificationStage {
+  const localCheck = readLocalVisualCheck();
+  return localCheck?.startsWith("renderer-") === true
+    ? (localCheck.slice(-1) as Exclude<RendererVerificationStage, null>)
+    : null;
 }
 
 // Read capability locally when the browser document is available; non-browser rendering uses fallback.
@@ -58,7 +84,11 @@ export function detectGraphicsCapability(): boolean {
     return false;
   }
 
-  return hasUsableGraphicsContext(() => document.createElement("canvas"));
+  // The actual Canvas is the only context authority; its lifecycle reports creation failure and later loss.
+  return hasUsableGraphicsApi(
+    typeof WebGL2RenderingContext !== "undefined",
+    typeof WebGLRenderingContext !== "undefined",
+  );
 }
 
 // Select a Canvas only for capable browsers, leaving every other visitor with the document fallback.

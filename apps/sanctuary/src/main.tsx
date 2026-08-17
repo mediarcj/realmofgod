@@ -5,8 +5,7 @@
  * Notes: This bootstrap performs no storage, authentication, provider, or network work.
  */
 
-// Import only React, its local renderer, and sanctuary-owned source assets.
-import { StrictMode } from "react";
+// Import only React's local renderer and sanctuary-owned source assets.
 import { createRoot } from "react-dom/client";
 
 import { SanctuaryShell } from "./SanctuaryShell";
@@ -19,9 +18,5 @@ if (!(rootElement instanceof HTMLElement)) {
   throw new Error("Sanctuary root element is unavailable.");
 }
 
-// StrictMode surfaces unsafe React patterns during local development.
-createRoot(rootElement).render(
-  <StrictMode>
-    <SanctuaryShell />
-  </StrictMode>,
-);
+// Mount one renderer lifecycle so development checks do not create duplicate WebGL contexts.
+createRoot(rootElement).render(<SanctuaryShell />);

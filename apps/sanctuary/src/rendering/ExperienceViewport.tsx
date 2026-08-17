@@ -6,9 +6,10 @@
  */
 
 // Import React's local code-splitting helpers without importing the renderer into the initial bundle.
-import { Component, lazy, type ReactNode, Suspense, useState } from "react";
+import { Component, lazy, type ReactNode, Suspense, useCallback, useState } from "react";
 
 import type { JourneyVisualState } from "../journey/model";
+import type { RendererFailureReason } from "./CanvasExperience";
 import { detectGraphicsCapability, selectExperienceMode } from "./capabilities";
 import { useReducedMotion } from "./useReducedMotion";
 import { selectVisualAtmosphere } from "./visualAtmosphere";
@@ -20,6 +21,7 @@ const CanvasExperience = lazy(async () => import("./CanvasExperience"));
 interface ViewportErrorBoundaryProps {
   readonly children: ReactNode;
   readonly fallback: ReactNode;
+  readonly onFailure: (reason: "react-error") => void;
 }
 
 interface ViewportErrorBoundaryState {
@@ -35,6 +37,14 @@ class ViewportErrorBoundary extends Component<
 
   public static getDerivedStateFromError(): ViewportErrorBoundaryState {
     return { failed: true };
+  }
+
+  public override componentDidCatch(error: Error): void {
+    // Development diagnostics contain no visitor content and make local renderer recovery reproducible.
+    if (import.meta.env.DEV) {
+      console.error("The local sanctuary renderer entered its safe fallback.", error);
+    }
+    this.props.onFailure("react-error");
   }
 
   public override render(): ReactNode {
@@ -77,22 +87,53 @@ export function ExperienceViewport({
   readonly visualState: JourneyVisualState;
 }): ReactNode {
   const [experienceMode] = useState(() => selectExperienceMode(detectGraphicsCapability()));
+  const [rendererState, setRendererState] = useState<"failed" | "ready" | "starting">("starting");
+  const [rendererFailure, setRendererFailure] = useState<
+    RendererFailureReason | "react-error" | null
+  >(null);
+  const [rendererApi, setRendererApi] = useState<"webgl1" | "webgl2" | null>(null);
   const reducedMotion = useReducedMotion();
   const fallback = <ExperienceFallback visualState={visualState} />;
+  const handleRendererFailure = useCallback((reason: RendererFailureReason | "react-error") => {
+    setRendererFailure(reason);
+    setRendererState("failed");
+  }, []);
+  const handleRendererReady = useCallback((api: "webgl1" | "webgl2") => {
+    setRendererApi(api);
+    setRendererState("ready");
+  }, []);
 
-  if (experienceMode === "fallback") {
+  if (experienceMode === "fallback" || rendererState === "failed") {
     return (
-      <section className="experience-viewport" aria-hidden="true">
+      <section
+        className="experience-viewport"
+        data-reduced-motion={reducedMotion ? "true" : "false"}
+        data-renderer-failure={rendererFailure ?? undefined}
+        data-renderer-state={experienceMode === "fallback" ? "unavailable" : "failed"}
+        aria-hidden="true"
+      >
         {fallback}
       </section>
     );
   }
 
   return (
-    <section className="experience-viewport" aria-hidden="true">
-      <ViewportErrorBoundary fallback={fallback}>
+    <section
+      className="experience-viewport"
+      data-reduced-motion={reducedMotion ? "true" : "false"}
+      data-renderer-api={rendererApi ?? undefined}
+      data-renderer-state={rendererState}
+      aria-hidden="true"
+    >
+      <ViewportErrorBoundary fallback={fallback} onFailure={handleRendererFailure}>
         <Suspense fallback={<ExperienceLoading visualState={visualState} />}>
-          <CanvasExperience reducedMotion={reducedMotion} visualState={visualState} />
+          <CanvasExperience
+            fallback={fallback}
+            onRendererFailure={handleRendererFailure}
+            onRendererReady={handleRendererReady}
+            reducedMotion={reducedMotion}
+            visualState={visualState}
+          />
         </Suspense>
       </ViewportErrorBoundary>
     </section>

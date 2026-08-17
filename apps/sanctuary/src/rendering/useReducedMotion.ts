@@ -34,7 +34,8 @@ export function useReducedMotion(): boolean {
 
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const updatePreference = (): void => {
-      setReducedMotion(mediaQuery.matches);
+      // Preserve the exact development check while still following live visitor preference changes.
+      setReducedMotion(readReducedMotionPreference());
     };
 
     updatePreference();

@@ -7,11 +7,15 @@
 
 // Import only renderer-local frame access, React helpers, and Three values used by this scene composition.
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Group, MathUtils, Vector3 } from "three";
 
 import type { JourneyVisualState, PeaceChoice } from "../journey/model";
-import { shouldAnimateAtmosphere } from "./capabilities";
+import {
+  readLocalVisualCheck,
+  shouldAnimateAtmosphere,
+  type RendererVerificationStage,
+} from "./capabilities";
 import { Hf01SanctuaryAsset } from "./Hf01SanctuaryAsset";
 
 // Keep positions explicit and deterministic so the same small woodland is composed on every visit.
@@ -43,7 +47,7 @@ function cameraDestination(visualState: JourneyVisualState): {
 } {
   switch (visualState.stage) {
     case "entry":
-      return { position: [-1.2, 1.72, -1.25], target: [0.65, 0.95, 0.55] };
+      return { position: [-2.2, 1.65, -1.05], target: [0.7, 0.95, 0.55] };
     case "threshold":
       return { position: [-0.15, 1.62, -0.62], target: [0, 1.35, -2.45] };
     case "movement":
@@ -57,7 +61,7 @@ function cameraDestination(visualState: JourneyVisualState): {
     case "stillness":
       return { position: [-0.1, 1.5, -12.9], target: [0, 1.18, -18.4] };
     case "sanctuary":
-      return { position: [-1.2, 1.72, -1.25], target: [0.65, 0.95, 0.55] };
+      return { position: [-2.2, 1.65, -1.05], target: [0.7, 0.95, 0.55] };
   }
 }
 
@@ -131,14 +135,18 @@ function Woodland() {
 // Coordinate camera settling and almost-imperceptible woodland movement from the read-only journey view.
 export function RealmScene({
   reducedMotion,
+  rendererVerificationStage,
   visualState,
 }: {
   readonly reducedMotion: boolean;
+  readonly rendererVerificationStage: RendererVerificationStage;
   readonly visualState: JourneyVisualState;
 }) {
   const woodlandRef = useRef<Group>(null);
   const elapsedRef = useRef(0);
+  const arrivalElapsedRef = useRef(0);
   const currentLookTarget = useRef(new Vector3(0.75, 1.1, 0.7));
+  const [authoredSceneReady, setAuthoredSceneReady] = useState(false);
   const { camera } = useThree();
   const destination = useMemo(() => cameraDestination(visualState), [visualState]);
   const desiredPosition = useMemo(
@@ -156,35 +164,78 @@ export function RealmScene({
     visualState.stage === "reflection" ||
     visualState.stage === "scripture" ||
     visualState.stage === "stillness";
+  const bareCanvas = rendererVerificationStage === "a";
+  const staticRuntimeLights =
+    rendererVerificationStage !== "a" && rendererVerificationStage !== "b";
+  const dynamicShadows = rendererVerificationStage === "e";
+  const localVisualCheck = readLocalVisualCheck();
+  const fixedDoorReview = localVisualCheck === "door-mid";
+  const fixedBibleReview =
+    localVisualCheck === "bible-partial" || localVisualCheck === "bible-open";
+
+  // Synchronize the authored door motion with a fresh threshold camera instead of moving behind a loading fallback.
+  const handleAuthoredSceneReady = useCallback(() => {
+    if (fixedBibleReview) {
+      camera.position.set(-2.2, 1.65, -1.05);
+      currentLookTarget.current.set(0.7, 0.95, 0.55);
+    } else {
+      camera.position.set(0, 1.68, -5.3);
+      currentLookTarget.current.set(0.65, 1, 0.55);
+    }
+    camera.lookAt(currentLookTarget.current);
+    arrivalElapsedRef.current = 0;
+    setAuthoredSceneReady(true);
+  }, [camera, fixedBibleReview]);
 
   // Reduced motion moves immediately to each stable composition instead of traveling between states.
   useEffect(() => {
-    if (reducedMotion) {
+    if (reducedMotion && authoredSceneReady) {
       camera.position.copy(desiredPosition);
       currentLookTarget.current.copy(desiredTarget);
       camera.lookAt(desiredTarget);
     }
-  }, [camera, desiredPosition, desiredTarget, reducedMotion]);
+  }, [authoredSceneReady, camera, desiredPosition, desiredTarget, reducedMotion]);
 
   // Full motion eases from the fresh threshold camera and safely changes course on an early journey action.
   useFrame(({ camera: frameCamera }, delta) => {
-    if (!reducedMotion) {
+    if (authoredSceneReady && !reducedMotion) {
+      // Development-only clip review poses keep the actual asset still at the matching authored camera.
+      if (fixedDoorReview || fixedBibleReview) {
+        frameCamera.lookAt(currentLookTarget.current);
+        return;
+      }
+
+      const isRoomArrival = visualState.stage === "entry" || visualState.stage === "sanctuary";
+      if (isRoomArrival) {
+        arrivalElapsedRef.current += delta;
+      }
+      const cameraCanEnter = !isRoomArrival || arrivalElapsedRef.current >= 1.15;
+      const cameraDamping = isRoomArrival ? 1.7 : 0.8;
+
+      // Hold at the visible threshold briefly, then enter before the authored door finishes closing.
+      if (!cameraCanEnter) {
+        frameCamera.position.set(0, 1.68, -5.3);
+        currentLookTarget.current.set(0.65, 1, 0.55);
+        frameCamera.lookAt(currentLookTarget.current);
+        return;
+      }
+
       frameCamera.position.x = MathUtils.damp(
         frameCamera.position.x,
         desiredPosition.x,
-        0.9,
+        cameraDamping,
         delta,
       );
       frameCamera.position.y = MathUtils.damp(
         frameCamera.position.y,
         desiredPosition.y,
-        0.9,
+        cameraDamping,
         delta,
       );
       frameCamera.position.z = MathUtils.damp(
         frameCamera.position.z,
         desiredPosition.z,
-        0.9,
+        cameraDamping,
         delta,
       );
       currentLookTarget.current.x = MathUtils.damp(
@@ -221,19 +272,39 @@ export function RealmScene({
 
   return (
     <>
-      <color attach="background" args={[outdoors ? "#172a23" : "#17100c"]} />
-      <fog attach="fog" args={[outdoors ? "#304a3f" : "#2b1d15", 8, 34]} />
-      <hemisphereLight args={["#d9cfb0", "#111b16", outdoors ? 1.05 : 0.48]} />
-      <directionalLight
-        castShadow
-        color="#f0c982"
-        intensity={outdoors ? 1.5 : 0.82}
-        position={[4.5, 7.5, 1.5]}
-        shadow-bias={-0.00035}
-        shadow-mapSize-height={1024}
-        shadow-mapSize-width={1024}
+      <color
+        attach="background"
+        args={[bareCanvas ? "#5b321d" : outdoors ? "#172a23" : "#17100c"]}
       />
-      <Hf01SanctuaryAsset reducedMotion={reducedMotion} visualState={visualState} />
+      <fog attach="fog" args={[outdoors ? "#304a3f" : "#2b1d15", 8, 34]} />
+      {bareCanvas ? (
+        <mesh position={[0.8, 1.1, 0]}>
+          <boxGeometry args={[1.1, 1.1, 1.1]} />
+          <meshBasicMaterial color="#e4b56f" />
+        </mesh>
+      ) : null}
+      {staticRuntimeLights ? (
+        <>
+          <hemisphereLight args={["#d9cfb0", "#111b16", outdoors ? 1.05 : 0.82]} />
+          <directionalLight
+            castShadow={dynamicShadows}
+            color="#f0c982"
+            intensity={outdoors ? 1.5 : 1.2}
+            position={[4.5, 7.5, 1.5]}
+            shadow-bias={-0.00035}
+            shadow-mapSize-height={1024}
+            shadow-mapSize-width={1024}
+          />
+        </>
+      ) : null}
+      {!bareCanvas ? (
+        <Hf01SanctuaryAsset
+          onReady={handleAuthoredSceneReady}
+          reducedMotion={reducedMotion}
+          rendererVerificationStage={rendererVerificationStage}
+          visualState={visualState}
+        />
+      ) : null}
       {outdoors ? (
         <group ref={woodlandRef}>
           <Woodland />

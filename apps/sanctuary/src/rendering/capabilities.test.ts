@@ -9,28 +9,21 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  hasUsableGraphicsContext,
+  hasUsableGraphicsApi,
+  readRendererVerificationStage,
   selectLocalVisualCheck,
   selectExperienceMode,
   shouldAnimateAtmosphere,
 } from "./capabilities";
 
-// Cover supported and unsupported Canvas probes without creating a real browser canvas.
+// Cover supported and unsupported browser APIs without creating a spare GPU context.
 describe("graphics capability decisions", () => {
-  it("accepts a WebGL2 context without reading GPU identifiers", () => {
-    expect(
-      hasUsableGraphicsContext(() => ({
-        getContext: (contextId) => (contextId === "webgl2" ? ({} as RenderingContext) : null),
-      })),
-    ).toBe(true);
+  it("accepts a WebGL2 API without reading GPU identifiers", () => {
+    expect(hasUsableGraphicsApi(true, false)).toBe(true);
   });
 
-  it("uses fallback when neither supported context is available", () => {
-    expect(
-      hasUsableGraphicsContext(() => ({
-        getContext: () => null,
-      })),
-    ).toBe(false);
+  it("uses fallback when neither supported API is available", () => {
+    expect(hasUsableGraphicsApi(false, false)).toBe(false);
     expect(selectExperienceMode(false)).toBe("fallback");
   });
 
@@ -41,11 +34,21 @@ describe("graphics capability decisions", () => {
 
 // Keep local-only visual verification fragments exact so unrelated hashes cannot change the experience.
 describe("local visual check selection", () => {
-  it("recognizes only the two narrow verification fragments", () => {
+  it("recognizes only the narrow verification fragments", () => {
     expect(selectLocalVisualCheck("#verify-fallback")).toBe("fallback");
     expect(selectLocalVisualCheck("#verify-reduced-motion")).toBe("reduced-motion");
+    expect(selectLocalVisualCheck("#verify-context-loss")).toBe("context-loss");
+    expect(selectLocalVisualCheck("#verify-door-mid")).toBe("door-mid");
+    expect(selectLocalVisualCheck("#verify-bible-partial")).toBe("bible-partial");
+    expect(selectLocalVisualCheck("#verify-bible-open")).toBe("bible-open");
+    expect(selectLocalVisualCheck("#verify-renderer-a")).toBe("renderer-a");
+    expect(selectLocalVisualCheck("#verify-renderer-e")).toBe("renderer-e");
     expect(selectLocalVisualCheck("#other")).toBeNull();
     expect(selectLocalVisualCheck("")).toBeNull();
+  });
+
+  it("keeps renderer isolation inactive outside an exact development check", () => {
+    expect(readRendererVerificationStage()).toBeNull();
   });
 });
 
