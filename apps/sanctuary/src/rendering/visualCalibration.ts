@@ -42,12 +42,18 @@ export interface VisualCalibration {
   readonly candleRight: TransformCalibration;
 }
 
+export interface SanctuaryHeroCamera {
+  readonly position: CalibrationVector;
+  readonly target: CalibrationVector;
+  readonly fov: number;
+}
+
 // Hold a close symmetrical view that keeps the room readable while giving the table objects real presence.
 export const defaultVisualCalibration: VisualCalibration = {
   camera: {
-    position: [0, 1.72, 5.72],
-    target: [0, 1.08, -0.42],
-    fov: 48,
+    position: [0, 1.86, 5.9],
+    target: [0, 1.5, -0.2],
+    fov: 44,
   },
   room: {
     position: [0, 0, 0],
@@ -55,18 +61,18 @@ export const defaultVisualCalibration: VisualCalibration = {
     scale: 1,
   },
   lighting: {
-    exposure: 1.02,
+    exposure: 1.26,
     warmKey: {
-      intensity: 42,
-      position: [0, 2.42, 0.24],
+      intensity: 20,
+      position: [0, 2.1, 0.1],
     },
     fill: {
-      intensity: 0.18,
-      color: "#d56f35",
+      intensity: 0.045,
+      color: "#c99671",
     },
     exteriorKey: {
-      intensity: 0.08,
-      color: "#70442f",
+      intensity: 0.02,
+      color: "#80624f",
     },
   },
   table: {
@@ -77,7 +83,7 @@ export const defaultVisualCalibration: VisualCalibration = {
   bible: {
     position: [0, 0, 0],
     rotationY: 0,
-    scale: 1,
+    scale: 0.62,
   },
   candleLeft: {
     position: [0, 0, 0],
@@ -91,14 +97,30 @@ export const defaultVisualCalibration: VisualCalibration = {
   },
 };
 
-// Widen only the portrait hero lens so the door, two candles, Bible, and table remain visible together.
-export function selectSanctuaryHeroFov(
-  baseFov: number,
+// Move a portrait camera back before modestly widening its lens so the room avoids game-like distortion.
+export function selectSanctuaryHeroCamera(
+  baseCamera: SanctuaryHeroCamera,
   viewportAspect: number,
   sanctuaryHero: boolean,
-): number {
-  const portraitExpansion = sanctuaryHero ? Math.max(0, 0.9 - viewportAspect) * 68 : 0;
-  return Math.min(78, baseFov + portraitExpansion);
+): SanctuaryHeroCamera {
+  if (!sanctuaryHero || viewportAspect >= 0.82) {
+    return baseCamera;
+  }
+
+  const portraitAmount = Math.min(1, Math.max(0, (0.82 - viewportAspect) / 0.36));
+  return {
+    position: [
+      baseCamera.position[0],
+      baseCamera.position[1] + 0.08 * portraitAmount,
+      baseCamera.position[2] + 0.55 * portraitAmount,
+    ],
+    target: [
+      baseCamera.target[0],
+      baseCamera.target[1] - 0.35 * portraitAmount,
+      baseCamera.target[2],
+    ],
+    fov: baseCamera.fov + 14 * portraitAmount,
+  };
 }
 
 // Return fresh nested objects so a reset cannot share mutable arrays with an earlier review session.

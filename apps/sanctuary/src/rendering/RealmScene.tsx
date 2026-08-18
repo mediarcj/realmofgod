@@ -17,7 +17,7 @@ import {
   type RendererVerificationStage,
 } from "./capabilities";
 import { Hf01SanctuaryAsset } from "./Hf01SanctuaryAsset";
-import type { VisualCalibration } from "./visualCalibration";
+import { selectSanctuaryHeroCamera, type VisualCalibration } from "./visualCalibration";
 
 // Keep positions explicit and deterministic so the same small woodland is composed on every visit.
 type Position = [number, number, number];
@@ -150,16 +150,17 @@ export function RealmScene({
   const arrivalElapsedRef = useRef(0);
   const currentLookTarget = useRef(new Vector3(0.75, 1.1, 0.7));
   const [authoredSceneReady, setAuthoredSceneReady] = useState(false);
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const destination = useMemo(() => {
     if (visualState.stage === "entry" || visualState.stage === "sanctuary") {
-      return {
-        position: visualCalibration.camera.position,
-        target: visualCalibration.camera.target,
-      };
+      return selectSanctuaryHeroCamera(
+        visualCalibration.camera,
+        size.width / Math.max(size.height, 1),
+        true,
+      );
     }
     return cameraDestination(visualState);
-  }, [visualCalibration.camera, visualState]);
+  }, [size.height, size.width, visualCalibration.camera, visualState]);
   const desiredPosition = useMemo(
     () => new Vector3(...destination.position),
     [destination.position],
@@ -287,7 +288,7 @@ export function RealmScene({
         attach="background"
         args={[bareCanvas ? "#5b321d" : outdoors ? "#172a23" : "#17100c"]}
       />
-      <fog attach="fog" args={[outdoors ? "#304a3f" : "#2b1d15", 8, 34]} />
+      {outdoors ? <fog attach="fog" args={["#304a3f", 8, 34]} /> : null}
       {bareCanvas ? (
         <mesh position={[0.8, 1.1, 0]}>
           <boxGeometry args={[1.1, 1.1, 1.1]} />
@@ -318,34 +319,42 @@ export function RealmScene({
                 castShadow={dynamicShadows}
                 color="#ff9f45"
                 decay={2}
-                distance={5}
-                intensity={visualCalibration.lighting.warmKey.intensity}
+                distance={5.4}
+                intensity={visualCalibration.lighting.warmKey.intensity * 0.16}
                 position={[...visualCalibration.lighting.warmKey.position]}
                 shadow-bias={-0.00035}
                 shadow-mapSize-height={512}
                 shadow-mapSize-width={512}
               />
               <pointLight
+                castShadow={dynamicShadows}
                 color="#ff8a36"
                 decay={2}
-                distance={3.8}
-                intensity={visualCalibration.lighting.warmKey.intensity * 0.58}
+                distance={4.2}
+                intensity={visualCalibration.lighting.warmKey.intensity * 4.5}
                 position={[
-                  -1.43 + visualCalibration.candleLeft.position[0],
-                  1.815 + visualCalibration.candleLeft.position[1],
-                  0.24 + visualCalibration.candleLeft.position[2],
+                  -1.12 + visualCalibration.candleLeft.position[0],
+                  1.895 + visualCalibration.candleLeft.position[1],
+                  0.18 + visualCalibration.candleLeft.position[2],
                 ]}
+                shadow-bias={-0.00035}
+                shadow-mapSize-height={512}
+                shadow-mapSize-width={512}
               />
               <pointLight
+                castShadow={dynamicShadows}
                 color="#ff8a36"
                 decay={2}
-                distance={3.8}
-                intensity={visualCalibration.lighting.warmKey.intensity * 0.58}
+                distance={4.2}
+                intensity={visualCalibration.lighting.warmKey.intensity * 4.5}
                 position={[
-                  1.43 + visualCalibration.candleRight.position[0],
-                  1.815 + visualCalibration.candleRight.position[1],
-                  0.24 + visualCalibration.candleRight.position[2],
+                  1.12 + visualCalibration.candleRight.position[0],
+                  1.895 + visualCalibration.candleRight.position[1],
+                  0.18 + visualCalibration.candleRight.position[2],
                 ]}
+                shadow-bias={-0.00035}
+                shadow-mapSize-height={512}
+                shadow-mapSize-width={512}
               />
             </>
           ) : null}

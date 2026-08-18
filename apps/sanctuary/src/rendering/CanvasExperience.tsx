@@ -21,7 +21,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import type { JourneyVisualState } from "../journey/model";
 import { readLocalVisualCheck, readRendererVerificationStage } from "./capabilities";
 import { RealmScene } from "./RealmScene";
-import { selectSanctuaryHeroFov, type VisualCalibration } from "./visualCalibration";
+import { selectSanctuaryHeroCamera, type VisualCalibration } from "./visualCalibration";
 
 // Classify only the renderer boundary needed to verify a safe local recovery path.
 export type RendererFailureReason = "context-lost" | "creation-unavailable";
@@ -45,7 +45,11 @@ function applyRendererCalibration(
   sanctuaryHero: boolean,
 ): void {
   gl.toneMappingExposure = visualCalibration.lighting.exposure;
-  camera.fov = selectSanctuaryHeroFov(visualCalibration.camera.fov, viewportAspect, sanctuaryHero);
+  camera.fov = selectSanctuaryHeroCamera(
+    visualCalibration.camera,
+    viewportAspect,
+    sanctuaryHero,
+  ).fov;
   camera.updateProjectionMatrix();
 }
 
@@ -175,13 +179,15 @@ export function CanvasExperience({
           }
         }}
         fallback={fallback}
-        onCreated={({ gl }) => {
+        onCreated={({ gl, scene }) => {
           // Use photographic highlight rolloff and explicit sRGB output without a postprocessing chain.
           gl.outputColorSpace = SRGBColorSpace;
           gl.shadowMap.enabled = cinematicRenderer;
           gl.shadowMap.type = PCFShadowMap;
           gl.toneMapping = AgXToneMapping;
           gl.toneMappingExposure = visualCalibration.lighting.exposure;
+          // Keep reflections present for metal and varnished wood without suggesting a second lamp.
+          scene.environmentIntensity = 0.2;
         }}
         shadows={cinematicRenderer}
       >

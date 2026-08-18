@@ -146,9 +146,11 @@ const textureResolutions = [...inspectionOutput.matchAll(/,(\d+x\d+),\d+,\d+$/gm
 );
 if (
   textureResolutions.length === 0 ||
-  textureResolutions.some((value) => value !== "256x256" && value !== "512x512")
+  textureResolutions.some(
+    (value) => value !== "256x256" && value !== "512x512" && value !== "1024x1024",
+  )
 ) {
-  throw new Error("HF-01 textures are missing or exceed the reviewed 512-pixel dimensions.");
+  throw new Error("HF-01 textures are missing or exceed the reviewed 1024-pixel dimensions.");
 }
 
 console.log(

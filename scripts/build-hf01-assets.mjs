@@ -84,7 +84,7 @@ runTool("corepack", [
   "--texture-compress",
   "webp",
   "--texture-size",
-  "512",
+  "1024",
   "--flatten",
   "false",
   "--join",

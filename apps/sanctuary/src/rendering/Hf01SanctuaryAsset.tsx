@@ -105,15 +105,19 @@ function prepareScene(source: Object3D, dynamicShadows: boolean): Object3D {
       const preparedMaterials: Material[] = sourceMaterials.map((material) => {
         const preparedMaterial = material.clone();
         if (preparedMaterial instanceof MeshStandardMaterial) {
-          // The local texture maps carry grain while this restrained tint restores the warm aged-wood family.
+          // Preserve the authored PBR texture color and tune only surfaces that need explicit runtime response.
           if (preparedMaterial.name.includes("Wood_Honey")) {
-            preparedMaterial.color.setRGB(0.28, 0.14, 0.07);
+            preparedMaterial.color.setRGB(0.64, 0.52, 0.43);
           } else if (preparedMaterial.name.includes("Wood_Smoked")) {
-            preparedMaterial.color.setRGB(0.1, 0.045, 0.02);
+            preparedMaterial.color.setRGB(0.34, 0.28, 0.24);
+          } else if (preparedMaterial.name.includes("Wood_Table")) {
+            preparedMaterial.color.setRGB(0.74, 0.61, 0.5);
+          } else if (preparedMaterial.name.includes("Wood_Floor_Dark")) {
+            preparedMaterial.color.setRGB(0.48, 0.39, 0.33);
           } else if (preparedMaterial.name.includes("Bible_Paper")) {
             preparedMaterial.color.setRGB(1, 0.92, 0.72);
           } else if (preparedMaterial.name.includes("Cross_Silver")) {
-            preparedMaterial.color.setRGB(0.38, 0.42, 0.44);
+            preparedMaterial.color.setRGB(0.84, 0.88, 0.9);
           } else if (preparedMaterial.name.includes("Candle_Flame_Core")) {
             preparedMaterial.color.setRGB(1, 0.68, 0.16);
             preparedMaterial.emissive.setRGB(1, 0.46, 0.06);
@@ -124,8 +128,10 @@ function prepareScene(source: Object3D, dynamicShadows: boolean): Object3D {
             preparedMaterial.emissiveIntensity = 3.4;
           }
           preparedMaterial.envMapIntensity = /Cross_Silver|Brass|Iron/iu.test(preparedMaterial.name)
-            ? 1.25
-            : 0.14;
+            ? 2.5
+            : /Wood_Table|Wood_Honey/iu.test(preparedMaterial.name)
+              ? 0.48
+              : 0.28;
         }
         return preparedMaterial;
       });
