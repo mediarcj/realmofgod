@@ -1,0 +1,193 @@
+/*
+ * File: apps/sanctuary/src/development/visual-calibration-console.css
+ * Description: Styles the development-only HF-01 calibration and local reference surface.
+ * Purpose: Keeps dense review controls readable without changing the production sanctuary stylesheet.
+ * Notes: Vite excludes this stylesheet with its development-only module from production output.
+ */
+
+/* Keep the reference incapable of intercepting sanctuary controls while supporting direct visual comparison. */
+.calibration-reference {
+  --reference-opacity: 0.5;
+  position: fixed;
+  z-index: 8;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--reference-opacity);
+}
+
+.calibration-reference img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Show the reference in the right half for a simple actual-left/reference-right comparison. */
+.calibration-reference--side-by-side {
+  inset: 0 0 0 50%;
+  width: 50%;
+  left: 50%;
+  border-left: 2px solid #ffd899;
+}
+
+.calibration-reference--side-by-side img {
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Keep the console above the overlay and away from primary left-side journey controls. */
+.visual-calibration-console {
+  position: fixed;
+  z-index: 9;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: min(24rem, calc(100vw - 1.5rem));
+  color: #f8efe0;
+  font:
+    500 0.75rem/1.35 ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+.calibration-toggle,
+.calibration-actions button {
+  min-height: 2.55rem;
+  border: 1px solid rgb(255 219 160 / 55%);
+  border-radius: 0.45rem;
+  color: inherit;
+  background: rgb(19 15 12 / 94%);
+  cursor: pointer;
+}
+
+.calibration-toggle {
+  display: block;
+  margin-left: auto;
+  padding: 0.55rem 0.8rem;
+}
+
+/* Constrain the long calibration form to one scrollable review panel. */
+.calibration-panel {
+  max-height: calc(100svh - 4.5rem);
+  margin-top: 0.5rem;
+  padding: 0.85rem;
+  overflow: auto;
+  border: 1px solid rgb(255 219 160 / 30%);
+  border-radius: 0.65rem;
+  background: rgb(17 14 11 / 96%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 45%);
+}
+
+.calibration-panel header {
+  display: grid;
+  gap: 0.18rem;
+  margin-bottom: 0.75rem;
+}
+
+.calibration-panel header strong {
+  color: #ffe2ae;
+  font-size: 0.9rem;
+}
+
+.calibration-panel header span,
+.calibration-panel small {
+  color: #bdb4a5;
+}
+
+/* Group related parameters so camera, light, room, and prop changes stay understandable. */
+.calibration-group,
+.calibration-vector {
+  display: grid;
+  gap: 0.48rem;
+  min-width: 0;
+  margin: 0 0 0.75rem;
+  padding: 0.6rem;
+  border: 1px solid rgb(255 219 160 / 18%);
+}
+
+.calibration-group > legend,
+.calibration-vector > legend {
+  padding: 0 0.25rem;
+  color: #eac88f;
+  font-weight: 700;
+}
+
+.calibration-vector {
+  margin-bottom: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.calibration-vector > legend {
+  grid-column: 1 / -1;
+}
+
+.calibration-number {
+  display: grid;
+  grid-template-columns: minmax(4.4rem, 1fr) minmax(5rem, 1.45fr) 3.2rem;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.calibration-vector .calibration-number {
+  grid-template-columns: 1fr;
+  gap: 0.2rem;
+}
+
+.calibration-number input {
+  width: 100%;
+  accent-color: #d6a85c;
+}
+
+.calibration-number-value {
+  width: 3.6rem;
+  border: 1px solid rgb(255 219 160 / 20%);
+  border-radius: 0.25rem;
+  color: #f7d8a2;
+  background: #211b15;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.calibration-vector .calibration-number-value {
+  text-align: left;
+}
+
+.calibration-file,
+.calibration-select,
+.calibration-color {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.calibration-file input {
+  max-width: 13rem;
+  color: #d9cfbf;
+}
+
+.calibration-select select,
+.calibration-color input {
+  min-height: 2rem;
+}
+
+.calibration-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.calibration-actions button {
+  padding: 0.5rem;
+}
+
+/* Keep the tool usable at the exact narrow viewport without covering the entire hero by default. */
+@media (max-width: 40rem) {
+  .visual-calibration-console {
+    top: 0.4rem;
+    right: 0.4rem;
+    width: calc(100vw - 0.8rem);
+  }
+
+  .calibration-panel {
+    max-height: calc(100svh - 4rem);
+  }
+}

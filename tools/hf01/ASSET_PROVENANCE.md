@@ -29,7 +29,7 @@
 - Approved animation clips: `Realm_Door_Close` and `Realm_Bible_Settle_Open`
 - Scripture boundary: the asset contains no verse, page wording, chapter text, or Scripture
   quotation
-- Optimized byte size: 545,632 bytes at the reference-locked HF-01 build
+- Optimized byte size: 545,364 bytes at the reference-locked HF-01 build
 - Visible geometry: 24,860 triangles and 61 draw calls at the reference-locked HF-01 build
 - Texture set: 9 embedded WebP textures; maximum dimension 512 by 512 pixels
 - Final artistic acceptance: pending owner visual review

@@ -46,7 +46,7 @@ export interface VisualCalibration {
 export const defaultVisualCalibration: VisualCalibration = {
   camera: {
     position: [0, 1.58, 6.48],
-    target: [0, 1.02, -0.45],
+    target: [0, 1.18, -0.45],
     fov: 50,
   },
   room: {
@@ -55,17 +55,17 @@ export const defaultVisualCalibration: VisualCalibration = {
     scale: 1,
   },
   lighting: {
-    exposure: 1.52,
+    exposure: 1.82,
     warmKey: {
-      intensity: 3.8,
+      intensity: 4.6,
       position: [0, 2.55, 0.18],
     },
     fill: {
-      intensity: 1.02,
+      intensity: 1.3,
       color: "#d7b68a",
     },
     exteriorKey: {
-      intensity: 1.05,
+      intensity: 1.2,
       color: "#d8b07c",
     },
   },

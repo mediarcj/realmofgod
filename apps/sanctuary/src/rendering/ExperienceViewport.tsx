@@ -18,6 +18,11 @@ import { createDefaultVisualCalibration, type VisualCalibration } from "./visual
 // Defer the renderer module until a capable browser reaches the optional visual layer.
 const CanvasExperience = lazy(async () => import("./CanvasExperience"));
 
+// Keep every calibration and local-reference control out of production's module graph and document.
+const VisualCalibrationConsole = import.meta.env.DEV
+  ? lazy(async () => import("../development/VisualCalibrationConsole"))
+  : null;
+
 // Describe the narrow error boundary contract used only to replace an unavailable visual layer.
 interface ViewportErrorBoundaryProps {
   readonly children: ReactNode;
@@ -93,7 +98,9 @@ export function ExperienceViewport({
     RendererFailureReason | "react-error" | null
   >(null);
   const [rendererApi, setRendererApi] = useState<"webgl1" | "webgl2" | null>(null);
-  const [visualCalibration] = useState<VisualCalibration>(createDefaultVisualCalibration);
+  const [visualCalibration, setVisualCalibration] = useState<VisualCalibration>(
+    createDefaultVisualCalibration,
+  );
   const reducedMotion = useReducedMotion();
   const fallback = <ExperienceFallback visualState={visualState} />;
   const handleRendererFailure = useCallback((reason: RendererFailureReason | "react-error") => {
@@ -104,41 +111,56 @@ export function ExperienceViewport({
     setRendererApi(api);
     setRendererState("ready");
   }, []);
+  const developmentCalibrationTools =
+    VisualCalibrationConsole === null ? null : (
+      <Suspense fallback={null}>
+        <VisualCalibrationConsole
+          calibration={visualCalibration}
+          onCalibrationChange={setVisualCalibration}
+        />
+      </Suspense>
+    );
 
   if (experienceMode === "fallback" || rendererState === "failed") {
     return (
-      <section
-        className="experience-viewport"
-        data-reduced-motion={reducedMotion ? "true" : "false"}
-        data-renderer-failure={rendererFailure ?? undefined}
-        data-renderer-state={experienceMode === "fallback" ? "unavailable" : "failed"}
-        aria-hidden="true"
-      >
-        {fallback}
-      </section>
+      <>
+        <section
+          className="experience-viewport"
+          data-reduced-motion={reducedMotion ? "true" : "false"}
+          data-renderer-failure={rendererFailure ?? undefined}
+          data-renderer-state={experienceMode === "fallback" ? "unavailable" : "failed"}
+          aria-hidden="true"
+        >
+          {fallback}
+        </section>
+        {developmentCalibrationTools}
+      </>
     );
   }
 
   return (
-    <section
-      className="experience-viewport"
-      data-reduced-motion={reducedMotion ? "true" : "false"}
-      data-renderer-api={rendererApi ?? undefined}
-      data-renderer-state={rendererState}
-      aria-hidden="true"
-    >
-      <ViewportErrorBoundary fallback={fallback} onFailure={handleRendererFailure}>
-        <Suspense fallback={<ExperienceLoading visualState={visualState} />}>
-          <CanvasExperience
-            fallback={fallback}
-            onRendererFailure={handleRendererFailure}
-            onRendererReady={handleRendererReady}
-            reducedMotion={reducedMotion}
-            visualCalibration={visualCalibration}
-            visualState={visualState}
-          />
-        </Suspense>
-      </ViewportErrorBoundary>
-    </section>
+    <>
+      <section
+        className="experience-viewport"
+        data-reduced-motion={reducedMotion ? "true" : "false"}
+        data-renderer-api={rendererApi ?? undefined}
+        data-renderer-state={rendererState}
+        aria-hidden="true"
+      >
+        <ViewportErrorBoundary fallback={fallback} onFailure={handleRendererFailure}>
+          <Suspense fallback={<ExperienceLoading visualState={visualState} />}>
+            <CanvasExperience
+              fallback={fallback}
+              onRendererFailure={handleRendererFailure}
+              onRendererReady={handleRendererReady}
+              reducedMotion={reducedMotion}
+              visualCalibration={visualCalibration}
+              visualState={visualState}
+            />
+          </Suspense>
+        </ViewportErrorBoundary>
+      </section>
+      {developmentCalibrationTools}
+    </>
   );
 }
