@@ -14,6 +14,8 @@ export type RendererVerificationStage = "a" | "b" | "c" | "d" | "e" | null;
 // Keep failure, motion, and renderer-isolation checks development-only and fragment-exact.
 export type LocalVisualCheck =
   | "bible-open"
+  | "cinematic-failure"
+  | "cinematic-motion"
   | "bible-partial"
   | "context-loss"
   | "door-mid"
@@ -37,6 +39,10 @@ export function selectLocalVisualCheck(fragment: string): LocalVisualCheck {
       return "bible-partial";
     case "#verify-bible-open":
       return "bible-open";
+    case "#verify-cinematic-failure":
+      return "cinematic-failure";
+    case "#verify-cinematic-motion":
+      return "cinematic-motion";
     case "#verify-renderer-a":
       return "renderer-a";
     case "#verify-renderer-b":

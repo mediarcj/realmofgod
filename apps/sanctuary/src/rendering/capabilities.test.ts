@@ -41,6 +41,8 @@ describe("local visual check selection", () => {
     expect(selectLocalVisualCheck("#verify-door-mid")).toBe("door-mid");
     expect(selectLocalVisualCheck("#verify-bible-partial")).toBe("bible-partial");
     expect(selectLocalVisualCheck("#verify-bible-open")).toBe("bible-open");
+    expect(selectLocalVisualCheck("#verify-cinematic-failure")).toBe("cinematic-failure");
+    expect(selectLocalVisualCheck("#verify-cinematic-motion")).toBe("cinematic-motion");
     expect(selectLocalVisualCheck("#verify-renderer-a")).toBe("renderer-a");
     expect(selectLocalVisualCheck("#verify-renderer-e")).toBe("renderer-e");
     expect(selectLocalVisualCheck("#other")).toBeNull();

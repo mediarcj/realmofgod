@@ -20,6 +20,10 @@ export function readReducedMotionPreference(): boolean {
     return true;
   }
 
+  if (readLocalVisualCheck() === "cinematic-motion") {
+    return false;
+  }
+
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 

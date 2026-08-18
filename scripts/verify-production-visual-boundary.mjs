@@ -20,7 +20,10 @@ const forbiddenMarkers = [
   "Choose local PNG/JPEG",
   "calibration-reference",
   "visual-calibration-console",
+  "Visual proof",
+  "Cinematic Higgsfield",
 ];
+const forbiddenAssetMarkers = ["hf01f-higgsfield", "hybrid-visual-proof-controls"];
 
 // Walk only generated production text files; binary assets are covered by the separate asset validator.
 function collectTextFiles(directory) {
@@ -33,12 +36,29 @@ function collectTextFiles(directory) {
   });
 }
 
+// Walk every emitted path separately so dev-only video, still, and selector CSS cannot hide as binary output.
+function collectOutputPaths(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    return entry.isDirectory() ? collectOutputPaths(path) : [path];
+  });
+}
+
 // Fail on the first development-only marker so production exclusion remains a release invariant.
 for (const path of collectTextFiles(productionDirectory)) {
   const source = readFileSync(path, "utf8");
   const leakedMarker = forbiddenMarkers.find((marker) => source.includes(marker));
   if (leakedMarker !== undefined) {
     throw new Error(`${path.slice(repositoryRoot.length + 1)} contains ${leakedMarker}.`);
+  }
+}
+
+// Reject a development-only visual asset by filename before it can reach a production deployment artifact.
+for (const path of collectOutputPaths(productionDirectory)) {
+  const emittedPath = path.slice(repositoryRoot.length + 1);
+  const leakedAssetMarker = forbiddenAssetMarkers.find((marker) => emittedPath.includes(marker));
+  if (leakedAssetMarker !== undefined) {
+    throw new Error(`${emittedPath} contains development-only ${leakedAssetMarker}.`);
   }
 }
 

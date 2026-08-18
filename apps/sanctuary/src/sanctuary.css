@@ -87,6 +87,42 @@ select {
   filter: brightness(0.94) contrast(1.18) saturate(1.08);
 }
 
+/* Keep the local cinematic proof as untouched native media above any real-time layer during its supported stages. */
+.cinematic-media-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms ease;
+}
+
+.cinematic-media-layer[data-cinematic-active="true"] {
+  opacity: 1;
+}
+
+/* Preserve source aspect ratio and let development framing decisions crop rather than stretch owner-provided media. */
+.cinematic-media-poster,
+.cinematic-media-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+/* Reveal the living source only after it has decoded; the identical still remains behind every unavailable state. */
+.cinematic-media-video {
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.cinematic-media-layer[data-cinematic-presentation="video"] .cinematic-media-video {
+  opacity: 1;
+}
+
 /* Build an original static sanctuary fallback from timber rhythm, warm light, and a doorway shape. */
 .experience-fallback {
   overflow: hidden;

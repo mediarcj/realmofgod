@@ -10,7 +10,12 @@ import { Component, lazy, type ReactNode, Suspense, useCallback, useState } from
 
 import type { JourneyVisualState } from "../journey/model";
 import type { RendererFailureReason } from "./CanvasExperience";
-import { detectGraphicsCapability, selectExperienceMode } from "./capabilities";
+import {
+  detectGraphicsCapability,
+  readLocalVisualCheck,
+  selectExperienceMode,
+} from "./capabilities";
+import { selectVisualProofLayer, type VisualProofMode } from "./hybridProof";
 import { useReducedMotion } from "./useReducedMotion";
 import { selectVisualAtmosphere } from "./visualAtmosphere";
 import { createDefaultVisualCalibration, type VisualCalibration } from "./visualCalibration";
@@ -21,6 +26,14 @@ const CanvasExperience = lazy(async () => import("./CanvasExperience"));
 // Keep every calibration and local-reference control out of production's module graph and document.
 const VisualCalibrationConsole = import.meta.env.DEV
   ? lazy(async () => import("../development/VisualCalibrationConsole"))
+  : null;
+
+// Load cinematic proof controls and exact media only for the local comparison, never for a production visitor.
+const CinematicSanctuaryLayer = import.meta.env.DEV
+  ? lazy(async () => import("./CinematicSanctuaryLayer"))
+  : null;
+const HybridVisualProofControls = import.meta.env.DEV
+  ? lazy(async () => import("../development/HybridVisualProofControls"))
   : null;
 
 // Describe the narrow error boundary contract used only to replace an unavailable visual layer.
@@ -101,8 +114,17 @@ export function ExperienceViewport({
   const [visualCalibration, setVisualCalibration] = useState<VisualCalibration>(
     createDefaultVisualCalibration,
   );
+  // Start the development-only comparison with media so a fresh cinematic proof does not download R3F first.
+  const [visualProofMode, setVisualProofMode] = useState<VisualProofMode>(
+    import.meta.env.DEV ? "cinematic" : "realtime",
+  );
+  const [motionPaused, setMotionPaused] = useState(false);
   const reducedMotion = useReducedMotion();
   const fallback = <ExperienceFallback visualState={visualState} />;
+  const visualProofLayer = selectVisualProofLayer(visualProofMode, visualState.stage);
+  const cinematicActive = CinematicSanctuaryLayer !== null && visualProofLayer === "cinematic";
+  const shouldRenderRealtime = !cinematicActive;
+  const forceCinematicFailure = readLocalVisualCheck() === "cinematic-failure";
   const handleRendererFailure = useCallback((reason: RendererFailureReason | "react-error") => {
     setRendererFailure(reason);
     setRendererState("failed");
@@ -120,8 +142,20 @@ export function ExperienceViewport({
         />
       </Suspense>
     );
+  const developmentHybridProofTools =
+    HybridVisualProofControls === null ? null : (
+      <Suspense fallback={null}>
+        <HybridVisualProofControls
+          cinematicActive={cinematicActive}
+          motionPaused={motionPaused}
+          onMotionPausedChange={setMotionPaused}
+          onVisualProofModeChange={setVisualProofMode}
+          visualProofMode={visualProofMode}
+        />
+      </Suspense>
+    );
 
-  if (experienceMode === "fallback" || rendererState === "failed") {
+  if (shouldRenderRealtime && (experienceMode === "fallback" || rendererState === "failed")) {
     return (
       <>
         <section
@@ -134,6 +168,7 @@ export function ExperienceViewport({
           {fallback}
         </section>
         {developmentCalibrationTools}
+        {developmentHybridProofTools}
       </>
     );
   }
@@ -144,23 +179,37 @@ export function ExperienceViewport({
         className="experience-viewport"
         data-reduced-motion={reducedMotion ? "true" : "false"}
         data-renderer-api={rendererApi ?? undefined}
-        data-renderer-state={rendererState}
+        data-renderer-state={shouldRenderRealtime ? rendererState : "not-requested"}
+        data-visual-proof-layer={cinematicActive ? "cinematic" : "realtime"}
         aria-hidden="true"
       >
-        <ViewportErrorBoundary fallback={fallback} onFailure={handleRendererFailure}>
-          <Suspense fallback={<ExperienceLoading visualState={visualState} />}>
-            <CanvasExperience
-              fallback={fallback}
-              onRendererFailure={handleRendererFailure}
-              onRendererReady={handleRendererReady}
+        {cinematicActive ? (
+          <Suspense fallback={null}>
+            <CinematicSanctuaryLayer
+              active={cinematicActive}
+              forceFailure={forceCinematicFailure}
+              paused={motionPaused}
               reducedMotion={reducedMotion}
-              visualCalibration={visualCalibration}
-              visualState={visualState}
             />
           </Suspense>
-        </ViewportErrorBoundary>
+        ) : null}
+        {shouldRenderRealtime ? (
+          <ViewportErrorBoundary fallback={fallback} onFailure={handleRendererFailure}>
+            <Suspense fallback={<ExperienceLoading visualState={visualState} />}>
+              <CanvasExperience
+                fallback={fallback}
+                onRendererFailure={handleRendererFailure}
+                onRendererReady={handleRendererReady}
+                reducedMotion={reducedMotion}
+                visualCalibration={visualCalibration}
+                visualState={visualState}
+              />
+            </Suspense>
+          </ViewportErrorBoundary>
+        ) : null}
       </section>
       {developmentCalibrationTools}
+      {developmentHybridProofTools}
     </>
   );
 }
