@@ -9,6 +9,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  selectCinematicMotionStatus,
   selectCinematicPresentation,
   selectVisualProofLayer,
   supportsCinematicStage,
@@ -30,51 +31,34 @@ describe("cinematic-stage support", () => {
   });
 });
 
-// Confirm every motion-protection and error condition leaves a stable still instead of a blank frame.
-describe("cinematic presentation", () => {
-  it("shows video only after a permitted, unpaused playback state", () => {
-    expect(
-      selectCinematicPresentation({
-        reducedMotion: false,
-        paused: false,
-        videoPlaying: true,
-        videoFailed: false,
-      }),
-    ).toBe("video");
+// Confirm the control labels report actual native-media conditions rather than a requested pause intent.
+describe("cinematic motion status", () => {
+  const baseState = {
+    manuallyPaused: false,
+    playbackUnavailable: false,
+    reducedMotion: false,
+    videoFailed: false,
+    videoPlaying: false,
+    videoReady: true,
+  };
+
+  it("reports every meaningful playback state", () => {
+    expect(selectCinematicMotionStatus({ ...baseState, videoPlaying: true })).toBe("playing");
+    expect(selectCinematicMotionStatus({ ...baseState, manuallyPaused: true })).toBe("paused");
+    expect(selectCinematicMotionStatus({ ...baseState, playbackUnavailable: true })).toBe(
+      "unavailable",
+    );
+    expect(selectCinematicMotionStatus({ ...baseState, videoReady: false })).toBe("loading");
+    expect(selectCinematicMotionStatus({ ...baseState, videoFailed: true })).toBe("failed");
+    expect(selectCinematicMotionStatus({ ...baseState, reducedMotion: true })).toBe("reduced");
   });
 
-  it("uses the still for motion reduction, a manual pause, unavailable playback, and decode failure", () => {
-    expect(
-      selectCinematicPresentation({
-        reducedMotion: true,
-        paused: false,
-        videoPlaying: true,
-        videoFailed: false,
-      }),
-    ).toBe("still");
-    expect(
-      selectCinematicPresentation({
-        reducedMotion: false,
-        paused: true,
-        videoPlaying: true,
-        videoFailed: false,
-      }),
-    ).toBe("still");
-    expect(
-      selectCinematicPresentation({
-        reducedMotion: false,
-        paused: false,
-        videoPlaying: false,
-        videoFailed: false,
-      }),
-    ).toBe("still");
-    expect(
-      selectCinematicPresentation({
-        reducedMotion: false,
-        paused: false,
-        videoPlaying: true,
-        videoFailed: true,
-      }),
-    ).toBe("still");
+  it("reveals video only for reported active playback", () => {
+    expect(selectCinematicPresentation("playing")).toBe("video");
+    expect(selectCinematicPresentation("loading")).toBe("still");
+    expect(selectCinematicPresentation("paused")).toBe("still");
+    expect(selectCinematicPresentation("unavailable")).toBe("still");
+    expect(selectCinematicPresentation("reduced")).toBe("still");
+    expect(selectCinematicPresentation("failed")).toBe("still");
   });
 });

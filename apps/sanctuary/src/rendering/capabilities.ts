@@ -16,6 +16,7 @@ export type LocalVisualCheck =
   | "bible-open"
   | "cinematic-failure"
   | "cinematic-motion"
+  | "cinematic-unavailable"
   | "bible-partial"
   | "context-loss"
   | "door-mid"
@@ -43,6 +44,8 @@ export function selectLocalVisualCheck(fragment: string): LocalVisualCheck {
       return "cinematic-failure";
     case "#verify-cinematic-motion":
       return "cinematic-motion";
+    case "#verify-cinematic-unavailable":
+      return "cinematic-unavailable";
     case "#verify-renderer-a":
       return "renderer-a";
     case "#verify-renderer-b":

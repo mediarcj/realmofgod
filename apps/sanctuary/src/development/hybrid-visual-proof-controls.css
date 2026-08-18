@@ -37,6 +37,16 @@
   gap: 0.28rem;
 }
 
+/* Keep the actual native-media state visible without making the proof panel a modal or player interface. */
+.hybrid-motion-status {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
 .hybrid-visual-proof-controls button {
   min-height: 2rem;
   border: 1px solid rgb(232 211 171 / 40%);

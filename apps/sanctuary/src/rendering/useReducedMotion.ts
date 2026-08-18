@@ -16,11 +16,17 @@ export function readReducedMotionPreference(): boolean {
     return true;
   }
 
-  if (readLocalVisualCheck() === "reduced-motion") {
+  // Local proof fragments can verify both intentional still states without changing the operating-system preference.
+  const localCheck = readLocalVisualCheck();
+  if (localCheck === "reduced-motion") {
     return true;
   }
 
-  if (readLocalVisualCheck() === "cinematic-motion") {
+  if (
+    localCheck === "cinematic-motion" ||
+    localCheck === "cinematic-failure" ||
+    localCheck === "cinematic-unavailable"
+  ) {
     return false;
   }
 

@@ -6,16 +6,21 @@
  */
 
 // Import React's local code-splitting helpers without importing the renderer into the initial bundle.
-import { Component, lazy, type ReactNode, Suspense, useCallback, useState } from "react";
+import { Component, lazy, type ReactNode, Suspense, useCallback, useRef, useState } from "react";
 
 import type { JourneyVisualState } from "../journey/model";
 import type { RendererFailureReason } from "./CanvasExperience";
+import type { CinematicPlaybackHandle } from "./CinematicSanctuaryLayer";
 import {
   detectGraphicsCapability,
   readLocalVisualCheck,
   selectExperienceMode,
 } from "./capabilities";
-import { selectVisualProofLayer, type VisualProofMode } from "./hybridProof";
+import {
+  selectVisualProofLayer,
+  type CinematicMotionStatus,
+  type VisualProofMode,
+} from "./hybridProof";
 import { useReducedMotion } from "./useReducedMotion";
 import { selectVisualAtmosphere } from "./visualAtmosphere";
 import { createDefaultVisualCalibration, type VisualCalibration } from "./visualCalibration";
@@ -118,13 +123,16 @@ export function ExperienceViewport({
   const [visualProofMode, setVisualProofMode] = useState<VisualProofMode>(
     import.meta.env.DEV ? "cinematic" : "realtime",
   );
-  const [motionPaused, setMotionPaused] = useState(false);
+  const cinematicPlaybackRef = useRef<CinematicPlaybackHandle>(null);
+  const [cinematicMotionStatus, setCinematicMotionStatus] =
+    useState<CinematicMotionStatus>("loading");
   const reducedMotion = useReducedMotion();
   const fallback = <ExperienceFallback visualState={visualState} />;
   const visualProofLayer = selectVisualProofLayer(visualProofMode, visualState.stage);
   const cinematicActive = CinematicSanctuaryLayer !== null && visualProofLayer === "cinematic";
   const shouldRenderRealtime = !cinematicActive;
   const forceCinematicFailure = readLocalVisualCheck() === "cinematic-failure";
+  const forceCinematicUnavailable = readLocalVisualCheck() === "cinematic-unavailable";
   const handleRendererFailure = useCallback((reason: RendererFailureReason | "react-error") => {
     setRendererFailure(reason);
     setRendererState("failed");
@@ -132,6 +140,12 @@ export function ExperienceViewport({
   const handleRendererReady = useCallback((api: "webgl1" | "webgl2") => {
     setRendererApi(api);
     setRendererState("ready");
+  }, []);
+  const handleStartCinematicMotion = useCallback(() => {
+    cinematicPlaybackRef.current?.startMotion();
+  }, []);
+  const handlePauseCinematicMotion = useCallback(() => {
+    cinematicPlaybackRef.current?.pauseMotion();
   }, []);
   const developmentCalibrationTools =
     VisualCalibrationConsole === null ? null : (
@@ -147,8 +161,9 @@ export function ExperienceViewport({
       <Suspense fallback={null}>
         <HybridVisualProofControls
           cinematicActive={cinematicActive}
-          motionPaused={motionPaused}
-          onMotionPausedChange={setMotionPaused}
+          motionStatus={cinematicMotionStatus}
+          onPauseMotion={handlePauseCinematicMotion}
+          onStartMotion={handleStartCinematicMotion}
           onVisualProofModeChange={setVisualProofMode}
           visualProofMode={visualProofMode}
         />
@@ -188,8 +203,10 @@ export function ExperienceViewport({
             <CinematicSanctuaryLayer
               active={cinematicActive}
               forceFailure={forceCinematicFailure}
-              paused={motionPaused}
+              forceUnavailable={forceCinematicUnavailable}
+              onMotionStatusChange={setCinematicMotionStatus}
               reducedMotion={reducedMotion}
+              ref={cinematicPlaybackRef}
             />
           </Suspense>
         ) : null}

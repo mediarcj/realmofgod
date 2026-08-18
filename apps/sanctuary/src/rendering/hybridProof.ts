@@ -14,6 +14,10 @@ export type VisualProofMode = "realtime" | "cinematic";
 // Name the presentation result so the visual component can stay a simple renderer of local state.
 export type CinematicPresentation = "still" | "video";
 
+// Name the actual native-media states the development controls must describe without guessing from intent.
+export type CinematicMotionStatus =
+  "failed" | "loading" | "paused" | "playing" | "reduced" | "unavailable";
+
 // Limit cinematic media to the two states for which the owner supplied matching footage.
 export function supportsCinematicStage(stage: JourneyStage): boolean {
   return stage === "entry" || stage === "sanctuary";
@@ -27,17 +31,41 @@ export function selectVisualProofLayer(
   return mode === "cinematic" && supportsCinematicStage(stage) ? "cinematic" : "realtime";
 }
 
-// Keep a settled still on screen for reduced motion, a user pause, or any unavailable media state.
-export function selectCinematicPresentation({
+// Describe the visible native-media condition before choosing a label or revealing a moving frame.
+export function selectCinematicMotionStatus({
   reducedMotion,
-  paused,
+  manuallyPaused,
   videoPlaying,
   videoFailed,
+  videoReady,
+  playbackUnavailable,
 }: {
   readonly reducedMotion: boolean;
-  readonly paused: boolean;
+  readonly manuallyPaused: boolean;
   readonly videoPlaying: boolean;
   readonly videoFailed: boolean;
-}): CinematicPresentation {
-  return !reducedMotion && !paused && videoPlaying && !videoFailed ? "video" : "still";
+  readonly videoReady: boolean;
+  readonly playbackUnavailable: boolean;
+}): CinematicMotionStatus {
+  if (reducedMotion) {
+    return "reduced";
+  }
+  if (videoFailed) {
+    return "failed";
+  }
+  if (!videoReady) {
+    return "loading";
+  }
+  if (manuallyPaused) {
+    return "paused";
+  }
+  if (videoPlaying) {
+    return "playing";
+  }
+  return playbackUnavailable ? "unavailable" : "loading";
+}
+
+// Keep a settled still on screen until the native element reports active playback.
+export function selectCinematicPresentation(status: CinematicMotionStatus): CinematicPresentation {
+  return status === "playing" ? "video" : "still";
 }
