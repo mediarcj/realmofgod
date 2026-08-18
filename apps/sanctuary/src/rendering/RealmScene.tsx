@@ -178,7 +178,7 @@ export function RealmScene({
   const bareCanvas = rendererVerificationStage === "a";
   const staticRuntimeLights =
     rendererVerificationStage !== "a" && rendererVerificationStage !== "b";
-  const dynamicShadows = rendererVerificationStage === "e";
+  const dynamicShadows = rendererVerificationStage === null || rendererVerificationStage === "e";
   const localVisualCheck = readLocalVisualCheck();
   const fixedDoorReview = localVisualCheck === "door-mid";
   const fixedBibleReview =
@@ -315,32 +315,36 @@ export function RealmScene({
           {!outdoors ? (
             <>
               <pointLight
+                castShadow={dynamicShadows}
                 color="#ff9f45"
                 decay={2}
-                distance={7}
+                distance={5}
                 intensity={visualCalibration.lighting.warmKey.intensity}
                 position={[...visualCalibration.lighting.warmKey.position]}
+                shadow-bias={-0.00035}
+                shadow-mapSize-height={512}
+                shadow-mapSize-width={512}
               />
               <pointLight
                 color="#ff8a36"
                 decay={2}
-                distance={4.8}
+                distance={3.8}
                 intensity={visualCalibration.lighting.warmKey.intensity * 0.58}
                 position={[
-                  -1.34 + visualCalibration.candleLeft.position[0],
-                  1.745 + visualCalibration.candleLeft.position[1],
-                  0.18 + visualCalibration.candleLeft.position[2],
+                  -1.43 + visualCalibration.candleLeft.position[0],
+                  1.815 + visualCalibration.candleLeft.position[1],
+                  0.24 + visualCalibration.candleLeft.position[2],
                 ]}
               />
               <pointLight
                 color="#ff8a36"
                 decay={2}
-                distance={4.8}
+                distance={3.8}
                 intensity={visualCalibration.lighting.warmKey.intensity * 0.58}
                 position={[
-                  1.34 + visualCalibration.candleRight.position[0],
-                  1.745 + visualCalibration.candleRight.position[1],
-                  0.18 + visualCalibration.candleRight.position[2],
+                  1.43 + visualCalibration.candleRight.position[0],
+                  1.815 + visualCalibration.candleRight.position[1],
+                  0.24 + visualCalibration.candleRight.position[2],
                 ]}
               />
             </>

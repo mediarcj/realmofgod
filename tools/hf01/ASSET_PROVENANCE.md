@@ -4,7 +4,7 @@
 
 # Purpose: Makes the locally authored production asset reviewable without relying on private construction history.
 
-# Notes: This record contains no secret, provider credential, downloaded artwork, or visitor data.
+# Notes: This record contains no secret, provider credential, remote runtime dependency, or visitor data.
 
 # HF-01 Sanctuary Asset Provenance
 
@@ -12,25 +12,30 @@
 - Runtime asset: `apps/sanctuary/src/assets/production/realm-hf01-sanctuary.glb`
 - Editable source: `tools/hf01/source/realm-hf01-sanctuary.blend`
 - Reproducible authoring source: `tools/hf01/build_hf01_sanctuary.py`
-- Description: aged horizontal-timber prayer refuge, centered physical door and hardware, broad low
-  prayer table, substantial blank Bible, two complete candle fixtures, and a limited irregular
-  exterior glimpse
+- Description: old-world paneled-wood prayer refuge, centered physical door and hardware, broad low
+  prayer table, substantial blank Bible, reflective laid-down cross, two complete candle fixtures,
+  and a limited irregular exterior glimpse
 - Creator and tool: locally authored for Realm of God with Blender 5.2.0 LTS
-- Direction source: owner-provided HF-01 description plus two owner-supplied local visual references
-  used only for observation and calibration; no reference pixel, model, texture, photograph, font,
-  HDRI, watermark, or other third-party visual entered the authored asset, application source,
-  runtime media, or production bundle
-- Ownership and license posture: original project-controlled asset for Realm of God; no third-party
-  visual license applies
-- glTF pipeline: glTF 2.0 binary, metallic/roughness PBR, locally generated PNG source maps, WebP
-  production maps, Meshopt geometry and animation compression
+- Direction source: owner-provided HF-01 descriptions and local visual references used only for
+  observation and calibration; no reference pixel, model, photograph, font, HDRI, watermark, or
+  other reference media entered the authored asset or production bundle
+- Ownership and license posture: project-controlled geometry plus Poly Haven `fine_grained_wood` 1K
+  base-color, OpenGL-normal, and roughness maps under CC0; Poly Haven identifies the asset author as
+  Rob Tuytel and permits commercial use, modification, and redistribution without attribution
+- Local texture sources: `tools/hf01/source/textures/cc0-fine-grained-wood-*.jpg`; reviewed source
+  page `https://polyhaven.com/a/fine_grained_wood`; license `https://polyhaven.com/license`;
+  downloaded only during authoring and embedded locally, with no production network request
+- Source MD5 checks: base color `3db9decdde678e087e67ff99d30c0a73`; OpenGL normal
+  `a9e33e87ea5c32945fc30553767b7046`; roughness `5e29204cca6747b5df219e9a7255540f`
+- glTF pipeline: glTF 2.0 binary, metallic/roughness PBR, local CC0 and locally generated source
+  maps, WebP production maps, Meshopt geometry and animation compression
 - Optimization command: `corepack pnpm asset:hf01:build`
 - Runtime loader: local Three.js `GLTFLoader` with the Three.js-bundled local `MeshoptDecoder`,
   behind the existing asynchronous renderer boundary
 - Approved animation clips: `Realm_Door_Close` and `Realm_Bible_Settle_Open`
 - Scripture boundary: the asset contains no verse, page wording, chapter text, or Scripture
   quotation
-- Optimized byte size: 545,364 bytes at the reference-locked HF-01 build
-- Visible geometry: 24,860 triangles and 61 draw calls at the reference-locked HF-01 build
-- Texture set: 9 embedded WebP textures; maximum dimension 512 by 512 pixels
+- Optimized byte size: 604,104 bytes at the cinematic benchmark build
+- Visible geometry: 29,868 triangles and 67 draw calls at the cinematic benchmark build
+- Texture set: 8 embedded WebP textures; maximum dimension 512 by 512 pixels
 - Final artistic acceptance: pending owner visual review

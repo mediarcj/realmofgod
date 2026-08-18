@@ -83,6 +83,8 @@ select {
 
 .experience-canvas canvas {
   display: block;
+  /* Apply a restrained room-only color grade so candle warmth and shadow separation survive display variance. */
+  filter: brightness(0.92) contrast(1.12) saturate(1.2) sepia(0.1);
 }
 
 /* Build an original static sanctuary fallback from timber rhythm, warm light, and a doorway shape. */

@@ -1,6 +1,6 @@
 # File: tools/hf01/build_hf01_sanctuary.py
-# Description: Authors the HF-01 timber sanctuary, physical door, and settling Bible in Blender.
-# Purpose: Keeps production geometry, materials, textures, and animation reproducible without downloaded art.
+# Description: Authors the HF-01 paneled-wood sanctuary and its devotional focal objects in Blender.
+# Purpose: Keeps the cinematic room, materials, props, and restrained motion reproducible without downloaded art.
 # Notes: Run only through the repository asset script; Blender and generated source files never ship as runtime code.
 
 """Build the locally authored HF-01 sanctuary source scene and raw glTF asset."""
@@ -93,6 +93,19 @@ def save_texture(
     return image
 
 
+def load_local_texture(name: str, filename: str, *, color_space: str) -> bpy.types.Image:
+    """Load one repository-owned or reviewed CC0 source map without any authoring-time network path."""
+
+    path = TEXTURE_ROOT / filename
+    if not path.is_file():
+        raise RuntimeError(f"Expected local HF-01 texture is unavailable: {filename}")
+    image = bpy.data.images.load(str(path), check_existing=True)
+    image.name = name
+    image.colorspace_settings.name = color_space
+    image.pack()
+    return image
+
+
 # Define a restrained timber grain shared by the room, table, and door material families.
 def wood_height(u: float, v: float) -> float:
     bend = math.sin(v * math.tau * 2.1) * 0.045
@@ -108,21 +121,21 @@ def wood_base_pixel(u: float, v: float, dark: bool = False) -> tuple[float, floa
     age = 0.5 + 0.5 * math.sin((v * 3.2 + u * 0.37) * math.tau)
     if dark:
         return (
-            0.23 + grain * 0.032 + age * 0.033,
-            0.115 + grain * 0.019 + age * 0.017,
-            0.052 + grain * 0.01 + age * 0.008,
+            0.074 + grain * 0.006 + age * 0.008,
+            0.018 + grain * 0.0025 + age * 0.003,
+            0.0035 + grain * 0.0008 + age * 0.0008,
             1.0,
         )
     return (
-        0.34 + grain * 0.056 + age * 0.044,
-        0.17 + grain * 0.031 + age * 0.021,
-        0.072 + grain * 0.015 + age * 0.008,
+        0.15 + grain * 0.011 + age * 0.012,
+        0.041 + grain * 0.004 + age * 0.004,
+        0.006 + grain * 0.001 + age * 0.001,
         1.0,
     )
 
 
 def wood_roughness_pixel(u: float, v: float) -> tuple[float, float, float, float]:
-    roughness = max(0.48, min(0.91, 0.72 - wood_height(u, v) * 0.11))
+    roughness = max(0.42, min(0.88, 0.66 - wood_height(u, v) * 0.12))
     return (roughness, roughness, roughness, 1.0)
 
 
@@ -217,6 +230,23 @@ paper_roughness = save_texture(
     "paper-roughness", 256, paper_roughness_pixel, color_space="Non-Color"
 )
 
+# Replace the broad procedural hero wood with a reviewed local CC0 scan while retaining offline rebuilds.
+wood_cc0_base = load_local_texture(
+    "wood-cc0-basecolor",
+    "cc0-fine-grained-wood-basecolor-1k.jpg",
+    color_space="sRGB",
+)
+wood_cc0_roughness = load_local_texture(
+    "wood-cc0-roughness",
+    "cc0-fine-grained-wood-roughness-1k.jpg",
+    color_space="Non-Color",
+)
+wood_cc0_normal = load_local_texture(
+    "wood-cc0-normal-gl",
+    "cc0-fine-grained-wood-normal-gl-1k.jpg",
+    color_space="Non-Color",
+)
+
 
 def pbr_material(
     name: str,
@@ -227,6 +257,7 @@ def pbr_material(
     base_color: tuple[float, float, float, float] = (0.5, 0.5, 0.5, 1.0),
     roughness: float = 0.7,
     metallic: float = 0.0,
+    normal_strength: float = 0.42,
 ) -> bpy.types.Material:
     """Create one exporter-friendly Principled material with direct texture channels."""
 
@@ -257,7 +288,7 @@ def pbr_material(
         normal_texture.image = normal_image
         normal_map = nodes.new("ShaderNodeNormalMap")
         normal_map.name = f"{name}_NormalMap"
-        normal_map.inputs["Strength"].default_value = 0.42
+        normal_map.inputs["Strength"].default_value = normal_strength
         links.new(normal_texture.outputs["Color"], normal_map.inputs["Color"])
         links.new(normal_map.outputs["Normal"], principled.inputs["Normal"])
     return material
@@ -266,21 +297,25 @@ def pbr_material(
 # Assemble a small controlled material palette shared across many meshes to limit draw calls.
 wood_light = pbr_material(
     "HF01_Wood_Honey",
-    base_image=wood_light_base,
-    roughness_image=wood_roughness,
-    normal_image=wood_normal,
+    base_image=wood_cc0_base,
+    roughness_image=wood_cc0_roughness,
+    normal_image=wood_cc0_normal,
+    normal_strength=0.36,
 )
 wood_dark = pbr_material(
     "HF01_Wood_Smoked",
-    base_image=wood_dark_base,
-    roughness_image=wood_roughness,
-    normal_image=wood_normal,
+    base_image=wood_cc0_base,
+    roughness_image=wood_cc0_roughness,
+    normal_image=wood_cc0_normal,
+    base_color=(0.36, 0.24, 0.16, 1.0),
+    normal_strength=0.32,
 )
 leather = pbr_material(
     "HF01_Bible_Leather",
     base_image=leather_base,
     roughness_image=leather_roughness,
     normal_image=leather_normal,
+    normal_strength=0.2,
 )
 fabric = pbr_material(
     "HF01_Cushion_Fabric",
@@ -303,6 +338,12 @@ metal_warm = pbr_material(
     base_color=(0.31, 0.18, 0.055, 1.0),
     roughness=0.34,
     metallic=0.72,
+)
+metal_silver = pbr_material(
+    "HF01_Cross_Silver",
+    base_color=(0.58, 0.61, 0.62, 1.0),
+    roughness=0.18,
+    metallic=0.96,
 )
 rug_material = pbr_material(
     "HF01_Rug",
@@ -347,8 +388,13 @@ wick_material = pbr_material(
 )
 flame_material = emissive_material(
     "HF01_Candle_Flame",
-    (1.0, 0.34, 0.045, 1.0),
-    4.5,
+    (1.0, 0.22, 0.025, 1.0),
+    2.4,
+)
+flame_core_material = emissive_material(
+    "HF01_Candle_Flame_Core",
+    (1.0, 0.82, 0.3, 1.0),
+    3.2,
 )
 
 
@@ -485,6 +531,63 @@ def curved_page(
     return obj
 
 
+def open_page_surface(
+    name: str,
+    side: int,
+    width: float,
+    depth: float,
+    material: bpy.types.Material,
+    *,
+    parent: bpy.types.Object,
+    edge_lift: float = 0.045,
+) -> bpy.types.Object:
+    """Create one signed half of an open book with a raised spine and gently curled outer edge."""
+
+    columns = 12
+    rows = 8
+    vertices: list[tuple[float, float, float]] = []
+    faces: list[tuple[int, int, int, int]] = []
+    for column in range(columns):
+        u = column / (columns - 1)
+        for row in range(rows):
+            v = row / (rows - 1)
+            x = side * width * u
+            y = depth * (v - 0.5)
+            spine_crown = 0.044 * math.exp(-u * 4.2)
+            outer_curl = edge_lift * (u**3.2)
+            page_crown = 0.018 * (1.0 - (v * 2.0 - 1.0) ** 2)
+            vertices.append((x, y, spine_crown + outer_curl + page_crown))
+    for column in range(columns - 1):
+        for row in range(rows - 1):
+            first = column * rows + row
+            faces.append((first, first + rows, first + rows + 1, first + 1))
+
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    uv_layer = mesh.uv_layers.new(name="Open_Page_UV")
+    for polygon in mesh.polygons:
+        for loop_index in polygon.loop_indices:
+            vertex_index = mesh.loops[loop_index].vertex_index
+            column = vertex_index // rows
+            row = vertex_index % rows
+            uv_layer.data[loop_index].uv = (column / (columns - 1), row / (rows - 1))
+
+    obj = bpy.data.objects.new(name, mesh)
+    obj.parent = parent
+    scene.collection.objects.link(obj)
+    obj.data.materials.append(material)
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+    solidify = obj.modifiers.new(name="Page_Thickness", type="SOLIDIFY")
+    solidify.thickness = 0.007
+    solidify.offset = 0.0
+    bpy.ops.object.modifier_apply(modifier=solidify.name)
+    apply_bevel(obj, 0.003, 2)
+    obj.select_set(False)
+    return obj
+
+
 def join_meshes(objects: Iterable[bpy.types.Object], name: str) -> bpy.types.Object:
     """Join static meshes that share a material to reduce browser draw calls."""
 
@@ -518,110 +621,121 @@ for index in range(12):
 join_meshes(floor_boards, "HF01_Floorboards")
 
 
-# Form the walls from horizontal timber courses so the room reads as hand-built at hero distance.
-wall_boards: list[bpy.types.Object] = []
-for index in range(14):
-    z = 0.16 + index * 0.32
-    wall_boards.append(
-        box(
-            f"BackWallBoard_{index + 1:02d}",
-            (random.uniform(-0.018, 0.018), -7.27 + random.uniform(-0.012, 0.012), z),
-            (7.82, 0.18, 0.29 + random.uniform(-0.008, 0.008)),
-            wood_dark,
-            bevel=0.018,
-            rotation=(0.0, random.uniform(-0.003, 0.003), random.uniform(-0.002, 0.002)),
-        )
-    )
-for side in (-1, 1):
-    for index in range(14):
-        z = 0.16 + index * 0.32
-        wall_boards.append(
-            box(
-                f"SideWall_{'L' if side < 0 else 'R'}_{index + 1:02d}",
-                (side * (3.98 + random.uniform(-0.009, 0.009)), -2.67, z),
-                (0.18, 9.15, 0.29 + random.uniform(-0.008, 0.008)),
-                wood_dark,
-                bevel=0.018,
-            )
-        )
-
-# Frame the centered rear-door composition with the same readable horizontal plank rhythm.
-for side in (-1, 1):
-    for index in range(14):
-        z = 0.16 + index * 0.32
-        wall_boards.append(
-            box(
-                f"FrontWall_{'L' if side < 0 else 'R'}_{index + 1:02d}",
-                (side * 2.72, 1.94 + random.uniform(-0.009, 0.009), z),
-                (2.46, 0.2, 0.29 + random.uniform(-0.008, 0.008)),
-                wood_dark,
-                bevel=0.018,
-            )
-        )
-for index in range(4):
-    wall_boards.append(
-        box(
-            f"FrontWall_Header_{index + 1:02d}",
-            (0.0, 1.94, 3.28 + index * 0.3),
-            (3.0, 0.2, 0.27),
-            wood_dark,
-            bevel=0.018,
-        )
-    )
-
-# Dark structural backing closes the hairline plank seams without flattening their visible depth.
-for side in (-1, 1):
-    wall_boards.append(
-        box(
-            f"SideWall_Backup_{'L' if side < 0 else 'R'}",
-            (side * 4.055, -2.67, 2.22),
-            (0.08, 9.2, 4.46),
-            wood_dark,
-            bevel=0.0,
-        )
-    )
-wall_boards.append(
-    box("BackWall_Backup", (0.0, -7.365, 2.22), (7.9, 0.08, 4.46), wood_dark, bevel=0.0)
-)
-
-# Backing around the doorway makes its plank seams read as shadow rather than exterior light leaks.
-for side in (-1, 1):
-    wall_boards.append(
-        box(
-            f"FrontWall_Backup_{'L' if side < 0 else 'R'}",
-            (side * 2.72, 2.055, 2.22),
-            (2.48, 0.06, 4.46),
-            wood_dark,
-            bevel=0.0,
-        )
-    )
-wall_boards.append(
-    box("FrontWall_Header_Backup", (0.0, 2.055, 3.8), (3.02, 0.06, 1.04), wood_dark, bevel=0.0)
-)
-join_meshes(wall_boards, "HF01_TimberWalls")
-
-
-# Add structural posts, rafters, and irregular cross beams that read as constructed timber.
-beams: list[bpy.types.Object] = []
-for x in (-3.72, 3.72):
-    for y in (-7.05, 1.72):
-        beams.append(box(f"Post_{x}_{y}", (x, y, 2.25), (0.32, 0.32, 4.5), wood_dark, bevel=0.045, segments=3))
-for y in (-6.95, -4.8, -2.65, -0.5, 1.55):
-    beams.append(box(f"CeilingBeam_{y}", (0.0, y, 4.36), (7.7, 0.28, 0.32), wood_dark, bevel=0.04, segments=3))
-for x in (-3.55, 0.0, 3.55):
-    beams.append(box(f"Rafter_{x}", (x, -2.65, 4.52), (0.24, 8.95, 0.26), wood_dark, bevel=0.035, segments=3))
-join_meshes(beams, "HF01_StructuralTimber")
-
-
-# Center one low, broad prayer table so the room remains the subject around its devotional focus.
-table_parts = [
-    box("PrayerTable_Top", (0.0, -0.18, 0.73), (3.45, 1.34, 0.16), wood_light, bevel=0.075, segments=4),
-    box("PrayerTable_Apron_Front", (0.0, -0.75, 0.56), (3.02, 0.12, 0.28), wood_dark, bevel=0.025),
-    box("PrayerTable_Apron_Back", (0.0, 0.39, 0.56), (3.02, 0.12, 0.28), wood_dark, bevel=0.025),
+# Build solid room shells first so every decorative seam reads as real depth rather than a light leak.
+wall_panels: list[bpy.types.Object] = [
+    box("BackWall_Shell", (0.0, -7.28, 2.2), (8.0, 0.18, 4.5), wood_dark, bevel=0.01),
 ]
-for x in (-1.42, 1.42):
-    for y in (-0.64, 0.28):
-        table_parts.append(box(f"PrayerTable_Leg_{x}_{y}", (x, y, 0.34), (0.2, 0.2, 0.67), wood_dark, bevel=0.035, segments=3))
+for side in (-1, 1):
+    wall_panels.append(
+        box(
+            f"SideWall_Shell_{'L' if side < 0 else 'R'}",
+            (side * 4.0, -2.64, 2.2),
+            (0.2, 9.45, 4.5),
+            wood_dark,
+            bevel=0.01,
+        )
+    )
+    wall_panels.append(
+        box(
+            f"FrontWall_Shell_{'L' if side < 0 else 'R'}",
+            (side * 2.73, 1.95, 2.2),
+            (2.5, 0.2, 4.5),
+            wood_dark,
+            bevel=0.01,
+        )
+    )
+wall_panels.append(box("FrontWall_Header", (0.0, 1.95, 3.96), (3.02, 0.2, 0.98), wood_dark, bevel=0.01))
+
+# Vertical lower boards and framed upper panels reproduce the sturdy old-room construction in the reference.
+for side in (-1, 1):
+    for index in range(4):
+        x = side * (1.76 + index * 0.6)
+        wall_panels.append(
+            box(
+                f"FrontWainscot_{'L' if side < 0 else 'R'}_{index + 1:02d}",
+                (x, 1.82, 0.92),
+                (0.52, 0.08, 1.48),
+                wood_light,
+                bevel=0.018,
+            )
+        )
+    for index in range(8):
+        y = -5.95 + index * 1.05
+        wall_panels.append(
+            box(
+                f"SideWainscot_{'L' if side < 0 else 'R'}_{index + 1:02d}",
+                (side * 3.88, y, 0.92),
+                (0.08, 0.92, 1.48),
+                wood_light,
+                bevel=0.018,
+            )
+        )
+
+# Large upper fields avoid the repeated-log look and let broad wood grain sit behind crafted molding.
+for side in (-1, 1):
+    wall_panels.append(
+        box(
+            f"FrontUpperPanel_{'L' if side < 0 else 'R'}",
+            (side * 2.72, 1.81, 2.91),
+            (2.2, 0.075, 1.65),
+            wood_light,
+            bevel=0.025,
+            segments=3,
+        )
+    )
+    for index, y in enumerate((-5.6, -3.35, -1.1, 1.05)):
+        wall_panels.append(
+            box(
+                f"SideUpperPanel_{'L' if side < 0 else 'R'}_{index + 1:02d}",
+                (side * 3.87, y, 2.91),
+                (0.075, 1.92, 1.65),
+                wood_light,
+                bevel=0.025,
+                segments=3,
+            )
+        )
+join_meshes(wall_panels, "HF01_PaneledWalls")
+
+# Chair rails, baseboards, crown molding, and inset frames create the old-world depth hierarchy.
+trim: list[bpy.types.Object] = []
+for side in (-1, 1):
+    trim.extend(
+        [
+            box(f"FrontBase_{side}", (side * 2.72, 1.70, 0.16), (2.5, 0.19, 0.25), wood_dark, bevel=0.04, segments=3),
+            box(f"FrontChairRail_{side}", (side * 2.72, 1.68, 1.78), (2.52, 0.24, 0.22), wood_dark, bevel=0.045, segments=3),
+            box(f"FrontCrown_{side}", (side * 2.72, 1.66, 4.1), (2.52, 0.28, 0.28), wood_dark, bevel=0.05, segments=3),
+            box(f"SideBase_{side}", (side * 3.79, -2.64, 0.16), (0.24, 9.45, 0.25), wood_dark, bevel=0.04, segments=3),
+            box(f"SideChairRail_{side}", (side * 3.76, -2.64, 1.78), (0.3, 9.45, 0.22), wood_dark, bevel=0.045, segments=3),
+            box(f"SideCrown_{side}", (side * 3.73, -2.64, 4.1), (0.34, 9.45, 0.28), wood_dark, bevel=0.05, segments=3),
+        ]
+    )
+    for x in (side * 1.58, side * 3.86):
+        trim.append(box(f"FrontUpperStile_{x}", (x, 1.61, 2.91), (0.17, 0.22, 1.92), wood_dark, bevel=0.035, segments=3))
+    for z in (1.94, 3.88):
+        trim.append(box(f"FrontUpperRail_{side}_{z}", (side * 2.72, 1.61, z), (2.46, 0.22, 0.17), wood_dark, bevel=0.035, segments=3))
+    for y in (-6.65, -4.5, -2.25, 0.0, 2.0):
+        trim.append(box(f"SideUpperStile_{side}_{y}", (side * 3.68, y, 2.91), (0.24, 0.18, 1.92), wood_dark, bevel=0.035, segments=3))
+    for z in (1.94, 3.88):
+        trim.append(box(f"SideUpperRail_{side}_{z}", (side * 3.67, -2.65, z), (0.25, 9.35, 0.17), wood_dark, bevel=0.035, segments=3))
+
+# Deep corner posts and a single restrained ceiling frame complete the intimate enclosure.
+for x in (-3.75, 3.75):
+    for y in (-7.04, 1.7):
+        trim.append(box(f"CornerPost_{x}_{y}", (x, y, 2.24), (0.34, 0.34, 4.48), wood_dark, bevel=0.05, segments=3))
+for y in (-6.95, 1.5):
+    trim.append(box(f"CeilingFrame_{y}", (0.0, y, 4.32), (7.7, 0.3, 0.34), wood_dark, bevel=0.05, segments=3))
+join_meshes(trim, "HF01_CraftedMolding")
+
+
+# Center one sturdy prayer table close enough for the devotional objects to remain readable.
+table_parts = [
+    box("PrayerTable_Top", (0.0, -0.32, 0.76), (3.82, 1.42, 0.17), wood_light, bevel=0.085, segments=4),
+    box("PrayerTable_Apron_Front", (0.0, -0.93, 0.58), (3.35, 0.13, 0.3), wood_dark, bevel=0.03),
+    box("PrayerTable_Apron_Back", (0.0, 0.29, 0.58), (3.35, 0.13, 0.3), wood_dark, bevel=0.03),
+]
+for x in (-1.55, 1.55):
+    for y in (-0.79, 0.15):
+        table_parts.append(box(f"PrayerTable_Leg_{x}_{y}", (x, y, 0.35), (0.24, 0.24, 0.7), wood_dark, bevel=0.04, segments=3))
 join_meshes(table_parts, "HF01_PrayerTable")
 
 
@@ -630,31 +744,51 @@ def candle_fixture(name: str, x: float) -> bpy.types.Object:
 
     fixture = bpy.data.objects.new(name, None)
     fixture.parent = root
-    fixture.location = (x, -0.18, 0.82)
+    fixture.location = (x, -0.24, 0.86)
     scene.collection.objects.link(fixture)
 
     # A broad base, short stem, and cup make the flame visibly supported instead of floating.
-    cylinder(f"{name}_Base", (0.0, 0.0, 0.035), 0.19, 0.07, metal_warm, vertices=28, parent=fixture)
-    cylinder(f"{name}_Stem", (0.0, 0.0, 0.17), 0.045, 0.25, metal_warm, vertices=20, parent=fixture)
-    cylinder(f"{name}_Cup", (0.0, 0.0, 0.315), 0.105, 0.06, metal_warm, vertices=24, parent=fixture)
-    cylinder(f"{name}_Wax", (0.0, 0.0, 0.57), 0.082, 0.48, candle_wax, vertices=28, parent=fixture)
-    cylinder(f"{name}_Wick", (0.0, 0.0, 0.835), 0.012, 0.07, wick_material, vertices=12, parent=fixture)
+    cylinder(f"{name}_Base", (0.0, 0.0, 0.035), 0.2, 0.07, metal_warm, vertices=32, parent=fixture)
+    cylinder(f"{name}_Stem", (0.0, 0.0, 0.18), 0.05, 0.27, metal_warm, vertices=24, parent=fixture)
+    cylinder(f"{name}_Cup", (0.0, 0.0, 0.335), 0.115, 0.065, metal_warm, vertices=28, parent=fixture)
+    cylinder(f"{name}_Wax", (0.0, 0.0, 0.59), 0.08, 0.49, candle_wax, vertices=32, parent=fixture)
+    cylinder(f"{name}_Wick", (0.0, 0.0, 0.86), 0.011, 0.065, wick_material, vertices=12, parent=fixture)
 
     # A stretched low-poly sphere keeps the flame silhouette soft from desktop and mobile cameras.
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.09)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=0.083)
     flame = bpy.context.object
     flame.name = f"{name}_Flame"
     flame.parent = fixture
-    flame.location = (0.0, 0.0, 0.925)
-    flame.scale = (0.68, 0.68, 1.45)
+    flame.location = (0.0, 0.0, 0.955)
+    flame.scale = (0.56, 0.56, 1.55)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     flame.data.materials.append(flame_material)
+
+    # A small warm core keeps the flame luminous without turning it into a white cardboard shape.
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.048)
+    core = bpy.context.object
+    core.name = f"{name}_FlameCore"
+    core.parent = fixture
+    core.location = (0.0, -0.008, 0.935)
+    core.scale = (0.52, 0.52, 1.25)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    core.data.materials.append(flame_core_material)
     return fixture
 
 
 # Two physical candles flank the Bible and establish the room's practical-light source.
-candle_fixture("HF01_Candle_Left", -1.34)
-candle_fixture("HF01_Candle_Right", 1.34)
+candle_fixture("HF01_Candle_Left", -1.43)
+candle_fixture("HF01_Candle_Right", 1.43)
+
+
+# Lay one substantial reflective metal cross beside the Bible as a separate devotional object.
+table_cross = bpy.data.objects.new("HF01_TableCross_Root", None)
+table_cross.parent = root
+table_cross.location = (1.08, -0.45, 0.9)
+table_cross.rotation_euler.z = math.radians(-43.0)
+scene.collection.objects.link(table_cross)
+box("TableCross_Long", (0.0, 0.0, 0.0), (0.21, 1.48, 0.075), metal_silver, bevel=0.038, segments=4, parent=table_cross)
+box("TableCross_Arm", (0.0, 0.3, 0.0), (0.82, 0.21, 0.075), metal_silver, bevel=0.038, segments=4, parent=table_cross)
 
 
 # Build a hinged timber door with recessed panels, iron straps, latch, and real frame depth.
@@ -744,66 +878,69 @@ door_frame_parts = [
     box("DoorFrame_Left", (-1.45, 1.78, 1.58), (0.24, 0.42, 3.18), wood_dark, bevel=0.04, segments=3),
     box("DoorFrame_Right", (1.45, 1.78, 1.58), (0.24, 0.42, 3.18), wood_dark, bevel=0.04, segments=3),
     box("DoorFrame_Header", (0.0, 1.78, 3.14), (3.14, 0.42, 0.25), wood_dark, bevel=0.04, segments=3),
+    box("DoorFrame_TransomFill", (0.0, 1.86, 3.48), (2.92, 0.3, 0.46), wood_light, bevel=0.035, segments=3),
     box("Door_Threshold", (0.0, 1.78, 0.08), (3.05, 0.62, 0.15), wood_light, bevel=0.045, segments=3),
 ]
 join_meshes(door_frame_parts, "HF01_DoorFrame")
 
 
-# Construct a substantial blank Bible with a leather cover, warm pages, spine, and restrained cross.
+# Construct a substantial blank open Bible with curved pages and a settled devotional silhouette.
 bible_root = bpy.data.objects.new("HF01_Bible_Root", None)
 bible_root.parent = root
-bible_root.location = (0.0, -0.18, 0.84)
-bible_root.rotation_euler.z = math.radians(-1.5)
+bible_root.location = (-0.52, -0.31, 0.89)
+bible_root.rotation_euler.z = math.radians(-2.5)
 scene.collection.objects.link(bible_root)
 
-box("Bible_BottomCover", (0.64, 0.0, 0.01), (1.32, 1.02, 0.065), leather, bevel=0.055, segments=4, parent=bible_root)
-box("Bible_RightPageBlock", (0.64, 0.0, 0.105), (1.22, 0.92, 0.16), paper, bevel=0.052, segments=4, parent=bible_root)
-box("Bible_Spine", (-0.035, 0.0, 0.125), (0.11, 1.06, 0.24), leather, bevel=0.045, segments=4, parent=bible_root)
+box("Bible_LeftBottomCover", (-0.66, 0.0, 0.015), (1.38, 1.04, 0.065), leather, bevel=0.055, segments=4, parent=bible_root)
+box("Bible_RightBottomCover", (0.66, 0.0, 0.015), (1.38, 1.04, 0.065), leather, bevel=0.055, segments=4, parent=bible_root)
+box("Bible_LeftPageBlock", (-0.65, 0.0, 0.072), (1.26, 0.94, 0.082), paper, bevel=0.034, segments=4, parent=bible_root)
+box("Bible_RightPageBlock", (0.65, 0.0, 0.072), (1.26, 0.94, 0.082), paper, bevel=0.034, segments=4, parent=bible_root)
+box("Bible_Spine", (0.0, 0.0, 0.09), (0.115, 1.08, 0.16), leather, bevel=0.036, segments=4, parent=bible_root)
+
+# The hero still begins with two visibly curved page fields rather than hinged rectangular slabs.
+left_open_page = open_page_surface("Bible_LeftOpenPage", -1, 1.25, 0.91, paper, parent=bible_root, edge_lift=0.022)
+left_open_page.location.z = 0.135
+right_open_page = open_page_surface("Bible_RightOpenPage", 1, 1.25, 0.91, paper, parent=bible_root, edge_lift=0.018)
+right_open_page.location.z = 0.135
 
 right_page_pivot = bpy.data.objects.new("HF01_Bible_RightPage_Hinge", None)
 right_page_pivot.parent = bible_root
 right_page_pivot.location = (0.0, 0.0, 0.21)
-right_page_pivot.rotation_euler.y = math.radians(-4.0)
+right_page_pivot.rotation_euler.y = 0.0
 scene.collection.objects.link(right_page_pivot)
-curved_page("Bible_RightPage_Surface", 1.2, 0.89, paper, parent=right_page_pivot, height=0.045)
 
 top_cover_pivot = bpy.data.objects.new("HF01_Bible_TopCover_Hinge", None)
 top_cover_pivot.parent = bible_root
-top_cover_pivot.location = (0.0, 0.0, 0.215)
-top_cover_pivot.rotation_euler.y = math.radians(-52.0)
+top_cover_pivot.location = (0.0, 0.0, 0.16)
+top_cover_pivot.rotation_euler.y = math.radians(-179.0)
 scene.collection.objects.link(top_cover_pivot)
-box("Bible_TopCover", (0.64, 0.0, 0.0), (1.32, 1.02, 0.065), leather, bevel=0.055, segments=4, parent=top_cover_pivot)
-box("Bible_CoverInset", (0.64, -0.004, 0.038), (1.04, 0.78, 0.018), leather, bevel=0.035, segments=3, parent=top_cover_pivot)
-box("Bible_Cross_Vertical", (0.64, -0.004, 0.058), (0.058, 0.37, 0.018), metal_warm, bevel=0.012, segments=2, parent=top_cover_pivot)
-box("Bible_Cross_Horizontal", (0.64, -0.004, 0.058), (0.23, 0.058, 0.018), metal_warm, bevel=0.012, segments=2, parent=top_cover_pivot)
 
 page_pivot = bpy.data.objects.new("HF01_Bible_LeftPages_Hinge", None)
 page_pivot.parent = bible_root
-page_pivot.location = (0.0, 0.0, 0.195)
-page_pivot.rotation_euler.y = math.radians(-45.0)
+page_pivot.location = (0.0, 0.0, 0.2)
+page_pivot.rotation_euler.y = math.radians(-179.0)
 scene.collection.objects.link(page_pivot)
-box("Bible_LeftPageGroup", (0.625, 0.0, 0.0), (1.2, 0.91, 0.13), paper, bevel=0.042, segments=3, parent=page_pivot)
-left_page_surface = curved_page("Bible_LeftPage_Surface", 1.18, 0.88, paper, parent=page_pivot, height=0.044)
-left_page_surface.location.z = 0.05
 
 page_leaf_pivot = bpy.data.objects.new("HF01_Bible_PageLeaf_Hinge", None)
 page_leaf_pivot.parent = bible_root
-page_leaf_pivot.location = (0.0, 0.0, 0.225)
-page_leaf_pivot.rotation_euler.y = math.radians(-39.0)
+page_leaf_pivot.location = (0.0, 0.0, 0.142)
+page_leaf_pivot.rotation_euler.y = math.radians(-1.0)
 scene.collection.objects.link(page_leaf_pivot)
-curved_page("Bible_PageLeaf", 1.17, 0.87, paper, parent=page_leaf_pivot, height=0.06)
+page_leaf = open_page_surface("Bible_PageLeaf", 1, 1.22, 0.88, paper, parent=page_leaf_pivot, edge_lift=0.028)
+page_leaf.location.z = 0.008
 
 # Add thin blank page-edge bands to make the closed and open silhouettes legible at hero scale.
-for index, z in enumerate((0.045, 0.082, 0.122, 0.162)):
-    box(
-        f"Bible_PageEdge_{index + 1}",
-        (0.67, -0.46, z),
-        (1.13, 0.018, 0.012),
-        paper,
-        bevel=0.004,
-        segments=1,
-        parent=bible_root,
-    )
+for side in (-1, 1):
+    for index, z in enumerate((0.043, 0.063, 0.083, 0.103)):
+        box(
+            f"Bible_PageEdge_{'L' if side < 0 else 'R'}_{index + 1}",
+            (side * 0.67, -0.47, z),
+            (1.15, 0.016, 0.01),
+            paper,
+            bevel=0.003,
+            segments=1,
+            parent=bible_root,
+        )
 
 
 # Supply only a restrained irregular exterior glimpse so the hero doorway avoids cone-tree shorthand.
@@ -826,8 +963,8 @@ join_meshes(exterior_parts, "HF01_ExteriorGlimpse")
 # Place renderer-readable locators for the threshold and settled hero compositions.
 for name, location in (
     ("HF01_Camera_Arrival", (-0.25, 4.5, 1.68)),
-    ("HF01_Camera_Hero", (0.0, -6.48, 1.58)),
-    ("HF01_Focus_PrayerTable", (0.0, -0.18, 1.05)),
+    ("HF01_Camera_Hero", (0.0, -5.72, 1.72)),
+    ("HF01_Focus_PrayerTable", (0.0, -0.3, 1.18)),
 ):
     locator = bpy.data.objects.new(name, None)
     locator.parent = root
@@ -864,9 +1001,9 @@ arrival_camera = preview_camera(
 )
 hero_camera = preview_camera(
     "HF01_Preview_Hero",
-    (0.0, -6.48, 1.58),
-    (0.0, 0.45, 1.02),
-    30.0,
+    (0.0, -5.72, 1.72),
+    (0.0, 0.42, 1.08),
+    34.0,
 )
 scene.camera = hero_camera
 scene.render.resolution_x = 1280
@@ -934,12 +1071,12 @@ rotation_animation(
     bible_clip,
     1,
     (
-        (1, math.radians(-52.0)),
-        (50, math.radians(-50.0)),
-        (66, math.radians(-128.0)),
-        (76, math.radians(-174.0)),
-        (84, math.radians(-168.0)),
-        (96, math.radians(-176.0)),
+        (1, math.radians(-178.0)),
+        (50, math.radians(-178.0)),
+        (66, math.radians(-175.0)),
+        (76, math.radians(-180.0)),
+        (84, math.radians(-176.0)),
+        (96, math.radians(-179.0)),
     ),
 )
 rotation_animation(
@@ -947,12 +1084,12 @@ rotation_animation(
     bible_clip,
     1,
     (
-        (1, math.radians(-45.0)),
-        (50, math.radians(-47.0)),
-        (68, math.radians(-121.0)),
-        (80, math.radians(-169.0)),
-        (88, math.radians(-165.0)),
-        (96, math.radians(-171.0)),
+        (1, math.radians(-178.0)),
+        (50, math.radians(-178.0)),
+        (68, math.radians(-176.0)),
+        (80, math.radians(-180.0)),
+        (88, math.radians(-176.0)),
+        (96, math.radians(-179.0)),
     ),
 )
 rotation_animation(
@@ -960,12 +1097,12 @@ rotation_animation(
     bible_clip,
     1,
     (
-        (1, math.radians(-39.0)),
-        (50, math.radians(-43.0)),
-        (70, math.radians(-114.0)),
-        (82, math.radians(-163.0)),
-        (91, math.radians(-157.0)),
-        (96, math.radians(-165.0)),
+        (1, math.radians(-1.0)),
+        (50, math.radians(-1.0)),
+        (70, math.radians(-5.0)),
+        (82, math.radians(0.0)),
+        (91, math.radians(-3.0)),
+        (96, math.radians(-1.0)),
     ),
 )
 

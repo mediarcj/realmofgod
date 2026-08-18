@@ -42,12 +42,12 @@ export interface VisualCalibration {
   readonly candleRight: TransformCalibration;
 }
 
-// Center the room around its rear door and keep enough camera distance for floor, walls, table, and Bible.
+// Hold a close symmetrical view that keeps the room readable while giving the table objects real presence.
 export const defaultVisualCalibration: VisualCalibration = {
   camera: {
-    position: [0, 1.58, 6.48],
-    target: [0, 1.18, -0.45],
-    fov: 50,
+    position: [0, 1.72, 5.72],
+    target: [0, 1.08, -0.42],
+    fov: 48,
   },
   room: {
     position: [0, 0, 0],
@@ -55,18 +55,18 @@ export const defaultVisualCalibration: VisualCalibration = {
     scale: 1,
   },
   lighting: {
-    exposure: 1.82,
+    exposure: 1.02,
     warmKey: {
-      intensity: 4.6,
-      position: [0, 2.55, 0.18],
+      intensity: 42,
+      position: [0, 2.42, 0.24],
     },
     fill: {
-      intensity: 1.3,
-      color: "#d7b68a",
+      intensity: 0.18,
+      color: "#d56f35",
     },
     exteriorKey: {
-      intensity: 1.2,
-      color: "#d8b07c",
+      intensity: 0.08,
+      color: "#70442f",
     },
   },
   table: {

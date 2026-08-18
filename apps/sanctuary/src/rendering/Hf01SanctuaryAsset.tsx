@@ -14,7 +14,9 @@ import {
   AnimationMixer,
   Light,
   LoopOnce,
+  Material,
   Mesh,
+  MeshStandardMaterial,
   Object3D,
   Vector3,
 } from "three";
@@ -87,8 +89,39 @@ function prepareScene(source: Object3D, dynamicShadows: boolean): Object3D {
   const clone = source.clone(true);
   clone.traverse((object) => {
     if (object instanceof Mesh) {
+      // Clone the materials before tuning them so the loader cache remains an untouched source asset.
+      const sourceMaterials = Array.isArray(object.material) ? object.material : [object.material];
+      const preparedMaterials: Material[] = sourceMaterials.map((material) => {
+        const preparedMaterial = material.clone();
+        if (preparedMaterial instanceof MeshStandardMaterial) {
+          // The local texture maps carry grain while this restrained tint restores the warm aged-wood family.
+          if (preparedMaterial.name.includes("Wood_Honey")) {
+            preparedMaterial.color.setRGB(0.28, 0.14, 0.07);
+          } else if (preparedMaterial.name.includes("Wood_Smoked")) {
+            preparedMaterial.color.setRGB(0.1, 0.045, 0.02);
+          } else if (preparedMaterial.name.includes("Bible_Paper")) {
+            preparedMaterial.color.setRGB(1, 0.92, 0.72);
+          } else if (preparedMaterial.name.includes("Cross_Silver")) {
+            preparedMaterial.color.setRGB(0.38, 0.42, 0.44);
+          } else if (preparedMaterial.name.includes("Candle_Flame_Core")) {
+            preparedMaterial.color.setRGB(1, 0.68, 0.16);
+            preparedMaterial.emissive.setRGB(1, 0.46, 0.06);
+            preparedMaterial.emissiveIntensity = 4.8;
+          } else if (preparedMaterial.name.includes("Candle_Flame")) {
+            preparedMaterial.color.setRGB(1, 0.22, 0.02);
+            preparedMaterial.emissive.setRGB(1, 0.13, 0.01);
+            preparedMaterial.emissiveIntensity = 3.4;
+          }
+          preparedMaterial.envMapIntensity = /Cross_Silver|Brass|Iron/iu.test(preparedMaterial.name)
+            ? 1.25
+            : 0.14;
+        }
+        return preparedMaterial;
+      });
+      object.material = Array.isArray(object.material) ? preparedMaterials : preparedMaterials[0];
       object.receiveShadow = dynamicShadows;
-      object.castShadow = dynamicShadows && /Bible|Door|PrayerTable|Cushion/iu.test(object.name);
+      object.castShadow =
+        dynamicShadows && /Bible|Door|PrayerTable|TableCross|Candle/iu.test(object.name);
     }
     if (object instanceof Light) {
       // Runtime lights are intentionally bounded; Blender review lights are too strong for WebGL units.
@@ -154,7 +187,7 @@ export function Hf01SanctuaryAsset({
   readonly visualState: JourneyVisualState;
 }) {
   const gltf = useLoader(GLTFLoader, sanctuaryAssetUrl, configureLoader) as GLTF;
-  const dynamicShadows = rendererVerificationStage === "e";
+  const dynamicShadows = rendererVerificationStage === null || rendererVerificationStage === "e";
   const authoredScene = useMemo(
     () => prepareScene(gltf.scene, dynamicShadows),
     [dynamicShadows, gltf.scene],

@@ -11,10 +11,12 @@ import { useEffect, useRef, type ReactNode } from "react";
 import {
   AgXToneMapping,
   PCFShadowMap,
+  PMREMGenerator,
   PerspectiveCamera,
   SRGBColorSpace,
   WebGLRenderer,
 } from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 import type { JourneyVisualState } from "../journey/model";
 import { readLocalVisualCheck, readRendererVerificationStage } from "./capabilities";
@@ -58,6 +60,26 @@ function RendererCalibration({
       applyRendererCalibration(gl, camera, visualCalibration);
     }
   }, [camera, gl, visualCalibration]);
+
+  return null;
+}
+
+// Create one local reflected-light map so metal and polished wood respond to the room without a remote HDR file.
+function LocalReflectionEnvironment(): ReactNode {
+  const { gl, scene } = useThree();
+
+  useEffect(() => {
+    const generator = new PMREMGenerator(gl);
+    const environment = generator.fromScene(new RoomEnvironment(), 0.04).texture;
+    const previousEnvironment = scene.environment;
+    scene.environment = environment;
+
+    return () => {
+      scene.environment = previousEnvironment;
+      environment.dispose();
+      generator.dispose();
+    };
+  }, [gl, scene]);
 
   return null;
 }
@@ -113,7 +135,7 @@ export function CanvasExperience({
   visualState,
 }: CanvasExperienceProps): ReactNode {
   const rendererVerificationStage = readRendererVerificationStage();
-  const fullRendererCheck = rendererVerificationStage === "e";
+  const cinematicRenderer = rendererVerificationStage === null || rendererVerificationStage === "e";
 
   return (
     <div
@@ -128,13 +150,13 @@ export function CanvasExperience({
           far: 60,
           position: [...visualCalibration.camera.position],
         }}
-        dpr={fullRendererCheck ? [1, 1.5] : [1, 1.25]}
+        dpr={cinematicRenderer ? [1, 1.5] : [1, 1.25]}
         gl={(defaults) => {
           try {
             // Construct exactly one renderer with a neutral GPU preference and the reviewed quality level.
             return new WebGLRenderer({
               ...defaults,
-              antialias: fullRendererCheck,
+              antialias: cinematicRenderer,
               powerPreference: "default",
             });
           } catch {
@@ -146,18 +168,19 @@ export function CanvasExperience({
         onCreated={({ gl }) => {
           // Use photographic highlight rolloff and explicit sRGB output without a postprocessing chain.
           gl.outputColorSpace = SRGBColorSpace;
-          gl.shadowMap.enabled = fullRendererCheck;
+          gl.shadowMap.enabled = cinematicRenderer;
           gl.shadowMap.type = PCFShadowMap;
           gl.toneMapping = AgXToneMapping;
           gl.toneMappingExposure = visualCalibration.lighting.exposure;
         }}
-        shadows={fullRendererCheck}
+        shadows={cinematicRenderer}
       >
         <RendererLifecycle
           onRendererFailure={onRendererFailure}
           onRendererReady={onRendererReady}
         />
         <RendererCalibration visualCalibration={visualCalibration} />
+        <LocalReflectionEnvironment />
         <RealmScene
           reducedMotion={reducedMotion}
           rendererVerificationStage={rendererVerificationStage}

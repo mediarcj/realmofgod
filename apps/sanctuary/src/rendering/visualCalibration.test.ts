@@ -13,10 +13,11 @@ import { createDefaultVisualCalibration, defaultVisualCalibration } from "./visu
 // Guard the centered composition, two-candle transform surface, and warm practical-light baseline.
 describe("defaultVisualCalibration", () => {
   it("keeps the reviewed centered room and warm-light parameters", () => {
-    expect(defaultVisualCalibration.camera.position).toEqual([0, 1.58, 6.48]);
-    expect(defaultVisualCalibration.camera.target).toEqual([0, 1.18, -0.45]);
-    expect(defaultVisualCalibration.camera.fov).toBe(50);
-    expect(defaultVisualCalibration.lighting.warmKey.intensity).toBeGreaterThan(0);
+    expect(defaultVisualCalibration.camera.position).toEqual([0, 1.72, 5.72]);
+    expect(defaultVisualCalibration.camera.target).toEqual([0, 1.08, -0.42]);
+    expect(defaultVisualCalibration.camera.fov).toBe(48);
+    expect(defaultVisualCalibration.lighting.warmKey.intensity).toBe(42);
+    expect(defaultVisualCalibration.lighting.exposure).toBe(1.02);
     expect(defaultVisualCalibration.candleLeft).toEqual(defaultVisualCalibration.candleRight);
   });
 
