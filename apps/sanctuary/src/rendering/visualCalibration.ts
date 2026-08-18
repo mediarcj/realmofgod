@@ -91,6 +91,16 @@ export const defaultVisualCalibration: VisualCalibration = {
   },
 };
 
+// Widen only the portrait hero lens so the door, two candles, Bible, and table remain visible together.
+export function selectSanctuaryHeroFov(
+  baseFov: number,
+  viewportAspect: number,
+  sanctuaryHero: boolean,
+): number {
+  const portraitExpansion = sanctuaryHero ? Math.max(0, 0.9 - viewportAspect) * 68 : 0;
+  return Math.min(78, baseFov + portraitExpansion);
+}
+
 // Return fresh nested objects so a reset cannot share mutable arrays with an earlier review session.
 export function createDefaultVisualCalibration(): VisualCalibration {
   return structuredClone(defaultVisualCalibration);

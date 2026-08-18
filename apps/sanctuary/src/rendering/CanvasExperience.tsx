@@ -7,7 +7,7 @@
 
 // Import renderer-specific code only inside this asynchronously loaded visual module.
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   AgXToneMapping,
   PCFShadowMap,
@@ -21,7 +21,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import type { JourneyVisualState } from "../journey/model";
 import { readLocalVisualCheck, readRendererVerificationStage } from "./capabilities";
 import { RealmScene } from "./RealmScene";
-import type { VisualCalibration } from "./visualCalibration";
+import { selectSanctuaryHeroFov, type VisualCalibration } from "./visualCalibration";
 
 // Classify only the renderer boundary needed to verify a safe local recovery path.
 export type RendererFailureReason = "context-lost" | "creation-unavailable";
@@ -41,47 +41,57 @@ function applyRendererCalibration(
   gl: WebGLRenderer,
   camera: PerspectiveCamera,
   visualCalibration: VisualCalibration,
+  viewportAspect: number,
+  sanctuaryHero: boolean,
 ): void {
   gl.toneMappingExposure = visualCalibration.lighting.exposure;
-  camera.fov = visualCalibration.camera.fov;
+  camera.fov = selectSanctuaryHeroFov(visualCalibration.camera.fov, viewportAspect, sanctuaryHero);
   camera.updateProjectionMatrix();
 }
 
 // Apply live-safe camera and exposure values without rebuilding the WebGL renderer during local calibration.
 function RendererCalibration({
   visualCalibration,
+  visualState,
 }: {
   readonly visualCalibration: VisualCalibration;
+  readonly visualState: JourneyVisualState;
 }): ReactNode {
-  const { camera, gl } = useThree();
+  const { camera, gl, size } = useThree();
 
   useEffect(() => {
     if (camera instanceof PerspectiveCamera) {
-      applyRendererCalibration(gl, camera, visualCalibration);
+      const sanctuaryHero = visualState.stage === "entry" || visualState.stage === "sanctuary";
+      applyRendererCalibration(
+        gl,
+        camera,
+        visualCalibration,
+        size.width / Math.max(size.height, 1),
+        sanctuaryHero,
+      );
     }
-  }, [camera, gl, visualCalibration]);
+  }, [camera, gl, size.height, size.width, visualCalibration, visualState.stage]);
 
   return null;
 }
 
 // Create one local reflected-light map so metal and polished wood respond to the room without a remote HDR file.
 function LocalReflectionEnvironment(): ReactNode {
-  const { gl, scene } = useThree();
+  const { gl } = useThree();
+  const environment = useMemo(() => {
+    const generator = new PMREMGenerator(gl);
+    const texture = generator.fromScene(new RoomEnvironment(), 0.04).texture;
+    generator.dispose();
+    return texture;
+  }, [gl]);
 
   useEffect(() => {
-    const generator = new PMREMGenerator(gl);
-    const environment = generator.fromScene(new RoomEnvironment(), 0.04).texture;
-    const previousEnvironment = scene.environment;
-    scene.environment = environment;
-
     return () => {
-      scene.environment = previousEnvironment;
       environment.dispose();
-      generator.dispose();
     };
-  }, [gl, scene]);
+  }, [environment]);
 
-  return null;
+  return <primitive attach="environment" object={environment} />;
 }
 
 // Observe the actual renderer canvas so initialization and later context loss share one safe fallback path.
@@ -179,7 +189,7 @@ export function CanvasExperience({
           onRendererFailure={onRendererFailure}
           onRendererReady={onRendererReady}
         />
-        <RendererCalibration visualCalibration={visualCalibration} />
+        <RendererCalibration visualCalibration={visualCalibration} visualState={visualState} />
         <LocalReflectionEnvironment />
         <RealmScene
           reducedMotion={reducedMotion}

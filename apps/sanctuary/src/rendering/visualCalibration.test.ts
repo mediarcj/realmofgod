@@ -8,7 +8,11 @@
 // Import the small calibration factory and test helpers without initializing the renderer.
 import { describe, expect, it } from "vitest";
 
-import { createDefaultVisualCalibration, defaultVisualCalibration } from "./visualCalibration";
+import {
+  createDefaultVisualCalibration,
+  defaultVisualCalibration,
+  selectSanctuaryHeroFov,
+} from "./visualCalibration";
 
 // Guard the centered composition, two-candle transform surface, and warm practical-light baseline.
 describe("defaultVisualCalibration", () => {
@@ -29,5 +33,11 @@ describe("defaultVisualCalibration", () => {
     expect(second).toEqual(defaultVisualCalibration);
     expect(first).not.toBe(second);
     expect(first.camera.position).not.toBe(second.camera.position);
+  });
+
+  it("widens only the portrait sanctuary lens and keeps it within the reviewed limit", () => {
+    expect(selectSanctuaryHeroFov(48, 1.6, true)).toBe(48);
+    expect(selectSanctuaryHeroFov(48, 390 / 844, true)).toBeCloseTo(77.78, 2);
+    expect(selectSanctuaryHeroFov(48, 390 / 844, false)).toBe(48);
   });
 });

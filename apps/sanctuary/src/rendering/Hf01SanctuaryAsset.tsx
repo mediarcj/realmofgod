@@ -33,6 +33,14 @@ import type { TransformCalibration, VisualCalibration } from "./visualCalibratio
 const doorClipName = "Realm_Door_Close";
 const bibleClipName = "Realm_Bible_Settle_Open";
 
+// Narrow Three's permissive generic material surface to the two forms used by this authored asset.
+interface ReviewableMesh {
+  castShadow: boolean;
+  material: Material | Material[];
+  name: string;
+  receiveShadow: boolean;
+}
+
 // Fail clearly inside the visual error boundary if an optimized asset loses a required authored clip.
 function requireClip(animations: readonly AnimationClip[], name: string): AnimationClip {
   const clip = animations.find((candidate) => candidate.name === name);
@@ -89,8 +97,11 @@ function prepareScene(source: Object3D, dynamicShadows: boolean): Object3D {
   const clone = source.clone(true);
   clone.traverse((object) => {
     if (object instanceof Mesh) {
+      const mesh = object as unknown as ReviewableMesh;
       // Clone the materials before tuning them so the loader cache remains an untouched source asset.
-      const sourceMaterials = Array.isArray(object.material) ? object.material : [object.material];
+      const sourceMaterials: Material[] = Array.isArray(mesh.material)
+        ? mesh.material
+        : [mesh.material];
       const preparedMaterials: Material[] = sourceMaterials.map((material) => {
         const preparedMaterial = material.clone();
         if (preparedMaterial instanceof MeshStandardMaterial) {
@@ -118,9 +129,13 @@ function prepareScene(source: Object3D, dynamicShadows: boolean): Object3D {
         }
         return preparedMaterial;
       });
-      object.material = Array.isArray(object.material) ? preparedMaterials : preparedMaterials[0];
-      object.receiveShadow = dynamicShadows;
-      object.castShadow =
+      const [firstPreparedMaterial] = preparedMaterials;
+      if (firstPreparedMaterial === undefined) {
+        throw new Error(`Authored mesh has no material: ${mesh.name}.`);
+      }
+      mesh.material = Array.isArray(mesh.material) ? preparedMaterials : firstPreparedMaterial;
+      mesh.receiveShadow = dynamicShadows;
+      mesh.castShadow =
         dynamicShadows && /Bible|Door|PrayerTable|TableCross|Candle/iu.test(object.name);
     }
     if (object instanceof Light) {
