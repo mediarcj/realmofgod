@@ -11,9 +11,11 @@
 ## Reference inspection
 
 The supplied hero still and eight-frame motion contact sheet were inspected directly from the
-owner's local files before source changes. They were not copied into the runtime tree, production
-bundle, or this evidence directory. The development overlay loaded the hero still from a local File
-API selection into a memory-only object URL.
+owner's local files before source changes. The raw reference files were not copied into the runtime
+tree, application source, or production bundle. The development overlay loaded the hero still from a
+local File API selection into a memory-only object URL. The intentional `03-reference-overlay.jpg`
+browser screenshot contains the reference as a translucent comparison layer; it is evidence only, is
+not reachable from the application, and is separately excluded from production output.
 
 ## Captures
 

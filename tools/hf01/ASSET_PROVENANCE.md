@@ -18,7 +18,8 @@
 - Creator and tool: locally authored for Realm of God with Blender 5.2.0 LTS
 - Direction source: owner-provided HF-01 description plus two owner-supplied local visual references
   used only for observation and calibration; no reference pixel, model, texture, photograph, font,
-  HDRI, watermark, or other third-party visual was copied, bundled, hotlinked, or downloaded
+  HDRI, watermark, or other third-party visual entered the authored asset, application source,
+  runtime media, or production bundle
 - Ownership and license posture: original project-controlled asset for Realm of God; no third-party
   visual license applies
 - glTF pipeline: glTF 2.0 binary, metallic/roughness PBR, locally generated PNG source maps, WebP
