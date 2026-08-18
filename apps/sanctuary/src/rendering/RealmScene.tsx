@@ -17,6 +17,7 @@ import {
   type RendererVerificationStage,
 } from "./capabilities";
 import { Hf01SanctuaryAsset } from "./Hf01SanctuaryAsset";
+import type { VisualCalibration } from "./visualCalibration";
 
 // Keep positions explicit and deterministic so the same small woodland is composed on every visit.
 type Position = [number, number, number];
@@ -136,10 +137,12 @@ function Woodland() {
 export function RealmScene({
   reducedMotion,
   rendererVerificationStage,
+  visualCalibration,
   visualState,
 }: {
   readonly reducedMotion: boolean;
   readonly rendererVerificationStage: RendererVerificationStage;
+  readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
 }) {
   const woodlandRef = useRef<Group>(null);
@@ -148,7 +151,15 @@ export function RealmScene({
   const currentLookTarget = useRef(new Vector3(0.75, 1.1, 0.7));
   const [authoredSceneReady, setAuthoredSceneReady] = useState(false);
   const { camera } = useThree();
-  const destination = useMemo(() => cameraDestination(visualState), [visualState]);
+  const destination = useMemo(() => {
+    if (visualState.stage === "entry" || visualState.stage === "sanctuary") {
+      return {
+        position: visualCalibration.camera.position,
+        target: visualCalibration.camera.target,
+      };
+    }
+    return cameraDestination(visualState);
+  }, [visualCalibration.camera, visualState]);
   const desiredPosition = useMemo(
     () => new Vector3(...destination.position),
     [destination.position],
@@ -176,16 +187,16 @@ export function RealmScene({
   // Synchronize the authored door motion with a fresh threshold camera instead of moving behind a loading fallback.
   const handleAuthoredSceneReady = useCallback(() => {
     if (fixedBibleReview) {
-      camera.position.set(-2.2, 1.65, -1.05);
-      currentLookTarget.current.set(0.7, 0.95, 0.55);
+      camera.position.set(...visualCalibration.camera.position);
+      currentLookTarget.current.set(...visualCalibration.camera.target);
     } else {
-      camera.position.set(0, 1.68, -5.3);
-      currentLookTarget.current.set(0.65, 1, 0.55);
+      camera.position.set(...visualCalibration.camera.position);
+      currentLookTarget.current.set(...visualCalibration.camera.target);
     }
     camera.lookAt(currentLookTarget.current);
     arrivalElapsedRef.current = 0;
     setAuthoredSceneReady(true);
-  }, [camera, fixedBibleReview]);
+  }, [camera, fixedBibleReview, visualCalibration.camera]);
 
   // Reduced motion moves immediately to each stable composition instead of traveling between states.
   useEffect(() => {
@@ -214,8 +225,8 @@ export function RealmScene({
 
       // Hold at the visible threshold briefly, then enter before the authored door finishes closing.
       if (!cameraCanEnter) {
-        frameCamera.position.set(0, 1.68, -5.3);
-        currentLookTarget.current.set(0.65, 1, 0.55);
+        frameCamera.position.set(...visualCalibration.camera.position);
+        currentLookTarget.current.set(...visualCalibration.camera.target);
         frameCamera.lookAt(currentLookTarget.current);
         return;
       }
@@ -285,25 +296,71 @@ export function RealmScene({
       ) : null}
       {staticRuntimeLights ? (
         <>
-          <hemisphereLight args={["#d9cfb0", "#111b16", outdoors ? 1.05 : 0.82]} />
+          <hemisphereLight
+            args={[
+              visualCalibration.lighting.fill.color,
+              "#17100c",
+              outdoors ? 1.05 : visualCalibration.lighting.fill.intensity,
+            ]}
+          />
           <directionalLight
             castShadow={dynamicShadows}
-            color="#f0c982"
-            intensity={outdoors ? 1.5 : 1.2}
+            color={visualCalibration.lighting.exteriorKey.color}
+            intensity={outdoors ? 1.5 : visualCalibration.lighting.exteriorKey.intensity}
             position={[4.5, 7.5, 1.5]}
             shadow-bias={-0.00035}
             shadow-mapSize-height={1024}
             shadow-mapSize-width={1024}
           />
+          {!outdoors ? (
+            <>
+              <pointLight
+                color="#ff9f45"
+                decay={2}
+                distance={7}
+                intensity={visualCalibration.lighting.warmKey.intensity}
+                position={[...visualCalibration.lighting.warmKey.position]}
+              />
+              <pointLight
+                color="#ff8a36"
+                decay={2}
+                distance={4.8}
+                intensity={visualCalibration.lighting.warmKey.intensity * 0.58}
+                position={[
+                  -1.34 + visualCalibration.candleLeft.position[0],
+                  1.745 + visualCalibration.candleLeft.position[1],
+                  0.18 + visualCalibration.candleLeft.position[2],
+                ]}
+              />
+              <pointLight
+                color="#ff8a36"
+                decay={2}
+                distance={4.8}
+                intensity={visualCalibration.lighting.warmKey.intensity * 0.58}
+                position={[
+                  1.34 + visualCalibration.candleRight.position[0],
+                  1.745 + visualCalibration.candleRight.position[1],
+                  0.18 + visualCalibration.candleRight.position[2],
+                ]}
+              />
+            </>
+          ) : null}
         </>
       ) : null}
       {!bareCanvas ? (
-        <Hf01SanctuaryAsset
-          onReady={handleAuthoredSceneReady}
-          reducedMotion={reducedMotion}
-          rendererVerificationStage={rendererVerificationStage}
-          visualState={visualState}
-        />
+        <group
+          position={[...visualCalibration.room.position]}
+          rotation={[0, visualCalibration.room.rotationY, 0]}
+          scale={visualCalibration.room.scale}
+        >
+          <Hf01SanctuaryAsset
+            onReady={handleAuthoredSceneReady}
+            reducedMotion={reducedMotion}
+            rendererVerificationStage={rendererVerificationStage}
+            visualCalibration={visualCalibration}
+            visualState={visualState}
+          />
+        </group>
       ) : null}
       {outdoors ? (
         <group ref={woodlandRef}>

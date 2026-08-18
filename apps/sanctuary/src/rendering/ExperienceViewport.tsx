@@ -13,6 +13,7 @@ import type { RendererFailureReason } from "./CanvasExperience";
 import { detectGraphicsCapability, selectExperienceMode } from "./capabilities";
 import { useReducedMotion } from "./useReducedMotion";
 import { selectVisualAtmosphere } from "./visualAtmosphere";
+import { createDefaultVisualCalibration, type VisualCalibration } from "./visualCalibration";
 
 // Defer the renderer module until a capable browser reaches the optional visual layer.
 const CanvasExperience = lazy(async () => import("./CanvasExperience"));
@@ -92,6 +93,7 @@ export function ExperienceViewport({
     RendererFailureReason | "react-error" | null
   >(null);
   const [rendererApi, setRendererApi] = useState<"webgl1" | "webgl2" | null>(null);
+  const [visualCalibration] = useState<VisualCalibration>(createDefaultVisualCalibration);
   const reducedMotion = useReducedMotion();
   const fallback = <ExperienceFallback visualState={visualState} />;
   const handleRendererFailure = useCallback((reason: RendererFailureReason | "react-error") => {
@@ -132,6 +134,7 @@ export function ExperienceViewport({
             onRendererFailure={handleRendererFailure}
             onRendererReady={handleRendererReady}
             reducedMotion={reducedMotion}
+            visualCalibration={visualCalibration}
             visualState={visualState}
           />
         </Suspense>

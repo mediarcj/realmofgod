@@ -68,6 +68,8 @@ for (const nodeName of [
   "HF01_Door_Hinge",
   "HF01_DoorFrame",
   "HF01_PrayerTable",
+  "HF01_Candle_Left",
+  "HF01_Candle_Right",
   "HF01_Bible_Root",
   "HF01_Bible_TopCover_Hinge",
   "HF01_Bible_LeftPages_Hinge",

@@ -12,11 +12,13 @@
 - Runtime asset: `apps/sanctuary/src/assets/production/realm-hf01-sanctuary.glb`
 - Editable source: `tools/hf01/source/realm-hf01-sanctuary.blend`
 - Reproducible authoring source: `tools/hf01/build_hf01_sanctuary.py`
-- Description: warm timber prayer refuge, physical door and hardware, low prayer table, restrained
-  cushion and rug, substantial blank Bible, and a limited irregular exterior glimpse
+- Description: aged horizontal-timber prayer refuge, centered physical door and hardware, broad low
+  prayer table, substantial blank Bible, two complete candle fixtures, and a limited irregular
+  exterior glimpse
 - Creator and tool: locally authored for Realm of God with Blender 5.2.0 LTS
-- Direction source: owner-provided HF-01 cinematic sanctuary description; no model, texture,
-  photograph, font, HDRI, or other third-party visual was copied or downloaded
+- Direction source: owner-provided HF-01 description plus two owner-supplied local visual references
+  used only for observation and calibration; no reference pixel, model, texture, photograph, font,
+  HDRI, watermark, or other third-party visual was copied, bundled, hotlinked, or downloaded
 - Ownership and license posture: original project-controlled asset for Realm of God; no third-party
   visual license applies
 - glTF pipeline: glTF 2.0 binary, metallic/roughness PBR, locally generated PNG source maps, WebP
@@ -27,7 +29,7 @@
 - Approved animation clips: `Realm_Door_Close` and `Realm_Bible_Settle_Open`
 - Scripture boundary: the asset contains no verse, page wording, chapter text, or Scripture
   quotation
-- Optimized byte size: 425,264 bytes at the verified HF-01 build
-- Visible geometry: 16,820 triangles and 45 draw calls at the verified HF-01 build
-- Texture set: 11 embedded WebP textures; maximum dimension 512 by 512 pixels
+- Optimized byte size: 545,632 bytes at the reference-locked HF-01 build
+- Visible geometry: 24,860 triangles and 61 draw calls at the reference-locked HF-01 build
+- Texture set: 9 embedded WebP textures; maximum dimension 512 by 512 pixels
 - Final artistic acceptance: pending owner visual review

@@ -8,11 +8,18 @@
 // Import renderer-specific code only inside this asynchronously loaded visual module.
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, type ReactNode } from "react";
-import { AgXToneMapping, PCFShadowMap, SRGBColorSpace, WebGLRenderer } from "three";
+import {
+  AgXToneMapping,
+  PCFShadowMap,
+  PerspectiveCamera,
+  SRGBColorSpace,
+  WebGLRenderer,
+} from "three";
 
 import type { JourneyVisualState } from "../journey/model";
 import { readLocalVisualCheck, readRendererVerificationStage } from "./capabilities";
 import { RealmScene } from "./RealmScene";
+import type { VisualCalibration } from "./visualCalibration";
 
 // Classify only the renderer boundary needed to verify a safe local recovery path.
 export type RendererFailureReason = "context-lost" | "creation-unavailable";
@@ -23,7 +30,36 @@ interface CanvasExperienceProps {
   readonly onRendererFailure: (reason: RendererFailureReason) => void;
   readonly onRendererReady: (api: "webgl1" | "webgl2") => void;
   readonly reducedMotion: boolean;
+  readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
+}
+
+// Update Three's deliberately mutable renderer and camera objects behind one reviewed imperative boundary.
+function applyRendererCalibration(
+  gl: WebGLRenderer,
+  camera: PerspectiveCamera,
+  visualCalibration: VisualCalibration,
+): void {
+  gl.toneMappingExposure = visualCalibration.lighting.exposure;
+  camera.fov = visualCalibration.camera.fov;
+  camera.updateProjectionMatrix();
+}
+
+// Apply live-safe camera and exposure values without rebuilding the WebGL renderer during local calibration.
+function RendererCalibration({
+  visualCalibration,
+}: {
+  readonly visualCalibration: VisualCalibration;
+}): ReactNode {
+  const { camera, gl } = useThree();
+
+  useEffect(() => {
+    if (camera instanceof PerspectiveCamera) {
+      applyRendererCalibration(gl, camera, visualCalibration);
+    }
+  }, [camera, gl, visualCalibration]);
+
+  return null;
 }
 
 // Observe the actual renderer canvas so initialization and later context loss share one safe fallback path.
@@ -73,6 +109,7 @@ export function CanvasExperience({
   onRendererFailure,
   onRendererReady,
   reducedMotion,
+  visualCalibration,
   visualState,
 }: CanvasExperienceProps): ReactNode {
   const rendererVerificationStage = readRendererVerificationStage();
@@ -85,7 +122,12 @@ export function CanvasExperience({
       aria-hidden="true"
     >
       <Canvas
-        camera={{ fov: 46, near: 0.1, far: 60, position: [0, 1.68, -5.3] }}
+        camera={{
+          fov: visualCalibration.camera.fov,
+          near: 0.1,
+          far: 60,
+          position: [...visualCalibration.camera.position],
+        }}
         dpr={fullRendererCheck ? [1, 1.5] : [1, 1.25]}
         gl={(defaults) => {
           try {
@@ -107,7 +149,7 @@ export function CanvasExperience({
           gl.shadowMap.enabled = fullRendererCheck;
           gl.shadowMap.type = PCFShadowMap;
           gl.toneMapping = AgXToneMapping;
-          gl.toneMappingExposure = 1.04;
+          gl.toneMappingExposure = visualCalibration.lighting.exposure;
         }}
         shadows={fullRendererCheck}
       >
@@ -115,9 +157,11 @@ export function CanvasExperience({
           onRendererFailure={onRendererFailure}
           onRendererReady={onRendererReady}
         />
+        <RendererCalibration visualCalibration={visualCalibration} />
         <RealmScene
           reducedMotion={reducedMotion}
           rendererVerificationStage={rendererVerificationStage}
+          visualCalibration={visualCalibration}
           visualState={visualState}
         />
       </Canvas>

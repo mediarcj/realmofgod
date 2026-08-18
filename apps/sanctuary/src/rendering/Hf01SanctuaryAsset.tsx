@@ -16,6 +16,7 @@ import {
   LoopOnce,
   Mesh,
   Object3D,
+  Vector3,
 } from "three";
 import type { GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -25,6 +26,7 @@ import sanctuaryAssetUrl from "../assets/production/realm-hf01-sanctuary.glb?url
 import type { JourneyVisualState } from "../journey/model";
 import { type Hf01ClipCommand, selectHf01MotionPlan } from "./hf01Motion";
 import { readLocalVisualCheck, type RendererVerificationStage } from "./capabilities";
+import type { TransformCalibration, VisualCalibration } from "./visualCalibration";
 
 const doorClipName = "Realm_Door_Close";
 const bibleClipName = "Realm_Bible_Settle_Open";
@@ -102,16 +104,53 @@ function configureLoader(loader: GLTFLoader): void {
   loader.setMeshoptDecoder(MeshoptDecoder);
 }
 
+interface CalibratedObject {
+  readonly object: Object3D;
+  readonly position: Vector3;
+  readonly rotationY: number;
+  readonly scale: Vector3;
+}
+
+// Resolve the four approved prop roots once and preserve their authored transforms as calibration origins.
+function requireCalibratedObject(scene: Object3D, name: string): CalibratedObject {
+  const object = scene.getObjectByName(name);
+  if (object === undefined) {
+    throw new Error(`Required local calibration object is unavailable: ${name}.`);
+  }
+  return {
+    object,
+    position: object.position.clone(),
+    rotationY: object.rotation.y,
+    scale: object.scale.clone(),
+  };
+}
+
+// Apply bounded offsets to a cloned scene node without replacing its authored transform or animation hierarchy.
+function applyTransformCalibration(
+  calibratedObject: CalibratedObject,
+  calibration: TransformCalibration,
+): void {
+  calibratedObject.object.position.set(
+    calibratedObject.position.x + calibration.position[0],
+    calibratedObject.position.y + calibration.position[1],
+    calibratedObject.position.z + calibration.position[2],
+  );
+  calibratedObject.object.rotation.y = calibratedObject.rotationY + calibration.rotationY;
+  calibratedObject.object.scale.copy(calibratedObject.scale).multiplyScalar(calibration.scale);
+}
+
 // Render the physical sanctuary and keep its decorative lifecycle subordinate to the current journey stage.
 export function Hf01SanctuaryAsset({
   onReady,
   reducedMotion,
   rendererVerificationStage,
+  visualCalibration,
   visualState,
 }: {
   readonly onReady: () => void;
   readonly reducedMotion: boolean;
   readonly rendererVerificationStage: RendererVerificationStage;
+  readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
 }) {
   const gltf = useLoader(GLTFLoader, sanctuaryAssetUrl, configureLoader) as GLTF;
@@ -122,6 +161,22 @@ export function Hf01SanctuaryAsset({
   );
   const mixer = useMemo(() => new AnimationMixer(authoredScene), [authoredScene]);
   const freshArrivalAvailable = useRef(true);
+  const calibratedObjects = useMemo(() => {
+    return {
+      bible: requireCalibratedObject(authoredScene, "HF01_Bible_Root"),
+      candleLeft: requireCalibratedObject(authoredScene, "HF01_Candle_Left"),
+      candleRight: requireCalibratedObject(authoredScene, "HF01_Candle_Right"),
+      table: requireCalibratedObject(authoredScene, "HF01_PrayerTable"),
+    };
+  }, [authoredScene]);
+
+  // Update only the reviewed prop roots so local tuning cannot disturb animation clips or unrelated geometry.
+  useEffect(() => {
+    applyTransformCalibration(calibratedObjects.table, visualCalibration.table);
+    applyTransformCalibration(calibratedObjects.bible, visualCalibration.bible);
+    applyTransformCalibration(calibratedObjects.candleLeft, visualCalibration.candleLeft);
+    applyTransformCalibration(calibratedObjects.candleRight, visualCalibration.candleRight);
+  }, [calibratedObjects, visualCalibration]);
 
   // Create clip actions once for this scene clone so animation never mutates the cached loader source.
   const actions = useMemo(() => {
