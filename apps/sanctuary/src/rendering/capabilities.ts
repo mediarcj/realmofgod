@@ -23,6 +23,12 @@ export interface D85LandscapeProofConfig {
   readonly shadowPolicy: "off" | "restrained";
 }
 
+// Describe the narrow D9 visitor selection: the accepted batched candidate remains local development evidence.
+export interface D9VisitorSanctuaryConfig {
+  readonly candidate: "batched";
+  readonly shadowPolicy: "restrained";
+}
+
 // Keep the viewport-only mobile policy explicit so it does not depend on a browser user-agent claim.
 export interface ViewportSize {
   readonly height: number;
@@ -42,6 +48,12 @@ export const D85_NARROW_VIEWPORT_MAX_WIDTH = 600;
 
 // Use a 30fps threshold only to flag a long presentation interval, not to claim a GPU benchmark.
 export const D85_LONG_FRAME_THRESHOLD_MILLISECONDS = 1000 / 30;
+
+// Hold the D9 root selection as data so tests can distinguish the visitor path from explicit diagnostics.
+const d9VisitorSanctuaryConfig: D9VisitorSanctuaryConfig = {
+  candidate: "batched",
+  shadowPolicy: "restrained",
+};
 
 // Keep failure, motion, and renderer-isolation checks development-only and fragment-exact.
 export type LocalVisualCheck =
@@ -102,6 +114,32 @@ export function readLocalVisualCheck(): LocalVisualCheck {
   return selectLocalVisualCheck(window.location.hash);
 }
 
+// Reserve one explicit fragment for the legacy local comparison controls; the normal root never enables them.
+export function selectLocalDiagnosticRoute(fragment: string): boolean {
+  return fragment === "#diagnostic-hf01";
+}
+
+// Read the local diagnostic route only in development so it cannot become a production visitor control.
+export function readLocalDiagnosticRoute(): boolean {
+  return import.meta.env.DEV && typeof window !== "undefined"
+    ? selectLocalDiagnosticRoute(window.location.hash)
+    : false;
+}
+
+// Make the exact unfragmented development root use the approved batched candidate and restrained shadow policy.
+export function selectD9VisitorSanctuaryConfig(fragment: string): D9VisitorSanctuaryConfig | null {
+  return fragment === "" ? d9VisitorSanctuaryConfig : null;
+}
+
+// Keep the unpromoted candidate out of production selection while allowing the normal local root to review it.
+export function readD9VisitorSanctuaryConfig(): D9VisitorSanctuaryConfig | null {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return null;
+  }
+
+  return selectD9VisitorSanctuaryConfig(window.location.hash);
+}
+
 // Recognize only the exact local fragments used to compare the two staged assets and three shadow policies.
 export function selectD84StaticProofConfig(fragment: string): D84StaticProofConfig | null {
   const matches =
@@ -156,8 +194,13 @@ export function readD85LandscapeProofConfig(): D85LandscapeProofConfig | null {
 }
 
 // Block only narrow portrait viewports; this uses dimensions rather than a fallible device or browser identity.
-export function shouldBlockD85PortraitViewport(viewport: ViewportSize): boolean {
+export function shouldBlockNarrowPortraitViewport(viewport: ViewportSize): boolean {
   return viewport.width <= D85_NARROW_VIEWPORT_MAX_WIDTH && viewport.height > viewport.width;
+}
+
+// Preserve the D8.5 helper name for its focused proof tests while D9 uses the product-neutral policy name.
+export function shouldBlockD85PortraitViewport(viewport: ViewportSize): boolean {
+  return shouldBlockNarrowPortraitViewport(viewport);
 }
 
 // Summarize collected browser frame intervals without inventing device-specific GPU timing.

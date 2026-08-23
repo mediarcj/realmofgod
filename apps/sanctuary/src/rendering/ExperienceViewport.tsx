@@ -13,8 +13,10 @@ import type { RendererFailureReason } from "./CanvasExperience";
 import type { CinematicPlaybackHandle } from "./CinematicSanctuaryLayer";
 import {
   detectGraphicsCapability,
+  readD9VisitorSanctuaryConfig,
   readD84StaticProofConfig,
   readD85LandscapeProofConfig,
+  readLocalDiagnosticRoute,
   readLocalVisualCheck,
   selectExperienceMode,
 } from "./capabilities";
@@ -26,6 +28,7 @@ import {
 import { useReducedMotion } from "./useReducedMotion";
 import { selectVisualAtmosphere } from "./visualAtmosphere";
 import { createDefaultVisualCalibration, type VisualCalibration } from "./visualCalibration";
+import { SanctuaryOrientationGate } from "./SanctuaryOrientationGate";
 
 // Defer the renderer module until a capable browser reaches the optional visual layer.
 const CanvasExperience = lazy(async () => import("./CanvasExperience"));
@@ -41,17 +44,6 @@ const CinematicSanctuaryLayer = import.meta.env.DEV
   : null;
 const HybridVisualProofControls = import.meta.env.DEV
   ? lazy(async () => import("../development/HybridVisualProofControls"))
-  : null;
-
-// Load the D8.5 gate separately so its portrait policy and styling cannot enter a production visitor's module graph.
-const D85LandscapeOrientationGate = import.meta.env.DEV
-  ? lazy(async () =>
-      import("../development/D85LandscapeOrientationGate").then(
-        ({ D85LandscapeOrientationGate: gate }) => ({
-          default: gate,
-        }),
-      ),
-    )
   : null;
 
 // Build the local proof marker only when development code requests the comparison route.
@@ -127,16 +119,13 @@ export function ExperienceViewport({
 }: {
   readonly visualState: JourneyVisualState;
 }): ReactNode {
+  const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
   const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
   const viewportContent = <ExperienceViewportContent visualState={visualState} />;
 
-  // Place the development gate outside the viewport content so it can withhold Canvas mounting in portrait.
-  if (d85LandscapeProofConfig !== null && D85LandscapeOrientationGate !== null) {
-    return (
-      <Suspense fallback={null}>
-        <D85LandscapeOrientationGate>{viewportContent}</D85LandscapeOrientationGate>
-      </Suspense>
-    );
+  // Place the approved narrow-phone policy outside the viewport so portrait never mounts its decorative Canvas.
+  if (d9VisitorConfig !== null || d85LandscapeProofConfig !== null) {
+    return <SanctuaryOrientationGate>{viewportContent}</SanctuaryOrientationGate>;
   }
 
   return viewportContent;
@@ -148,9 +137,12 @@ function ExperienceViewportContent({
 }: {
   readonly visualState: JourneyVisualState;
 }): ReactNode {
+  const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
   const d84StaticProofConfig = import.meta.env.DEV ? readD84StaticProofConfig() : null;
   const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
-  const staticProofActive = d84StaticProofConfig !== null || d85LandscapeProofConfig !== null;
+  const diagnosticRouteActive = import.meta.env.DEV && readLocalDiagnosticRoute();
+  const staticProofActive =
+    d9VisitorConfig !== null || d84StaticProofConfig !== null || d85LandscapeProofConfig !== null;
   const d84ProofAttributes =
     import.meta.env.DEV && d84StaticProofConfig !== null ? { [d84ProofAttributeName]: "true" } : {};
   const d85ProofAttributes =
@@ -168,7 +160,7 @@ function ExperienceViewportContent({
   );
   // Start the development-only comparison with media so a fresh cinematic proof does not download R3F first.
   const [visualProofMode, setVisualProofMode] = useState<VisualProofMode>(
-    import.meta.env.DEV && !staticProofActive ? "cinematic" : "realtime",
+    diagnosticRouteActive && !staticProofActive ? "cinematic" : "realtime",
   );
   const cinematicPlaybackRef = useRef<CinematicPlaybackHandle>(null);
   const [cinematicMotionStatus, setCinematicMotionStatus] =
@@ -196,7 +188,7 @@ function ExperienceViewportContent({
     cinematicPlaybackRef.current?.pauseMotion();
   }, []);
   const developmentCalibrationTools =
-    staticProofActive || VisualCalibrationConsole === null ? null : (
+    !diagnosticRouteActive || staticProofActive || VisualCalibrationConsole === null ? null : (
       <Suspense fallback={null}>
         <VisualCalibrationConsole
           calibration={visualCalibration}
@@ -205,7 +197,7 @@ function ExperienceViewportContent({
       </Suspense>
     );
   const developmentHybridProofTools =
-    staticProofActive || HybridVisualProofControls === null ? null : (
+    !diagnosticRouteActive || staticProofActive || HybridVisualProofControls === null ? null : (
       <Suspense fallback={null}>
         <HybridVisualProofControls
           cinematicActive={cinematicActive}
@@ -226,6 +218,7 @@ function ExperienceViewportContent({
           data-reduced-motion={reducedMotion ? "true" : "false"}
           data-renderer-failure={rendererFailure ?? undefined}
           data-renderer-state={experienceMode === "fallback" ? "unavailable" : "failed"}
+          data-sanctuary-visitor-path={d9VisitorConfig !== null ? "d9-static-candidate" : undefined}
           {...d84ProofAttributes}
           {...d85ProofAttributes}
           aria-hidden="true"
@@ -245,6 +238,7 @@ function ExperienceViewportContent({
         data-reduced-motion={reducedMotion ? "true" : "false"}
         data-renderer-api={rendererApi ?? undefined}
         data-renderer-state={shouldRenderRealtime ? rendererState : "not-requested"}
+        data-sanctuary-visitor-path={d9VisitorConfig !== null ? "d9-static-candidate" : undefined}
         data-visual-proof-layer={cinematicActive ? "cinematic" : "realtime"}
         {...d84ProofAttributes}
         {...d85ProofAttributes}

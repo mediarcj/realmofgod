@@ -28,10 +28,6 @@ const hf01AssetAdapterPath = resolve(
 );
 const sanctuaryShellPath = resolve(repositoryRoot, "apps/sanctuary/src/SanctuaryShell.tsx");
 const sanctuaryMainPath = resolve(repositoryRoot, "apps/sanctuary/src/main.tsx");
-const journeyExperiencePath = resolve(
-  repositoryRoot,
-  "apps/sanctuary/src/journey/JourneyExperience.tsx",
-);
 const sanctuaryCssPath = resolve(repositoryRoot, "apps/sanctuary/src/sanctuary.css");
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
@@ -196,16 +192,18 @@ function verifyAuthoredAssetBoundary(viewportSource, assetAdapterSource) {
   }
 }
 
-// Prove the reducer remains singular and renderer modules have no action path back into progression.
-function verifyJourneyVisualBoundary(shellSource, journeySource, canvasSource, sceneSource) {
-  if ((shellSource.match(/useReducer\s*\(/gu) ?? []).length !== 1) {
-    throw new Error("SanctuaryShell must own exactly one journey reducer.");
+// Keep the D9 root inside the sanctuary and ensure renderer code remains unable to advance a visitor state machine.
+function verifyVisitorVisualBoundary(shellSource, canvasSource, sceneSource) {
+  for (const retiredRootFragment of ["useReducer", "JourneyExperience", "What brings you here?"]) {
+    if (shellSource.includes(retiredRootFragment)) {
+      throw new Error(
+        `SanctuaryShell must not restore the retired entry journey: ${retiredRootFragment}.`,
+      );
+    }
   }
 
-  if (journeySource.includes("useReducer") || canvasSource.includes("dispatch")) {
-    throw new Error(
-      "JourneyExperience and CanvasExperience must not create or advance journey state.",
-    );
+  if (canvasSource.includes("dispatch")) {
+    throw new Error("CanvasExperience must not create or advance visitor state.");
   }
 
   if (sceneSource.includes("dispatch") || sceneSource.includes("transitionJourney")) {
@@ -251,9 +249,8 @@ verifyAuthoredAssetBoundary(
   readRepositoryFile(viewportPath),
   readRepositoryFile(hf01AssetAdapterPath),
 );
-verifyJourneyVisualBoundary(
+verifyVisitorVisualBoundary(
   readRepositoryFile(sanctuaryShellPath),
-  readRepositoryFile(journeyExperiencePath),
   readRepositoryFile(canvasExperiencePath),
   readRepositoryFile(realmScenePath),
 );

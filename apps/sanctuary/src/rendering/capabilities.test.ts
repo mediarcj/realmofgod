@@ -11,11 +11,14 @@ import { describe, expect, it } from "vitest";
 import {
   hasUsableGraphicsApi,
   readRendererVerificationStage,
+  selectD9VisitorSanctuaryConfig,
   selectD84StaticProofConfig,
   selectD85LandscapeProofConfig,
+  selectLocalDiagnosticRoute,
   selectLocalVisualCheck,
   selectExperienceMode,
   shouldBlockD85PortraitViewport,
+  shouldBlockNarrowPortraitViewport,
   summarizeD85FrameIntervals,
   shouldAnimateAtmosphere,
 } from "./capabilities";
@@ -75,6 +78,29 @@ describe("D8.5 landscape proof selection", () => {
   it("rejects the retired current-shadow and unapproved baseline routes", () => {
     expect(selectD85LandscapeProofConfig("#verify-d85-batched-current-shadows")).toBeNull();
     expect(selectD85LandscapeProofConfig("#verify-d85-baseline-shadows-off")).toBeNull();
+  });
+});
+
+// Keep the unfragmented D9 visitor root distinct from every explicit local diagnostic route.
+describe("D9 visitor sanctuary selection", () => {
+  it("uses the batched candidate and restrained shadows at the ordinary development root", () => {
+    expect(selectD9VisitorSanctuaryConfig("")).toEqual({
+      candidate: "batched",
+      shadowPolicy: "restrained",
+    });
+    expect(selectD9VisitorSanctuaryConfig("#diagnostic-hf01")).toBeNull();
+    expect(selectD9VisitorSanctuaryConfig("#verify-d85-batched-restrained-shadows")).toBeNull();
+  });
+
+  it("recognizes only the explicit local diagnostics fragment", () => {
+    expect(selectLocalDiagnosticRoute("#diagnostic-hf01")).toBe(true);
+    expect(selectLocalDiagnosticRoute("")).toBe(false);
+    expect(selectLocalDiagnosticRoute("#verify-cinematic-motion")).toBe(false);
+  });
+
+  it("blocks narrow portrait viewports without using a device identity", () => {
+    expect(shouldBlockNarrowPortraitViewport({ width: 390, height: 844 })).toBe(true);
+    expect(shouldBlockNarrowPortraitViewport({ width: 844, height: 390 })).toBe(false);
   });
 });
 

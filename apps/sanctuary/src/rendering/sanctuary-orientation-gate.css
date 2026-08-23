@@ -1,0 +1,40 @@
+/*
+ * File: apps/sanctuary/src/rendering/sanctuary-orientation-gate.css
+ * Description: Styles the narrow-phone portrait sanctuary orientation notice.
+ * Purpose: Keeps the blocked state readable and restrained while no WebGL canvas has been mounted.
+ * Notes: This is local CSS only and carries no device identification, storage, or third-party resource.
+ */
+
+/* Cover the narrow portrait viewport with a calm semantic surface while the decorative scene remains unmounted. */
+.sanctuary-orientation-gate {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  place-items: center;
+  padding: 1.5rem;
+  color: #f2eadc;
+  background: #17100c;
+  font-family: ui-serif, Georgia, serif;
+}
+
+/* Keep the requirement compact so it cannot become a substitute landing page or visual HUD. */
+.sanctuary-orientation-gate__message {
+  max-width: 22rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgb(224 201 157 / 70%);
+}
+
+.sanctuary-orientation-gate__message h1 {
+  max-width: none;
+  margin: 0;
+  font-size: clamp(1.75rem, 8vw, 2.25rem);
+  line-height: 1.08;
+}
+
+.sanctuary-orientation-gate__message p {
+  margin: 0.9rem 0 0;
+  color: #d8ccb8;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}

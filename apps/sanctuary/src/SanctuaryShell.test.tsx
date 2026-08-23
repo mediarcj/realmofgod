@@ -1,43 +1,31 @@
 /**
  * File: apps/sanctuary/src/SanctuaryShell.test.tsx
- * Description: Verifies the semantic sanctuary shell can render without graphics hardware.
- * Purpose: Guards the DOM-first accessibility boundary from becoming dependent on Canvas.
- * Notes: Server rendering is sufficient because the visual capability logic has focused unit tests.
+ * Description: Verifies the D9 visitor root can render without graphics hardware or the retired entry journey.
+ * Purpose: Guards the DOM-first accessibility boundary and prevents legacy emotional-entry UI from returning by default.
+ * Notes: Server rendering is sufficient because renderer and viewport choices have focused unit tests.
  */
 
 // Import the renderer and test helpers used to inspect static document output in Node.
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { JourneyExperience } from "./journey/JourneyExperience";
 import { SanctuaryShell } from "./SanctuaryShell";
 import { ExperienceFallback, ExperienceLoading } from "./rendering/ExperienceViewport";
 import { selectVisualAtmosphere } from "./rendering/visualAtmosphere";
 
-// Confirm essential sanctuary copy remains in ordinary semantic HTML without a WebGL context.
+// Confirm the ordinary root is already inside the sanctuary and exposes only the temporary semantic SIT control.
 describe("SanctuaryShell", () => {
-  it("renders the local sanctuary document without requiring graphics", () => {
+  it("renders the D9 visitor document without requiring graphics", () => {
     const markup = renderToStaticMarkup(<SanctuaryShell />);
 
-    expect(markup).toContain("A place to be still.");
-    expect(markup).toContain("What brings you here?");
-    expect(markup).toContain("I need peace");
-    expect(markup).toContain("Nothing you choose here is saved");
-  });
-});
-
-// Confirm the semantic journey remains a button-driven DOM surface without any Canvas requirement.
-describe("JourneyExperience", () => {
-  it("renders each choice as an ordinary button from controlled journey state", () => {
-    const markup = renderToStaticMarkup(
-      <JourneyExperience state={{ stage: "choice" }} dispatch={() => undefined} />,
-    );
-
-    expect(markup).toContain("<button");
-    expect(markup).toContain("Continue walking");
-    expect(markup).toContain("Sit and rest");
-    expect(markup).toContain("Listen");
-    expect(markup).not.toContain("canvas");
+    expect(markup).toContain("Realm of God sanctuary");
+    expect(markup).toContain(">Sit</button>");
+    expect(markup).toContain("disabled");
+    expect(markup).not.toContain("A place to be still.");
+    expect(markup).not.toContain("What brings you here?");
+    expect(markup).not.toContain("I need peace");
+    expect(markup).not.toContain("Open visual calibration");
+    expect(markup).not.toContain("Cinematic Higgsfield");
   });
 });
 
