@@ -15,7 +15,11 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
 import baselineCandidateUrl from "../assets/candidates/realm-mvp-sanctuary-v1-r2-meshopt.glb?url";
 import batchedCandidateUrl from "../assets/candidates/realm-mvp-sanctuary-v1-r2-batched-meshopt.glb?url";
-import type { D84StaticProofConfig } from "./capabilities";
+import {
+  readD85LandscapeProofConfig,
+  summarizeD85FrameIntervals,
+  type D84StaticProofConfig,
+} from "./capabilities";
 import type { VisualCalibration } from "./visualCalibration";
 
 // Narrow Three's loose object surface to the exact visibility and shadow controls used by the proof.
@@ -94,6 +98,7 @@ function RuntimeMetrics({ config }: { readonly config: D84StaticProofConfig }): 
   useEffect(() => {
     const selector = ".experience-canvas canvas";
     const canvas = document.querySelector<HTMLCanvasElement>(selector);
+    const d85LandscapeProofActive = readD85LandscapeProofConfig() !== null;
     canvas?.setAttribute("data-d84-proof-ready", "false");
     canvas?.setAttribute("data-d84-candidate", config.candidate);
     canvas?.setAttribute("data-d84-shadow-policy", config.shadowPolicy);
@@ -109,14 +114,70 @@ function RuntimeMetrics({ config }: { readonly config: D84StaticProofConfig }): 
         settledCanvas?.setAttribute("data-d84-proof-ready", "true");
       });
     });
+
+    // Sample ordinary browser presentation intervals only in D8.5 after a short warmup, not GPU timing.
+    const pacingWarmupFrameCount = 30;
+    const pacingSampleFrameCount = 120;
+    const pacingIntervals: number[] = [];
+    let pacingAnimationFrame = 0;
+    let pacingFrameCount = 0;
+    let pacingPreviousTimestamp: number | null = null;
+    const pacingStartTimestamp = performance.now();
+    const collectPacingInterval = (timestamp: number): void => {
+      const previousTimestamp = pacingPreviousTimestamp;
+      pacingPreviousTimestamp = timestamp;
+      pacingFrameCount += 1;
+
+      if (previousTimestamp !== null && pacingFrameCount > pacingWarmupFrameCount) {
+        pacingIntervals.push(timestamp - previousTimestamp);
+      }
+
+      if (pacingIntervals.length >= pacingSampleFrameCount) {
+        const summary = summarizeD85FrameIntervals(pacingIntervals);
+        const pacedCanvas = document.querySelector<HTMLCanvasElement>(selector);
+        if (summary !== null) {
+          pacedCanvas?.setAttribute("data-d85-pacing-frame-count", String(summary.frameCount));
+          pacedCanvas?.setAttribute(
+            "data-d85-pacing-duration-ms",
+            String(timestamp - pacingStartTimestamp),
+          );
+          pacedCanvas?.setAttribute(
+            "data-d85-pacing-median-ms",
+            String(summary.medianMilliseconds),
+          );
+          pacedCanvas?.setAttribute("data-d85-pacing-p95-ms", String(summary.p95Milliseconds));
+          pacedCanvas?.setAttribute(
+            "data-d85-pacing-long-frame-count",
+            String(summary.longFrameCount),
+          );
+          pacedCanvas?.setAttribute("data-d85-pacing-ready", "true");
+        }
+        return;
+      }
+
+      pacingAnimationFrame = window.requestAnimationFrame(collectPacingInterval);
+    };
+
+    if (d85LandscapeProofActive) {
+      canvas?.setAttribute("data-d85-pacing-ready", "false");
+      pacingAnimationFrame = window.requestAnimationFrame(collectPacingInterval);
+    }
+
     return () => {
       window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(pacingAnimationFrame);
       const currentCanvas = document.querySelector<HTMLCanvasElement>(selector);
       currentCanvas?.removeAttribute("data-d84-proof-ready");
       currentCanvas?.removeAttribute("data-d84-renderer-calls");
       currentCanvas?.removeAttribute("data-d84-renderer-triangles");
       currentCanvas?.removeAttribute("data-d84-candidate");
       currentCanvas?.removeAttribute("data-d84-shadow-policy");
+      currentCanvas?.removeAttribute("data-d85-pacing-frame-count");
+      currentCanvas?.removeAttribute("data-d85-pacing-duration-ms");
+      currentCanvas?.removeAttribute("data-d85-pacing-median-ms");
+      currentCanvas?.removeAttribute("data-d85-pacing-p95-ms");
+      currentCanvas?.removeAttribute("data-d85-pacing-long-frame-count");
+      currentCanvas?.removeAttribute("data-d85-pacing-ready");
     };
   }, [config.candidate, config.shadowPolicy, gl]);
 

@@ -1,0 +1,39 @@
+/*
+ * File: apps/sanctuary/src/development/d85-landscape-orientation-gate.css
+ * Description: Styles the restrained development-only landscape-required orientation message.
+ * Purpose: Keeps the blocked portrait state readable without resembling a product landing page.
+ * Notes: This stylesheet is dynamically loaded only with the development proof gate.
+ */
+
+/* Cover the narrow portrait proof with a quiet, keyboard-readable message while no Canvas is mounted. */
+.d85-orientation-gate {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  place-items: center;
+  padding: 1.5rem;
+  color: #f2eadc;
+  background: #17100c;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Keep the device request compact and clearly separate from Realm's later sanctuary product copy. */
+.d85-orientation-gate__message {
+  max-width: 22rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgb(224 201 157 / 70%);
+}
+
+.d85-orientation-gate__message h1 {
+  max-width: none;
+  font-family: ui-serif, Georgia, serif;
+  font-size: clamp(1.75rem, 8vw, 2.25rem);
+  line-height: 1.08;
+}
+
+.d85-orientation-gate__message p {
+  margin: 0.9rem 0 0;
+  color: #d8ccb8;
+  font-size: 1rem;
+  line-height: 1.5;
+}

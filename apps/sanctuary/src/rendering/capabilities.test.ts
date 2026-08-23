@@ -12,8 +12,11 @@ import {
   hasUsableGraphicsApi,
   readRendererVerificationStage,
   selectD84StaticProofConfig,
+  selectD85LandscapeProofConfig,
   selectLocalVisualCheck,
   selectExperienceMode,
+  shouldBlockD85PortraitViewport,
+  summarizeD85FrameIntervals,
   shouldAnimateAtmosphere,
 } from "./capabilities";
 
@@ -53,6 +56,53 @@ describe("D8.4 static proof selection", () => {
   it("rejects incomplete or unrelated static proof fragments", () => {
     expect(selectD84StaticProofConfig("#verify-d84-batched")).toBeNull();
     expect(selectD84StaticProofConfig("#verify-d84-batched-unlimited-shadows")).toBeNull();
+  });
+});
+
+// Keep the D8.5 continuation route narrow so it cannot request a non-approved policy or source asset.
+describe("D8.5 landscape proof selection", () => {
+  it("recognizes only the batched candidate with off or restrained shadows", () => {
+    expect(selectD85LandscapeProofConfig("#verify-d85-batched-shadows-off")).toEqual({
+      candidate: "batched",
+      shadowPolicy: "off",
+    });
+    expect(selectD85LandscapeProofConfig("#verify-d85-batched-restrained-shadows")).toEqual({
+      candidate: "batched",
+      shadowPolicy: "restrained",
+    });
+  });
+
+  it("rejects the retired current-shadow and unapproved baseline routes", () => {
+    expect(selectD85LandscapeProofConfig("#verify-d85-batched-current-shadows")).toBeNull();
+    expect(selectD85LandscapeProofConfig("#verify-d85-baseline-shadows-off")).toBeNull();
+  });
+});
+
+// Keep the landscape-required policy based on actual viewport geometry rather than browser identification.
+describe("D8.5 portrait viewport policy", () => {
+  it("blocks a narrow portrait phone viewport before the Canvas can mount", () => {
+    expect(shouldBlockD85PortraitViewport({ width: 390, height: 844 })).toBe(true);
+  });
+
+  it("allows the requested phone landscape and ordinary desktop viewports", () => {
+    expect(shouldBlockD85PortraitViewport({ width: 667, height: 375 })).toBe(false);
+    expect(shouldBlockD85PortraitViewport({ width: 1920, height: 1080 })).toBe(false);
+  });
+});
+
+// Keep the pacing summary deterministic while leaving the browser responsible for collecting actual rAF intervals.
+describe("D8.5 frame pacing summary", () => {
+  it("reports median, p95, and long intervals from a sorted copy", () => {
+    expect(summarizeD85FrameIntervals([40, 16, 17, 18, 19])).toEqual({
+      frameCount: 5,
+      longFrameCount: 1,
+      medianMilliseconds: 18,
+      p95Milliseconds: 40,
+    });
+  });
+
+  it("keeps an empty sample distinct from a claimed healthy result", () => {
+    expect(summarizeD85FrameIntervals([])).toBeNull();
   });
 });
 

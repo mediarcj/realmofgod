@@ -21,6 +21,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import type { JourneyVisualState } from "../journey/model";
 import {
   readD84StaticProofConfig,
+  readD85LandscapeProofConfig,
   readLocalVisualCheck,
   readRendererVerificationStage,
 } from "./capabilities";
@@ -162,7 +163,10 @@ export function CanvasExperience({
   visualState,
 }: CanvasExperienceProps): ReactNode {
   const rendererVerificationStage = readRendererVerificationStage();
-  const staticProofConfig = import.meta.env.DEV ? readD84StaticProofConfig() : null;
+  // Permit the D8.5 landscape route to reuse the D8.4 renderer proof without touching production selection.
+  const staticProofConfig = import.meta.env.DEV
+    ? (readD85LandscapeProofConfig() ?? readD84StaticProofConfig())
+    : null;
   const staticProofActive = staticProofConfig !== null && D84StaticSanctuaryProof !== null;
   const cinematicRenderer =
     !staticProofActive && (rendererVerificationStage === null || rendererVerificationStage === "e");

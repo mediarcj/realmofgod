@@ -14,6 +14,7 @@ import type { CinematicPlaybackHandle } from "./CinematicSanctuaryLayer";
 import {
   detectGraphicsCapability,
   readD84StaticProofConfig,
+  readD85LandscapeProofConfig,
   readLocalVisualCheck,
   selectExperienceMode,
 } from "./capabilities";
@@ -42,8 +43,20 @@ const HybridVisualProofControls = import.meta.env.DEV
   ? lazy(async () => import("../development/HybridVisualProofControls"))
   : null;
 
+// Load the D8.5 gate separately so its portrait policy and styling cannot enter a production visitor's module graph.
+const D85LandscapeOrientationGate = import.meta.env.DEV
+  ? lazy(async () =>
+      import("../development/D85LandscapeOrientationGate").then(
+        ({ D85LandscapeOrientationGate: gate }) => ({
+          default: gate,
+        }),
+      ),
+    )
+  : null;
+
 // Build the local proof marker only when development code requests the comparison route.
 const d84ProofAttributeName = ["data", "d84", "static", "proof"].join("-");
+const d85ProofAttributeName = ["data", "d85", "landscape", "proof"].join("-");
 
 // Describe the narrow error boundary contract used only to replace an unavailable visual layer.
 interface ViewportErrorBoundaryProps {
@@ -114,10 +127,36 @@ export function ExperienceViewport({
 }: {
   readonly visualState: JourneyVisualState;
 }): ReactNode {
+  const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
+  const viewportContent = <ExperienceViewportContent visualState={visualState} />;
+
+  // Place the development gate outside the viewport content so it can withhold Canvas mounting in portrait.
+  if (d85LandscapeProofConfig !== null && D85LandscapeOrientationGate !== null) {
+    return (
+      <Suspense fallback={null}>
+        <D85LandscapeOrientationGate>{viewportContent}</D85LandscapeOrientationGate>
+      </Suspense>
+    );
+  }
+
+  return viewportContent;
+}
+
+// Keep the normal viewport behavior together while the D8.5 wrapper decides whether this subtree may mount.
+function ExperienceViewportContent({
+  visualState,
+}: {
+  readonly visualState: JourneyVisualState;
+}): ReactNode {
   const d84StaticProofConfig = import.meta.env.DEV ? readD84StaticProofConfig() : null;
-  const d84StaticProofActive = d84StaticProofConfig !== null;
+  const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
+  const staticProofActive = d84StaticProofConfig !== null || d85LandscapeProofConfig !== null;
   const d84ProofAttributes =
-    import.meta.env.DEV && d84StaticProofActive ? { [d84ProofAttributeName]: "true" } : {};
+    import.meta.env.DEV && d84StaticProofConfig !== null ? { [d84ProofAttributeName]: "true" } : {};
+  const d85ProofAttributes =
+    import.meta.env.DEV && d85LandscapeProofConfig !== null
+      ? { [d85ProofAttributeName]: "true" }
+      : {};
   const [experienceMode] = useState(() => selectExperienceMode(detectGraphicsCapability()));
   const [rendererState, setRendererState] = useState<"failed" | "ready" | "starting">("starting");
   const [rendererFailure, setRendererFailure] = useState<
@@ -129,7 +168,7 @@ export function ExperienceViewport({
   );
   // Start the development-only comparison with media so a fresh cinematic proof does not download R3F first.
   const [visualProofMode, setVisualProofMode] = useState<VisualProofMode>(
-    import.meta.env.DEV && !d84StaticProofActive ? "cinematic" : "realtime",
+    import.meta.env.DEV && !staticProofActive ? "cinematic" : "realtime",
   );
   const cinematicPlaybackRef = useRef<CinematicPlaybackHandle>(null);
   const [cinematicMotionStatus, setCinematicMotionStatus] =
@@ -138,7 +177,7 @@ export function ExperienceViewport({
   const fallback = <ExperienceFallback visualState={visualState} />;
   const visualProofLayer = selectVisualProofLayer(visualProofMode, visualState.stage);
   const cinematicActive =
-    !d84StaticProofActive && CinematicSanctuaryLayer !== null && visualProofLayer === "cinematic";
+    !staticProofActive && CinematicSanctuaryLayer !== null && visualProofLayer === "cinematic";
   const shouldRenderRealtime = !cinematicActive;
   const forceCinematicFailure = readLocalVisualCheck() === "cinematic-failure";
   const forceCinematicUnavailable = readLocalVisualCheck() === "cinematic-unavailable";
@@ -157,7 +196,7 @@ export function ExperienceViewport({
     cinematicPlaybackRef.current?.pauseMotion();
   }, []);
   const developmentCalibrationTools =
-    d84StaticProofActive || VisualCalibrationConsole === null ? null : (
+    staticProofActive || VisualCalibrationConsole === null ? null : (
       <Suspense fallback={null}>
         <VisualCalibrationConsole
           calibration={visualCalibration}
@@ -166,7 +205,7 @@ export function ExperienceViewport({
       </Suspense>
     );
   const developmentHybridProofTools =
-    d84StaticProofActive || HybridVisualProofControls === null ? null : (
+    staticProofActive || HybridVisualProofControls === null ? null : (
       <Suspense fallback={null}>
         <HybridVisualProofControls
           cinematicActive={cinematicActive}
@@ -188,6 +227,7 @@ export function ExperienceViewport({
           data-renderer-failure={rendererFailure ?? undefined}
           data-renderer-state={experienceMode === "fallback" ? "unavailable" : "failed"}
           {...d84ProofAttributes}
+          {...d85ProofAttributes}
           aria-hidden="true"
         >
           {fallback}
@@ -207,6 +247,7 @@ export function ExperienceViewport({
         data-renderer-state={shouldRenderRealtime ? rendererState : "not-requested"}
         data-visual-proof-layer={cinematicActive ? "cinematic" : "realtime"}
         {...d84ProofAttributes}
+        {...d85ProofAttributes}
         aria-hidden="true"
       >
         {cinematicActive ? (

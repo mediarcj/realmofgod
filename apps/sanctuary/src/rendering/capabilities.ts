@@ -17,6 +17,32 @@ export interface D84StaticProofConfig {
   readonly shadowPolicy: "off" | "current" | "restrained";
 }
 
+// Describe the D8.5 continuation route, which intentionally measures only the accepted batched candidate.
+export interface D85LandscapeProofConfig {
+  readonly candidate: "batched";
+  readonly shadowPolicy: "off" | "restrained";
+}
+
+// Keep the viewport-only mobile policy explicit so it does not depend on a browser user-agent claim.
+export interface ViewportSize {
+  readonly height: number;
+  readonly width: number;
+}
+
+// Describe the small rAF summary recorded by the development-only landscape proof.
+export interface FramePacingSummary {
+  readonly frameCount: number;
+  readonly longFrameCount: number;
+  readonly medianMilliseconds: number;
+  readonly p95Milliseconds: number;
+}
+
+// Keep the MVP phone classification deliberately narrow; larger portrait browser windows remain ordinary layouts.
+export const D85_NARROW_VIEWPORT_MAX_WIDTH = 600;
+
+// Use a 30fps threshold only to flag a long presentation interval, not to claim a GPU benchmark.
+export const D85_LONG_FRAME_THRESHOLD_MILLISECONDS = 1000 / 30;
+
 // Keep failure, motion, and renderer-isolation checks development-only and fragment-exact.
 export type LocalVisualCheck =
   | "bible-open"
@@ -107,6 +133,62 @@ export function readD84StaticProofConfig(): D84StaticProofConfig | null {
     return null;
   }
   return selectD84StaticProofConfig(window.location.hash);
+}
+
+// Recognize only the D8.5 routes needed for landscape comparison and frame-pacing evidence.
+export function selectD85LandscapeProofConfig(fragment: string): D85LandscapeProofConfig | null {
+  const matches = /^#verify-d85-batched-(shadows-off|restrained-shadows)$/u.exec(fragment);
+  if (matches === null) {
+    return null;
+  }
+
+  return matches[1] === "shadows-off"
+    ? { candidate: "batched", shadowPolicy: "off" }
+    : { candidate: "batched", shadowPolicy: "restrained" };
+}
+
+// Keep the D8.5 proof selection development-only so production cannot request the candidate asset.
+export function readD85LandscapeProofConfig(): D85LandscapeProofConfig | null {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return null;
+  }
+  return selectD85LandscapeProofConfig(window.location.hash);
+}
+
+// Block only narrow portrait viewports; this uses dimensions rather than a fallible device or browser identity.
+export function shouldBlockD85PortraitViewport(viewport: ViewportSize): boolean {
+  return viewport.width <= D85_NARROW_VIEWPORT_MAX_WIDTH && viewport.height > viewport.width;
+}
+
+// Summarize collected browser frame intervals without inventing device-specific GPU timing.
+export function summarizeD85FrameIntervals(
+  intervals: readonly number[],
+): FramePacingSummary | null {
+  if (intervals.length === 0) {
+    return null;
+  }
+
+  const orderedIntervals = [...intervals].sort((first, second) => first - second);
+  const percentileIndex = Math.min(
+    orderedIntervals.length - 1,
+    Math.ceil(orderedIntervals.length * 0.95) - 1,
+  );
+  const medianIndex = Math.floor(orderedIntervals.length / 2);
+  // The non-empty guard above makes both selections present; keep the defensive branch for strict linting.
+  const medianMilliseconds = orderedIntervals[medianIndex];
+  const p95Milliseconds = orderedIntervals[percentileIndex];
+  if (medianMilliseconds === undefined || p95Milliseconds === undefined) {
+    return null;
+  }
+
+  return {
+    frameCount: orderedIntervals.length,
+    longFrameCount: orderedIntervals.filter(
+      (interval) => interval > D85_LONG_FRAME_THRESHOLD_MILLISECONDS,
+    ).length,
+    medianMilliseconds,
+    p95Milliseconds,
+  };
 }
 
 // Check for a standard browser WebGL API without creating a second, disposable GPU context.

@@ -23,6 +23,10 @@ const forbiddenMarkers = [
   "Visual proof",
   "Cinematic Higgsfield",
   "d84-static-proof",
+  "d85-landscape-proof",
+  "d85-orientation-gate",
+  "Rotate your device to continue.",
+  "data-d85-pacing-",
 ];
 const forbiddenAssetMarkers = [
   "hf01f-higgsfield",
