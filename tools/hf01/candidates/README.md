@@ -16,5 +16,12 @@ The browser candidate is stored separately at
 glTF Transform's Meshopt transform only: no Draco compression, texture conversion, material rename,
 hierarchy flattening, or mesh joining is part of this review.
 
+The separate batching candidate is stored at
+`apps/sanctuary/src/assets/candidates/realm-mvp-sanctuary-v1-r2-batched-meshopt.glb`. It joins only
+material-compatible leaf geometry beneath the static room, wall, bench, ceiling, molding,
+clerestory, and floor roots. It retains every node record, material identity, material extension
+value, and the separate door, table, Bible, cross, and candle structures. The batching build is
+local and repeatable with `pnpm asset:sanctuary-batched-candidate:build`.
+
 The existing `apps/sanctuary/src/assets/production/realm-hf01-sanctuary.glb` remains the production
 rollback asset. The candidate has no production promotion in this change.
