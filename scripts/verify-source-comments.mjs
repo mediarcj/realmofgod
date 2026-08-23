@@ -19,7 +19,6 @@ const commentCapableExtensions = new Set([
   ".css",
   ".html",
   ".js",
-  ".json",
   ".jsonc",
   ".mjs",
   ".md",
