@@ -40,6 +40,7 @@ const requiredNodeNames = [
   "HF01_Bible_Root",
 ];
 const forbiddenNames = /(?:D[2-5]|workshop|proof|corpus)/iu;
+const staticBatchName = /^HF01_D84_StaticBatch(?:_Mesh)?_\d+$/u;
 
 // Read the JSON chunk directly so draw-cost facts are not inferred from renderer behavior.
 function readGlbJson(path) {
@@ -131,11 +132,49 @@ function verifyRawBoundary() {
   }
 }
 
+// Run the installed glTF validator as a second, format-level check after the local contract is satisfied.
+function validateCandidateTransport() {
+  const result = spawnSync(
+    "corepack",
+    [
+      "pnpm@11.21.0",
+      "exec",
+      "gltf-transform",
+      "validate",
+      candidatePath,
+      "--format",
+      "csv",
+      "--limit",
+      "40",
+    ],
+    {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+    },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      `The batched candidate failed glTF validation:\n${result.stdout}\n${result.stderr}`,
+    );
+  }
+  // The installed validator cannot decode Meshopt itself, and therefore reports its compressed UV accessors
+  // as unused. Return compact advisory counts for review without concealing the validator's exit status.
+  return result.stdout
+    .trim()
+    .split("\n")
+    .slice(1)
+    .filter(Boolean)
+    .reduce((codes, row) => {
+      const [code] = row.split(",", 1);
+      codes[code] = (codes[code] ?? 0) + 1;
+      return codes;
+    }, {});
+}
+
 // Ensure batching changes only the allowed renderable primitive structure and Meshopt transport metadata.
 function assertBatchedContract(rawDocument, raw, candidateDocument, candidate) {
   const equalScalars = [
     "sceneCount",
-    "nodeCount",
     "triangleCount",
     "materialCount",
     "cameraCount",
@@ -150,19 +189,26 @@ function assertBatchedContract(rawDocument, raw, candidateDocument, candidate) {
       throw new Error(`Candidate ${key} changed: raw=${raw[key]}, candidate=${candidate[key]}.`);
     }
   }
-  if (candidate.meshCount !== 80 || candidate.primitiveCount !== 80) {
+  if (candidate.nodeCount !== raw.nodeCount + 8) {
     throw new Error(
-      `Candidate batching contract changed: expected 80 meshes and primitives, received ${candidate.meshCount}/${candidate.primitiveCount}.`,
+      `Candidate semantic anchor contract changed: expected ${raw.nodeCount + 8} nodes, received ${candidate.nodeCount}.`,
+    );
+  }
+  if (candidate.meshCount !== 75 || candidate.primitiveCount !== 75) {
+    throw new Error(
+      `Candidate batching contract changed: expected 75 meshes and primitives, received ${candidate.meshCount}/${candidate.primitiveCount}.`,
     );
   }
   if (candidate.primitiveCount >= raw.primitiveCount) {
     throw new Error("Candidate did not reduce the static primitive count.");
   }
   if (
-    raw.nodeNames.join("\n") !== candidate.nodeNames.join("\n") ||
+    raw.nodeNames.some((name) => !candidate.nodeNames.includes(name)) ||
     raw.materialNames.join("\n") !== candidate.materialNames.join("\n")
   ) {
-    throw new Error("Candidate renamed or reordered authored semantic nodes or materials.");
+    throw new Error(
+      "Candidate changed an authored semantic node name or reordered a material identity.",
+    );
   }
   if (
     JSON.stringify(canonicalize(rawDocument.materials ?? [])) !==
@@ -170,11 +216,15 @@ function assertBatchedContract(rawDocument, raw, candidateDocument, candidate) {
   ) {
     throw new Error("Candidate changed an authored PBR material or its extension data.");
   }
+  // Meshopt quantization may rewrite equivalent local transform values alongside its vertex encoding.
+  // The contract therefore retains every named anchor and verifies source materials exactly, while visual review
+  // compares the resulting room rather than treating a JSON representation detail as a geometry change.
   const missingNodes = requiredNodeNames.filter((name) => !candidate.nodeNames.includes(name));
   const leakedNames = candidate.nodeNames.filter((name) => forbiddenNames.test(name));
-  if (missingNodes.length > 0 || leakedNames.length > 0) {
+  const batchNodeCount = candidate.nodeNames.filter((name) => staticBatchName.test(name)).length;
+  if (missingNodes.length > 0 || leakedNames.length > 0 || batchNodeCount !== 8) {
     throw new Error(
-      `Candidate semantic nodes are invalid: missing=${missingNodes.join(",")}; leaked=${leakedNames.join(",")}.`,
+      `Candidate semantic nodes are invalid: missing=${missingNodes.join(",")}; leaked=${leakedNames.join(",")}; batchNodes=${batchNodeCount}.`,
     );
   }
   if (
@@ -199,6 +249,7 @@ const { buffer: candidateBuffer, document: candidateDocument } = readGlbJson(can
 const raw = summarize(rawDocument);
 const candidate = summarize(candidateDocument);
 assertBatchedContract(rawDocument, raw, candidateDocument, candidate);
+const validationReport = validateCandidateTransport();
 
 console.log(
   JSON.stringify(
@@ -216,6 +267,7 @@ console.log(
         ...summarizeForReport(candidate),
       },
       likelyMaximumDrawCalls: candidate.primitiveCount,
+      validatorAdvisoryCodes: validationReport,
     },
     null,
     2,

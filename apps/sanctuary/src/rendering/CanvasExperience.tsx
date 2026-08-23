@@ -7,7 +7,7 @@
 
 // Import renderer-specific code only inside this asynchronously loaded visual module.
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   AgXToneMapping,
   PCFShadowMap,
@@ -19,9 +19,22 @@ import {
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 import type { JourneyVisualState } from "../journey/model";
-import { readLocalVisualCheck, readRendererVerificationStage } from "./capabilities";
+import {
+  readD84StaticProofConfig,
+  readLocalVisualCheck,
+  readRendererVerificationStage,
+} from "./capabilities";
 import { RealmScene } from "./RealmScene";
 import { selectSanctuaryHeroCamera, type VisualCalibration } from "./visualCalibration";
+
+// Keep the local D8.4 comparison module and both candidate assets out of the production module graph.
+const D84StaticSanctuaryProof = import.meta.env.DEV
+  ? lazy(async () =>
+      import("./D84StaticSanctuaryProof").then(({ D84StaticSanctuaryProof: proof }) => ({
+        default: proof,
+      })),
+    )
+  : null;
 
 // Classify only the renderer boundary needed to verify a safe local recovery path.
 export type RendererFailureReason = "context-lost" | "creation-unavailable";
@@ -149,7 +162,13 @@ export function CanvasExperience({
   visualState,
 }: CanvasExperienceProps): ReactNode {
   const rendererVerificationStage = readRendererVerificationStage();
-  const cinematicRenderer = rendererVerificationStage === null || rendererVerificationStage === "e";
+  const staticProofConfig = import.meta.env.DEV ? readD84StaticProofConfig() : null;
+  const staticProofActive = staticProofConfig !== null && D84StaticSanctuaryProof !== null;
+  const cinematicRenderer =
+    !staticProofActive && (rendererVerificationStage === null || rendererVerificationStage === "e");
+  const shadowsEnabled = staticProofActive
+    ? staticProofConfig.shadowPolicy !== "off"
+    : cinematicRenderer;
 
   return (
     <div
@@ -164,7 +183,8 @@ export function CanvasExperience({
           far: 60,
           position: [...visualCalibration.camera.position],
         }}
-        dpr={cinematicRenderer ? [1, 1.5] : [1, 1.25]}
+        // Hold proof pixels at CSS resolution so desktop and mobile counters describe the requested viewports.
+        dpr={staticProofActive ? 1 : cinematicRenderer ? [1, 1.5] : [1, 1.25]}
         gl={(defaults) => {
           try {
             // Construct exactly one renderer with a neutral GPU preference and the reviewed quality level.
@@ -179,17 +199,24 @@ export function CanvasExperience({
           }
         }}
         fallback={fallback}
-        onCreated={({ gl, scene }) => {
+        onCreated={({ camera, gl, scene }) => {
           // Use photographic highlight rolloff and explicit sRGB output without a postprocessing chain.
           gl.outputColorSpace = SRGBColorSpace;
-          gl.shadowMap.enabled = cinematicRenderer;
+          gl.shadowMap.enabled = shadowsEnabled;
           gl.shadowMap.type = PCFShadowMap;
           gl.toneMapping = AgXToneMapping;
           gl.toneMappingExposure = visualCalibration.lighting.exposure;
           // Keep reflections present for metal and varnished wood without suggesting a second lamp.
           scene.environmentIntensity = 0.2;
+          if (staticProofActive && camera instanceof PerspectiveCamera) {
+            // Keep local D8.4 counter views on the approved entry camera without changing calibrated values.
+            camera.position.set(...visualCalibration.camera.position);
+            camera.lookAt(...visualCalibration.camera.target);
+            camera.updateProjectionMatrix();
+          }
         }}
-        shadows={cinematicRenderer}
+        // Select the same percentage-closer map explicitly so R3F does not initialize its deprecated soft default first.
+        shadows={shadowsEnabled ? "percentage" : false}
       >
         <RendererLifecycle
           onRendererFailure={onRendererFailure}
@@ -197,12 +224,21 @@ export function CanvasExperience({
         />
         <RendererCalibration visualCalibration={visualCalibration} visualState={visualState} />
         <LocalReflectionEnvironment />
-        <RealmScene
-          reducedMotion={reducedMotion}
-          rendererVerificationStage={rendererVerificationStage}
-          visualCalibration={visualCalibration}
-          visualState={visualState}
-        />
+        {staticProofActive ? (
+          <Suspense fallback={null}>
+            <D84StaticSanctuaryProof
+              config={staticProofConfig}
+              visualCalibration={visualCalibration}
+            />
+          </Suspense>
+        ) : (
+          <RealmScene
+            reducedMotion={reducedMotion}
+            rendererVerificationStage={rendererVerificationStage}
+            visualCalibration={visualCalibration}
+            visualState={visualState}
+          />
+        )}
       </Canvas>
     </div>
   );

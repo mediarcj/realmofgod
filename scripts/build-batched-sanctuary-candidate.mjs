@@ -67,30 +67,92 @@ function loadPinnedTransformApi() {
   }
   const { NodeIO, PropertyType } = transformRequire("@gltf-transform/core");
   const { ALL_EXTENSIONS } = transformRequire("@gltf-transform/extensions");
-  const { join: joinMeshes, prune } = transformRequire("@gltf-transform/functions");
-  return { ALL_EXTENSIONS, NodeIO, PropertyType, joinMeshes, prune };
+  const { compactPrimitive, joinPrimitives, prune, transformPrimitive } = transformRequire(
+    "@gltf-transform/functions",
+  );
+  return {
+    ALL_EXTENSIONS,
+    NodeIO,
+    PropertyType,
+    compactPrimitive,
+    joinPrimitives,
+    prune,
+    transformPrimitive,
+  };
 }
 
-// Write an uncompressed intermediate with every extension registered so material extension data survives the join.
+// Describe a primitive layout without its position so only technically compatible, same-material triangles are joined.
+function getPrimitiveBatchKey(root, primitive) {
+  const materialIndex = root.listMaterials().indexOf(primitive.getMaterial());
+  const attributeSignature = primitive
+    .listSemantics()
+    .sort()
+    .map((semantic) => {
+      const attribute = primitive.getAttribute(semantic);
+      return `${semantic}:${attribute?.getType() ?? "none"}:${attribute?.getComponentType() ?? "none"}`;
+    })
+    .join("|");
+  return `${materialIndex}:${primitive.getMode()}:${attributeSignature}`;
+}
+
+// Bake selected architecture into scene-root batches while leaving every authored leaf node in its original hierarchy.
+function createStaticArchitectureBatches(document, helpers) {
+  const root = document.getRoot();
+  const sanctuaryRoot = root.listNodes().find((node) => node.getName() === "HF01_Sanctuary_Root");
+  if (sanctuaryRoot === undefined) {
+    throw new Error("The immutable sanctuary root is missing from the candidate source.");
+  }
+
+  const batches = new Map();
+  for (const sourceNode of root.listNodes()) {
+    if (!staticArchitectureRoots.has(sourceNode.getParentNode()?.getName() ?? "")) {
+      continue;
+    }
+    const sourceMesh = sourceNode.getMesh();
+    if (sourceMesh === null) {
+      continue;
+    }
+    for (const sourcePrimitive of sourceMesh.listPrimitives()) {
+      const key = getPrimitiveBatchKey(root, sourcePrimitive);
+      const batch = batches.get(key) ?? { key, primitives: [] };
+      // Detach cloned accessors before applying the source node's full world transform into the root-level batch.
+      const primitive = sourcePrimitive.clone();
+      helpers.compactPrimitive(primitive);
+      helpers.transformPrimitive(primitive, sourceNode.getWorldMatrix());
+      batch.primitives.push(primitive);
+      batches.set(key, batch);
+    }
+    // Keep this named authored node and its placement as an empty semantic anchor after its triangles move to a batch.
+    sourceNode.setMesh(null);
+  }
+
+  for (const [index, batch] of [...batches.values()].entries()) {
+    const primitive = helpers.joinPrimitives(batch.primitives);
+    const mesh = document.createMesh(`HF01_D84_StaticBatch_Mesh_${index}`).addPrimitive(primitive);
+    sanctuaryRoot.addChild(document.createNode(`HF01_D84_StaticBatch_${index}`).setMesh(mesh));
+  }
+  return batches.size;
+}
+
+// Write an uncompressed intermediate with every extension registered so material extension data survives the static batch.
 async function writeBatchedIntermediate(path) {
-  const { ALL_EXTENSIONS, NodeIO, PropertyType, joinMeshes, prune } = loadPinnedTransformApi();
+  const helpers = loadPinnedTransformApi();
+  const { ALL_EXTENSIONS, NodeIO, PropertyType, prune } = helpers;
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const document = await io.read(rawPath);
+  const batchCount = createStaticArchitectureBatches(document, helpers);
   await document.transform(
-    joinMeshes({
-      // This parent-scoped filter intentionally excludes the door, table, Bible, candles, cross, and all animation roots.
-      filter: (node) => staticArchitectureRoots.has(node.getParentNode()?.getName() ?? ""),
-      // Keep source node names and hierarchy instead of flattening semantic anchors out of the document.
-      cleanup: false,
-    }),
     prune({
-      // Remove only now-unreferenced geometry records; node and material records remain authored and addressable.
+      // Remove only detached source geometry records; all authored nodes and material records remain addressable.
       propertyTypes: [PropertyType.MESH, PropertyType.PRIMITIVE, PropertyType.ACCESSOR],
       keepAttributes: true,
       keepIndices: true,
       keepLeaves: true,
     }),
   );
+  if (batchCount === 0) {
+    throw new Error("No static architecture primitives were eligible for the D8.4 batching proof.");
+  }
   await io.write(path, document);
 }
 

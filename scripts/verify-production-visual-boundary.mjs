@@ -22,8 +22,13 @@ const forbiddenMarkers = [
   "visual-calibration-console",
   "Visual proof",
   "Cinematic Higgsfield",
+  "d84-static-proof",
 ];
-const forbiddenAssetMarkers = ["hf01f-higgsfield", "hybrid-visual-proof-controls"];
+const forbiddenAssetMarkers = [
+  "hf01f-higgsfield",
+  "hybrid-visual-proof-controls",
+  "realm-mvp-sanctuary-v1-r2-batched",
+];
 
 // Walk only generated production text files; binary assets are covered by the separate asset validator.
 function collectTextFiles(directory) {

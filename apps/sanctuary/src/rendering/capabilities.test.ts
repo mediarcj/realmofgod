@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
   hasUsableGraphicsApi,
   readRendererVerificationStage,
+  selectD84StaticProofConfig,
   selectLocalVisualCheck,
   selectExperienceMode,
   shouldAnimateAtmosphere,
@@ -29,6 +30,29 @@ describe("graphics capability decisions", () => {
 
   it("allows the Canvas only for a usable local context", () => {
     expect(selectExperienceMode(true)).toBe("canvas");
+  });
+});
+
+// Keep the separate asset and shadow matrix exact so unrecognized fragments cannot alter the local renderer.
+describe("D8.4 static proof selection", () => {
+  it("recognizes the approved baseline and batched shadow checks", () => {
+    expect(selectD84StaticProofConfig("#verify-d84-baseline-shadows-off")).toEqual({
+      candidate: "baseline",
+      shadowPolicy: "off",
+    });
+    expect(selectD84StaticProofConfig("#verify-d84-batched-current-shadows")).toEqual({
+      candidate: "batched",
+      shadowPolicy: "current",
+    });
+    expect(selectD84StaticProofConfig("#verify-d84-batched-restrained-shadows")).toEqual({
+      candidate: "batched",
+      shadowPolicy: "restrained",
+    });
+  });
+
+  it("rejects incomplete or unrelated static proof fragments", () => {
+    expect(selectD84StaticProofConfig("#verify-d84-batched")).toBeNull();
+    expect(selectD84StaticProofConfig("#verify-d84-batched-unlimited-shadows")).toBeNull();
   });
 });
 

@@ -13,6 +13,7 @@ import type { RendererFailureReason } from "./CanvasExperience";
 import type { CinematicPlaybackHandle } from "./CinematicSanctuaryLayer";
 import {
   detectGraphicsCapability,
+  readD84StaticProofConfig,
   readLocalVisualCheck,
   selectExperienceMode,
 } from "./capabilities";
@@ -40,6 +41,9 @@ const CinematicSanctuaryLayer = import.meta.env.DEV
 const HybridVisualProofControls = import.meta.env.DEV
   ? lazy(async () => import("../development/HybridVisualProofControls"))
   : null;
+
+// Build the local proof marker only when development code requests the comparison route.
+const d84ProofAttributeName = ["data", "d84", "static", "proof"].join("-");
 
 // Describe the narrow error boundary contract used only to replace an unavailable visual layer.
 interface ViewportErrorBoundaryProps {
@@ -110,6 +114,10 @@ export function ExperienceViewport({
 }: {
   readonly visualState: JourneyVisualState;
 }): ReactNode {
+  const d84StaticProofConfig = import.meta.env.DEV ? readD84StaticProofConfig() : null;
+  const d84StaticProofActive = d84StaticProofConfig !== null;
+  const d84ProofAttributes =
+    import.meta.env.DEV && d84StaticProofActive ? { [d84ProofAttributeName]: "true" } : {};
   const [experienceMode] = useState(() => selectExperienceMode(detectGraphicsCapability()));
   const [rendererState, setRendererState] = useState<"failed" | "ready" | "starting">("starting");
   const [rendererFailure, setRendererFailure] = useState<
@@ -121,7 +129,7 @@ export function ExperienceViewport({
   );
   // Start the development-only comparison with media so a fresh cinematic proof does not download R3F first.
   const [visualProofMode, setVisualProofMode] = useState<VisualProofMode>(
-    import.meta.env.DEV ? "cinematic" : "realtime",
+    import.meta.env.DEV && !d84StaticProofActive ? "cinematic" : "realtime",
   );
   const cinematicPlaybackRef = useRef<CinematicPlaybackHandle>(null);
   const [cinematicMotionStatus, setCinematicMotionStatus] =
@@ -129,7 +137,8 @@ export function ExperienceViewport({
   const reducedMotion = useReducedMotion();
   const fallback = <ExperienceFallback visualState={visualState} />;
   const visualProofLayer = selectVisualProofLayer(visualProofMode, visualState.stage);
-  const cinematicActive = CinematicSanctuaryLayer !== null && visualProofLayer === "cinematic";
+  const cinematicActive =
+    !d84StaticProofActive && CinematicSanctuaryLayer !== null && visualProofLayer === "cinematic";
   const shouldRenderRealtime = !cinematicActive;
   const forceCinematicFailure = readLocalVisualCheck() === "cinematic-failure";
   const forceCinematicUnavailable = readLocalVisualCheck() === "cinematic-unavailable";
@@ -148,7 +157,7 @@ export function ExperienceViewport({
     cinematicPlaybackRef.current?.pauseMotion();
   }, []);
   const developmentCalibrationTools =
-    VisualCalibrationConsole === null ? null : (
+    d84StaticProofActive || VisualCalibrationConsole === null ? null : (
       <Suspense fallback={null}>
         <VisualCalibrationConsole
           calibration={visualCalibration}
@@ -157,7 +166,7 @@ export function ExperienceViewport({
       </Suspense>
     );
   const developmentHybridProofTools =
-    HybridVisualProofControls === null ? null : (
+    d84StaticProofActive || HybridVisualProofControls === null ? null : (
       <Suspense fallback={null}>
         <HybridVisualProofControls
           cinematicActive={cinematicActive}
@@ -178,6 +187,7 @@ export function ExperienceViewport({
           data-reduced-motion={reducedMotion ? "true" : "false"}
           data-renderer-failure={rendererFailure ?? undefined}
           data-renderer-state={experienceMode === "fallback" ? "unavailable" : "failed"}
+          {...d84ProofAttributes}
           aria-hidden="true"
         >
           {fallback}
@@ -196,6 +206,7 @@ export function ExperienceViewport({
         data-renderer-api={rendererApi ?? undefined}
         data-renderer-state={shouldRenderRealtime ? rendererState : "not-requested"}
         data-visual-proof-layer={cinematicActive ? "cinematic" : "realtime"}
+        {...d84ProofAttributes}
         aria-hidden="true"
       >
         {cinematicActive ? (

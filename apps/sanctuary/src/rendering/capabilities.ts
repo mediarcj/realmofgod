@@ -11,6 +11,12 @@ export type ExperienceMode = "canvas" | "fallback";
 // Name the fragment-only local checks that make otherwise hardware-dependent paths reproducible.
 export type RendererVerificationStage = "a" | "b" | "c" | "d" | "e" | null;
 
+// Describe the deliberately narrow local D8.4 comparison matrix without adding a production-facing control.
+export interface D84StaticProofConfig {
+  readonly candidate: "baseline" | "batched";
+  readonly shadowPolicy: "off" | "current" | "restrained";
+}
+
 // Keep failure, motion, and renderer-isolation checks development-only and fragment-exact.
 export type LocalVisualCheck =
   | "bible-open"
@@ -68,6 +74,39 @@ export function readLocalVisualCheck(): LocalVisualCheck {
   }
 
   return selectLocalVisualCheck(window.location.hash);
+}
+
+// Recognize only the exact local fragments used to compare the two staged assets and three shadow policies.
+export function selectD84StaticProofConfig(fragment: string): D84StaticProofConfig | null {
+  const matches =
+    /^#verify-d84-(baseline|batched)-(shadows-off|current-shadows|restrained-shadows)$/u.exec(
+      fragment,
+    );
+  if (matches === null) {
+    return null;
+  }
+  const [, candidate, shadow] = matches;
+  if (candidate !== "baseline" && candidate !== "batched") {
+    return null;
+  }
+  switch (shadow) {
+    case "shadows-off":
+      return { candidate, shadowPolicy: "off" };
+    case "current-shadows":
+      return { candidate, shadowPolicy: "current" };
+    case "restrained-shadows":
+      return { candidate, shadowPolicy: "restrained" };
+    default:
+      return null;
+  }
+}
+
+// Keep D8.4 proof selection in the development bundle so a production visitor cannot request a candidate asset.
+export function readD84StaticProofConfig(): D84StaticProofConfig | null {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return null;
+  }
+  return selectD84StaticProofConfig(window.location.hash);
 }
 
 // Check for a standard browser WebGL API without creating a second, disposable GPU context.
