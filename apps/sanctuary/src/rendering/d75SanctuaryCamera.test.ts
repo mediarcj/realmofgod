@@ -33,4 +33,16 @@ describe("D7.5 SANCTUARY camera", () => {
       projection.fovDegrees,
     );
   });
+
+  it("offers the reference vertical fit only as an explicit D9.0A.1 comparison policy", () => {
+    const approvedAspect = 3120 / 1328;
+    const referenceProjection = selectD75SanctuaryProjection(approvedAspect, "stable-vertical");
+    const phoneLandscapeProjection = selectD75SanctuaryProjection(667 / 375, "stable-vertical");
+
+    expect(referenceProjection.fovDegrees).toBeCloseTo(31.683714, 5);
+    expect(phoneLandscapeProjection.fovDegrees).toBeCloseTo(referenceProjection.fovDegrees, 10);
+    expect(selectD75SanctuaryProjection(667 / 375, "horizontal").fovDegrees).toBeGreaterThan(
+      referenceProjection.fovDegrees,
+    );
+  });
 });

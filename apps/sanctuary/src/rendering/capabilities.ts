@@ -11,22 +11,42 @@ export type ExperienceMode = "canvas" | "fallback";
 // Name the fragment-only local checks that make otherwise hardware-dependent paths reproducible.
 export type RendererVerificationStage = "a" | "b" | "c" | "d" | "e" | null;
 
-// Describe the deliberately narrow local D8.4 comparison matrix without adding a production-facing control.
-export interface D84StaticProofConfig {
-  readonly candidate: "baseline" | "batched";
+// Describe the local-only candidate choices without making any candidate available to a production visitor.
+export type StaticSanctuaryCandidate = "baseline" | "batched" | "raw";
+
+// Keep the older proof offsets separate from the D9 authored scene, whose GLB transforms are the source of truth.
+export type StaticSanctuaryTransformPolicy = "legacy-calibrated" | "preserve-authored";
+
+// Share the narrow static-scene contract across the historical checks, D9 root, and D9.0A.1 inspection routes.
+export interface StaticSanctuaryProofConfig {
+  readonly candidate: StaticSanctuaryCandidate;
   readonly shadowPolicy: "off" | "current" | "restrained";
+  readonly transformPolicy: StaticSanctuaryTransformPolicy;
+}
+
+// Retain the D8.4 check's original candidate options and transform behavior for its explicit comparison fragments.
+export interface D84StaticProofConfig extends StaticSanctuaryProofConfig {
+  readonly candidate: "baseline" | "batched";
 }
 
 // Describe the D8.5 continuation route, which intentionally measures only the accepted batched candidate.
 export interface D85LandscapeProofConfig {
   readonly candidate: "batched";
   readonly shadowPolicy: "off" | "restrained";
+  readonly transformPolicy: "legacy-calibrated";
 }
 
 // Describe the narrow D9 visitor selection: the accepted batched candidate remains local development evidence.
 export interface D9VisitorSanctuaryConfig {
   readonly candidate: "batched";
   readonly shadowPolicy: "restrained";
+  readonly transformPolicy: "preserve-authored";
+}
+
+// Describe the D9.0A.1 local forensic routes, which compare immutable raw and batched assets without becoming product controls.
+export interface D91InspectionConfig extends StaticSanctuaryProofConfig {
+  readonly candidate: "batched" | "raw";
+  readonly framingPolicy: "horizontal" | "stable-vertical";
 }
 
 // Keep the viewport-only mobile policy explicit so it does not depend on a browser user-agent claim.
@@ -46,6 +66,13 @@ export interface FramePacingSummary {
 // Keep the MVP phone classification deliberately narrow; larger portrait browser windows remain ordinary layouts.
 export const D85_NARROW_VIEWPORT_MAX_WIDTH = 600;
 
+// Withhold the expensive decorative Canvas only when browser zoom leaves too little practical landscape area for the locked frame.
+export const D91_CONSTRAINED_LANDSCAPE_MIN_HEIGHT = 240;
+export const D91_CONSTRAINED_LANDSCAPE_MIN_WIDTH = 480;
+
+// Name the three presentation outcomes without storing a device identity or a browser zoom preference.
+export type SanctuaryViewportPresentation = "constrained" | "portrait" | "scene";
+
 // Use a 30fps threshold only to flag a long presentation interval, not to claim a GPU benchmark.
 export const D85_LONG_FRAME_THRESHOLD_MILLISECONDS = 1000 / 30;
 
@@ -53,6 +80,7 @@ export const D85_LONG_FRAME_THRESHOLD_MILLISECONDS = 1000 / 30;
 const d9VisitorSanctuaryConfig: D9VisitorSanctuaryConfig = {
   candidate: "batched",
   shadowPolicy: "restrained",
+  transformPolicy: "preserve-authored",
 };
 
 // Keep failure, motion, and renderer-isolation checks development-only and fragment-exact.
@@ -140,6 +168,40 @@ export function readD9VisitorSanctuaryConfig(): D9VisitorSanctuaryConfig | null 
   return selectD9VisitorSanctuaryConfig(window.location.hash);
 }
 
+// Reserve explicit forensic paths for the D9.0A.1 comparison; an ordinary visitor never reaches the immutable raw asset.
+export function selectD91InspectionConfig(fragment: string): D91InspectionConfig | null {
+  const matches =
+    /^#inspect-d91-(raw|batched)-(horizontal|stable-vertical)-(shadows-off|restrained-shadows)$/u.exec(
+      fragment,
+    );
+  if (matches === null) {
+    return null;
+  }
+
+  const [, candidate, framingPolicy, shadow] = matches;
+  if (
+    (candidate !== "raw" && candidate !== "batched") ||
+    (framingPolicy !== "horizontal" && framingPolicy !== "stable-vertical")
+  ) {
+    return null;
+  }
+
+  return {
+    candidate,
+    framingPolicy,
+    shadowPolicy: shadow === "shadows-off" ? "off" : "restrained",
+    transformPolicy: "preserve-authored",
+  };
+}
+
+// Keep the raw-versus-batched inspection entirely in the development module graph.
+export function readD91InspectionConfig(): D91InspectionConfig | null {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return null;
+  }
+  return selectD91InspectionConfig(window.location.hash);
+}
+
 // Recognize only the exact local fragments used to compare the two staged assets and three shadow policies.
 export function selectD84StaticProofConfig(fragment: string): D84StaticProofConfig | null {
   const matches =
@@ -155,11 +217,11 @@ export function selectD84StaticProofConfig(fragment: string): D84StaticProofConf
   }
   switch (shadow) {
     case "shadows-off":
-      return { candidate, shadowPolicy: "off" };
+      return { candidate, shadowPolicy: "off", transformPolicy: "legacy-calibrated" };
     case "current-shadows":
-      return { candidate, shadowPolicy: "current" };
+      return { candidate, shadowPolicy: "current", transformPolicy: "legacy-calibrated" };
     case "restrained-shadows":
-      return { candidate, shadowPolicy: "restrained" };
+      return { candidate, shadowPolicy: "restrained", transformPolicy: "legacy-calibrated" };
     default:
       return null;
   }
@@ -181,8 +243,8 @@ export function selectD85LandscapeProofConfig(fragment: string): D85LandscapePro
   }
 
   return matches[1] === "shadows-off"
-    ? { candidate: "batched", shadowPolicy: "off" }
-    : { candidate: "batched", shadowPolicy: "restrained" };
+    ? { candidate: "batched", shadowPolicy: "off", transformPolicy: "legacy-calibrated" }
+    : { candidate: "batched", shadowPolicy: "restrained", transformPolicy: "legacy-calibrated" };
 }
 
 // Keep the D8.5 proof selection development-only so production cannot request the candidate asset.
@@ -196,6 +258,22 @@ export function readD85LandscapeProofConfig(): D85LandscapeProofConfig | null {
 // Block only narrow portrait viewports; this uses dimensions rather than a fallible device or browser identity.
 export function shouldBlockNarrowPortraitViewport(viewport: ViewportSize): boolean {
   return viewport.width <= D85_NARROW_VIEWPORT_MAX_WIDTH && viewport.height > viewport.width;
+}
+
+// Keep normal landscape running while offering a calm non-Canvas state when effective browser space becomes too small.
+export function selectSanctuaryViewportPresentation(
+  viewport: ViewportSize,
+): SanctuaryViewportPresentation {
+  if (shouldBlockNarrowPortraitViewport(viewport)) {
+    return "portrait";
+  }
+  if (
+    viewport.width < D91_CONSTRAINED_LANDSCAPE_MIN_WIDTH ||
+    viewport.height < D91_CONSTRAINED_LANDSCAPE_MIN_HEIGHT
+  ) {
+    return "constrained";
+  }
+  return "scene";
 }
 
 // Preserve the D8.5 helper name for its focused proof tests while D9 uses the product-neutral policy name.

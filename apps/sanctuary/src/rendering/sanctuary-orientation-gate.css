@@ -1,11 +1,11 @@
 /*
  * File: apps/sanctuary/src/rendering/sanctuary-orientation-gate.css
- * Description: Styles the narrow-phone portrait sanctuary orientation notice.
- * Purpose: Keeps the blocked state readable and restrained while no WebGL canvas has been mounted.
+ * Description: Styles the sanctuary portrait and constrained-landscape notices.
+ * Purpose: Keeps either non-Canvas state readable and restrained while the fixed room frame cannot fit.
  * Notes: This is local CSS only and carries no device identification, storage, or third-party resource.
  */
 
-/* Cover the narrow portrait viewport with a calm semantic surface while the decorative scene remains unmounted. */
+/* Cover an unsupported viewport with a calm semantic surface while the decorative scene remains unmounted. */
 .sanctuary-orientation-gate {
   display: grid;
   min-height: 100vh;

@@ -16,6 +16,7 @@ import {
   readD9VisitorSanctuaryConfig,
   readD84StaticProofConfig,
   readD85LandscapeProofConfig,
+  readD91InspectionConfig,
   readLocalDiagnosticRoute,
   readLocalVisualCheck,
   selectExperienceMode,
@@ -49,6 +50,7 @@ const HybridVisualProofControls = import.meta.env.DEV
 // Build the local proof marker only when development code requests the comparison route.
 const d84ProofAttributeName = ["data", "d84", "static", "proof"].join("-");
 const d85ProofAttributeName = ["data", "d85", "landscape", "proof"].join("-");
+const d91InspectionAttributeName = ["data", "d91", "inspection"].join("-");
 
 // Describe the narrow error boundary contract used only to replace an unavailable visual layer.
 interface ViewportErrorBoundaryProps {
@@ -121,10 +123,15 @@ export function ExperienceViewport({
 }): ReactNode {
   const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
   const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
+  const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
   const viewportContent = <ExperienceViewportContent visualState={visualState} />;
 
   // Place the approved narrow-phone policy outside the viewport so portrait never mounts its decorative Canvas.
-  if (d9VisitorConfig !== null || d85LandscapeProofConfig !== null) {
+  if (
+    d9VisitorConfig !== null ||
+    d85LandscapeProofConfig !== null ||
+    d91InspectionConfig !== null
+  ) {
     return <SanctuaryOrientationGate>{viewportContent}</SanctuaryOrientationGate>;
   }
 
@@ -140,14 +147,22 @@ function ExperienceViewportContent({
   const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
   const d84StaticProofConfig = import.meta.env.DEV ? readD84StaticProofConfig() : null;
   const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
+  const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
   const diagnosticRouteActive = import.meta.env.DEV && readLocalDiagnosticRoute();
   const staticProofActive =
-    d9VisitorConfig !== null || d84StaticProofConfig !== null || d85LandscapeProofConfig !== null;
+    d9VisitorConfig !== null ||
+    d84StaticProofConfig !== null ||
+    d85LandscapeProofConfig !== null ||
+    d91InspectionConfig !== null;
   const d84ProofAttributes =
     import.meta.env.DEV && d84StaticProofConfig !== null ? { [d84ProofAttributeName]: "true" } : {};
   const d85ProofAttributes =
     import.meta.env.DEV && d85LandscapeProofConfig !== null
       ? { [d85ProofAttributeName]: "true" }
+      : {};
+  const d91InspectionAttributes =
+    import.meta.env.DEV && d91InspectionConfig !== null
+      ? { [d91InspectionAttributeName]: d91InspectionConfig.candidate }
       : {};
   const [experienceMode] = useState(() => selectExperienceMode(detectGraphicsCapability()));
   const [rendererState, setRendererState] = useState<"failed" | "ready" | "starting">("starting");
@@ -221,6 +236,7 @@ function ExperienceViewportContent({
           data-sanctuary-visitor-path={d9VisitorConfig !== null ? "d9-static-candidate" : undefined}
           {...d84ProofAttributes}
           {...d85ProofAttributes}
+          {...d91InspectionAttributes}
           aria-hidden="true"
         >
           {fallback}
@@ -242,6 +258,7 @@ function ExperienceViewportContent({
         data-visual-proof-layer={cinematicActive ? "cinematic" : "realtime"}
         {...d84ProofAttributes}
         {...d85ProofAttributes}
+        {...d91InspectionAttributes}
         aria-hidden="true"
       >
         {cinematicActive ? (

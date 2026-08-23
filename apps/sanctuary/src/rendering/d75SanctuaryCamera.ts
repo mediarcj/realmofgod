@@ -23,11 +23,22 @@ export interface D75SanctuaryProjection {
   readonly up: readonly [number, number, number];
 }
 
-// Preserve Blender's horizontal sensor fit at each browser aspect ratio rather than guessing a new vertical lens.
-export function selectD75SanctuaryProjection(viewportAspect: number): D75SanctuaryProjection {
+// Keep the temporary D9.0A.1 A/B framing choices explicit and restricted to the existing authored camera.
+export type D75SanctuaryFramingPolicy = "horizontal" | "stable-vertical";
+
+// Preserve Blender's horizontal sensor fit by default; the alternative holds the approved reference vertical lens for comparison.
+export function selectD75SanctuaryProjection(
+  viewportAspect: number,
+  framingPolicy: D75SanctuaryFramingPolicy = "horizontal",
+): D75SanctuaryProjection {
   const safeAspect = Math.max(viewportAspect, Number.EPSILON);
+  const referenceAspect = 3120 / 1328;
+  const referenceVerticalFovRadians =
+    2 * Math.atan(Math.tan(d75SanctuaryCamera.horizontalFovRadians / 2) / referenceAspect);
   const fovRadians =
-    2 * Math.atan(Math.tan(d75SanctuaryCamera.horizontalFovRadians / 2) / safeAspect);
+    framingPolicy === "stable-vertical"
+      ? referenceVerticalFovRadians
+      : 2 * Math.atan(Math.tan(d75SanctuaryCamera.horizontalFovRadians / 2) / safeAspect);
 
   return {
     fovDegrees: (fovRadians * 180) / Math.PI,

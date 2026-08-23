@@ -11,12 +11,14 @@ import { describe, expect, it } from "vitest";
 import {
   hasUsableGraphicsApi,
   readRendererVerificationStage,
+  selectD91InspectionConfig,
   selectD9VisitorSanctuaryConfig,
   selectD84StaticProofConfig,
   selectD85LandscapeProofConfig,
   selectLocalDiagnosticRoute,
   selectLocalVisualCheck,
   selectExperienceMode,
+  selectSanctuaryViewportPresentation,
   shouldBlockD85PortraitViewport,
   shouldBlockNarrowPortraitViewport,
   summarizeD85FrameIntervals,
@@ -45,14 +47,17 @@ describe("D8.4 static proof selection", () => {
     expect(selectD84StaticProofConfig("#verify-d84-baseline-shadows-off")).toEqual({
       candidate: "baseline",
       shadowPolicy: "off",
+      transformPolicy: "legacy-calibrated",
     });
     expect(selectD84StaticProofConfig("#verify-d84-batched-current-shadows")).toEqual({
       candidate: "batched",
       shadowPolicy: "current",
+      transformPolicy: "legacy-calibrated",
     });
     expect(selectD84StaticProofConfig("#verify-d84-batched-restrained-shadows")).toEqual({
       candidate: "batched",
       shadowPolicy: "restrained",
+      transformPolicy: "legacy-calibrated",
     });
   });
 
@@ -68,10 +73,12 @@ describe("D8.5 landscape proof selection", () => {
     expect(selectD85LandscapeProofConfig("#verify-d85-batched-shadows-off")).toEqual({
       candidate: "batched",
       shadowPolicy: "off",
+      transformPolicy: "legacy-calibrated",
     });
     expect(selectD85LandscapeProofConfig("#verify-d85-batched-restrained-shadows")).toEqual({
       candidate: "batched",
       shadowPolicy: "restrained",
+      transformPolicy: "legacy-calibrated",
     });
   });
 
@@ -87,6 +94,7 @@ describe("D9 visitor sanctuary selection", () => {
     expect(selectD9VisitorSanctuaryConfig("")).toEqual({
       candidate: "batched",
       shadowPolicy: "restrained",
+      transformPolicy: "preserve-authored",
     });
     expect(selectD9VisitorSanctuaryConfig("#diagnostic-hf01")).toBeNull();
     expect(selectD9VisitorSanctuaryConfig("#verify-d85-batched-restrained-shadows")).toBeNull();
@@ -101,6 +109,39 @@ describe("D9 visitor sanctuary selection", () => {
   it("blocks narrow portrait viewports without using a device identity", () => {
     expect(shouldBlockNarrowPortraitViewport({ width: 390, height: 844 })).toBe(true);
     expect(shouldBlockNarrowPortraitViewport({ width: 844, height: 390 })).toBe(false);
+  });
+
+  it("keeps ordinary landscape visible and uses a semantic constrained state only for an impractically small effective viewport", () => {
+    expect(selectSanctuaryViewportPresentation({ width: 844, height: 390 })).toBe("scene");
+    expect(selectSanctuaryViewportPresentation({ width: 562, height: 260 })).toBe("scene");
+    expect(selectSanctuaryViewportPresentation({ width: 422, height: 195 })).toBe("constrained");
+    expect(selectSanctuaryViewportPresentation({ width: 390, height: 844 })).toBe("portrait");
+  });
+});
+
+// Keep the D9.0A.1 inspection routes local and exact while comparing the immutable raw and batched R2 assets.
+describe("D9.0A.1 raw-versus-batched inspection selection", () => {
+  it("permits only explicit authored-transform comparisons", () => {
+    expect(selectD91InspectionConfig("#inspect-d91-raw-horizontal-shadows-off")).toEqual({
+      candidate: "raw",
+      framingPolicy: "horizontal",
+      shadowPolicy: "off",
+      transformPolicy: "preserve-authored",
+    });
+    expect(
+      selectD91InspectionConfig("#inspect-d91-batched-stable-vertical-restrained-shadows"),
+    ).toEqual({
+      candidate: "batched",
+      framingPolicy: "stable-vertical",
+      shadowPolicy: "restrained",
+      transformPolicy: "preserve-authored",
+    });
+  });
+
+  it("rejects incomplete, legacy-transform, and nonlocal inspection paths", () => {
+    expect(selectD91InspectionConfig("#inspect-d91-raw-horizontal")).toBeNull();
+    expect(selectD91InspectionConfig("#inspect-d91-baseline-horizontal-shadows-off")).toBeNull();
+    expect(selectD91InspectionConfig("#inspect-d91-batched-horizontal-current-shadows")).toBeNull();
   });
 });
 

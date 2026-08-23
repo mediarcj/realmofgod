@@ -23,10 +23,15 @@ import {
   readD84StaticProofConfig,
   readD85LandscapeProofConfig,
   readD9VisitorSanctuaryConfig,
+  readD91InspectionConfig,
   readLocalVisualCheck,
   readRendererVerificationStage,
 } from "./capabilities";
-import { d75SanctuaryCamera, selectD75SanctuaryProjection } from "./d75SanctuaryCamera";
+import {
+  d75SanctuaryCamera,
+  selectD75SanctuaryProjection,
+  type D75SanctuaryFramingPolicy,
+} from "./d75SanctuaryCamera";
 import { RealmScene } from "./RealmScene";
 import { selectSanctuaryHeroCamera, type VisualCalibration } from "./visualCalibration";
 
@@ -60,10 +65,11 @@ function applyRendererCalibration(
   viewportAspect: number,
   sanctuaryHero: boolean,
   useD75SanctuaryCamera: boolean,
+  d75FramingPolicy: D75SanctuaryFramingPolicy,
 ): void {
   gl.toneMappingExposure = visualCalibration.lighting.exposure;
   if (useD75SanctuaryCamera) {
-    const projection = selectD75SanctuaryProjection(viewportAspect);
+    const projection = selectD75SanctuaryProjection(viewportAspect, d75FramingPolicy);
     camera.fov = projection.fovDegrees;
     camera.near = d75SanctuaryCamera.clipStart;
     camera.far = d75SanctuaryCamera.clipEnd;
@@ -90,10 +96,12 @@ function RendererCalibration({
   visualCalibration,
   visualState,
   useD75SanctuaryCamera,
+  d75FramingPolicy,
 }: {
   readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
   readonly useD75SanctuaryCamera: boolean;
+  readonly d75FramingPolicy: D75SanctuaryFramingPolicy;
 }): ReactNode {
   const { camera, gl, size } = useThree();
 
@@ -107,6 +115,7 @@ function RendererCalibration({
         size.width / Math.max(size.height, 1),
         sanctuaryHero,
         useD75SanctuaryCamera,
+        d75FramingPolicy,
       );
     }
   }, [
@@ -115,6 +124,7 @@ function RendererCalibration({
     size.height,
     size.width,
     useD75SanctuaryCamera,
+    d75FramingPolicy,
     visualCalibration,
     visualState.stage,
   ]);
@@ -194,11 +204,17 @@ export function CanvasExperience({
   const rendererVerificationStage = readRendererVerificationStage();
   // Make the D9 local visitor root use the approved static candidate before older explicit proof fragments.
   const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
+  const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
   const staticProofConfig = import.meta.env.DEV
-    ? (d9VisitorConfig ?? readD85LandscapeProofConfig() ?? readD84StaticProofConfig())
+    ? (d9VisitorConfig ??
+      d91InspectionConfig ??
+      readD85LandscapeProofConfig() ??
+      readD84StaticProofConfig())
     : null;
   const staticProofActive = staticProofConfig !== null && D84StaticSanctuaryProof !== null;
-  const useD75SanctuaryCamera = d9VisitorConfig !== null && staticProofActive;
+  const useD75SanctuaryCamera =
+    (d9VisitorConfig !== null || d91InspectionConfig !== null) && staticProofActive;
+  const d75FramingPolicy = d91InspectionConfig?.framingPolicy ?? "horizontal";
   const cinematicRenderer =
     !staticProofActive && (rendererVerificationStage === null || rendererVerificationStage === "e");
   const shadowsEnabled = staticProofActive
@@ -209,6 +225,7 @@ export function CanvasExperience({
     <div
       className="experience-canvas"
       data-d9-camera-calibration={useD75SanctuaryCamera ? "d7.5-sanctuary" : undefined}
+      data-d91-inspection={d91InspectionConfig?.candidate}
       data-renderer-check={rendererVerificationStage ?? "normal"}
       aria-hidden="true"
     >
@@ -242,8 +259,8 @@ export function CanvasExperience({
           gl.shadowMap.type = PCFShadowMap;
           gl.toneMapping = AgXToneMapping;
           gl.toneMappingExposure = visualCalibration.lighting.exposure;
-          // Keep reflections present for metal and varnished wood without suggesting a second lamp.
-          scene.environmentIntensity = 0.2;
+          // Keep restrained local reflections on metal and varnished wood without introducing a pictured third lamp.
+          scene.environmentIntensity = 0.35;
           if (camera instanceof PerspectiveCamera) {
             // Apply the exact D7.5 frame only to the D9 visitor candidate; older proof routes retain their evidence camera.
             applyRendererCalibration(
@@ -253,6 +270,7 @@ export function CanvasExperience({
               gl.domElement.clientWidth / Math.max(gl.domElement.clientHeight, 1),
               visualState.stage === "entry" || visualState.stage === "sanctuary",
               useD75SanctuaryCamera,
+              d75FramingPolicy,
             );
           }
         }}
@@ -264,6 +282,7 @@ export function CanvasExperience({
           onRendererReady={onRendererReady}
         />
         <RendererCalibration
+          d75FramingPolicy={d75FramingPolicy}
           useD75SanctuaryCamera={useD75SanctuaryCamera}
           visualCalibration={visualCalibration}
           visualState={visualState}
