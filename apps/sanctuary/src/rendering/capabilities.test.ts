@@ -12,6 +12,7 @@ import {
   hasUsableGraphicsApi,
   readRendererVerificationStage,
   selectD91InspectionConfig,
+  selectD92QualityInspectionConfig,
   selectD9VisitorSanctuaryConfig,
   selectD84StaticProofConfig,
   selectD85LandscapeProofConfig,
@@ -142,6 +143,32 @@ describe("D9.0A.1 raw-versus-batched inspection selection", () => {
     expect(selectD91InspectionConfig("#inspect-d91-raw-horizontal")).toBeNull();
     expect(selectD91InspectionConfig("#inspect-d91-baseline-horizontal-shadows-off")).toBeNull();
     expect(selectD91InspectionConfig("#inspect-d91-batched-horizontal-current-shadows")).toBeNull();
+  });
+});
+
+// Keep the post-antialiasing comparison explicit so forensic raw access cannot enter the ordinary visitor path.
+describe("D9.0A.2 high-quality inspection selection", () => {
+  it("permits raw and batched candidates only with authored transforms and restrained shadows", () => {
+    expect(
+      selectD92QualityInspectionConfig("#inspect-d92-quality-raw-horizontal-restrained-shadows"),
+    ).toEqual({
+      candidate: "raw",
+      framingPolicy: "horizontal",
+      shadowPolicy: "restrained",
+      transformPolicy: "preserve-authored",
+    });
+    expect(
+      selectD92QualityInspectionConfig(
+        "#inspect-d92-quality-batched-stable-vertical-restrained-shadows",
+      ),
+    ).toMatchObject({ candidate: "batched", framingPolicy: "stable-vertical" });
+  });
+
+  it("rejects benchmark settings and incomplete quality-inspection fragments", () => {
+    expect(
+      selectD92QualityInspectionConfig("#inspect-d92-quality-raw-horizontal-shadows-off"),
+    ).toBe(null);
+    expect(selectD92QualityInspectionConfig("#inspect-d92-quality-raw-horizontal")).toBeNull();
   });
 });
 

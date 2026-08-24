@@ -7,7 +7,7 @@
 
 // Import renderer-specific code only inside this asynchronously loaded visual module.
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { lazy, Suspense, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AgXToneMapping,
   PCFShadowMap,
@@ -24,6 +24,7 @@ import {
   readD85LandscapeProofConfig,
   readD9VisitorSanctuaryConfig,
   readD91InspectionConfig,
+  readD92QualityInspectionConfig,
   readLocalVisualCheck,
   readRendererVerificationStage,
 } from "./capabilities";
@@ -32,6 +33,7 @@ import {
   selectD75SanctuaryProjection,
   type D75SanctuaryFramingPolicy,
 } from "./d75SanctuaryCamera";
+import { selectD9VisitorRenderQuality, type D9RenderQuality } from "./d9SanctuaryQuality";
 import { RealmScene } from "./RealmScene";
 import { selectSanctuaryHeroCamera, type VisualCalibration } from "./visualCalibration";
 
@@ -41,6 +43,13 @@ const D84StaticSanctuaryProof = import.meta.env.DEV
       import("./D84StaticSanctuaryProof").then(({ D84StaticSanctuaryProof: proof }) => ({
         default: proof,
       })),
+    )
+  : null;
+
+// Keep the normal D9 visitor scene separate from D84's intentionally fixed-DPR diagnostic path.
+const D9SanctuaryScene = import.meta.env.DEV
+  ? lazy(async () =>
+      import("./D9SanctuaryScene").then(({ D9SanctuaryScene: scene }) => ({ default: scene })),
     )
   : null;
 
@@ -55,6 +64,39 @@ interface CanvasExperienceProps {
   readonly reducedMotion: boolean;
   readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
+}
+
+// Read only the dimensions and scale needed to bound decorative pixels; this is not a browser fingerprint.
+function readD9RenderQuality(): D9RenderQuality {
+  if (typeof window === "undefined") {
+    return selectD9VisitorRenderQuality({ devicePixelRatio: 1, height: 1, width: 1 });
+  }
+  return selectD9VisitorRenderQuality({
+    devicePixelRatio: window.devicePixelRatio,
+    height: window.innerHeight,
+    width: window.innerWidth,
+  });
+}
+
+// Refresh the local quality cap after an ordinary resize or orientation change without storing a browser preference.
+function useD9RenderQuality(active: boolean): D9RenderQuality {
+  const [quality, setQuality] = useState(readD9RenderQuality);
+
+  useEffect(() => {
+    if (!active) {
+      return undefined;
+    }
+    const updateQuality = (): void => {
+      setQuality(readD9RenderQuality());
+    };
+    window.addEventListener("resize", updateQuality);
+    updateQuality();
+    return () => {
+      window.removeEventListener("resize", updateQuality);
+    };
+  }, [active]);
+
+  return quality;
 }
 
 // Update Three's deliberately mutable renderer and camera objects behind one reviewed imperative boundary.
@@ -205,21 +247,29 @@ export function CanvasExperience({
   // Make the D9 local visitor root use the approved static candidate before older explicit proof fragments.
   const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
   const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
+  const d92QualityInspectionConfig = import.meta.env.DEV ? readD92QualityInspectionConfig() : null;
   const staticProofConfig = import.meta.env.DEV
-    ? (d9VisitorConfig ??
-      d91InspectionConfig ??
-      readD85LandscapeProofConfig() ??
-      readD84StaticProofConfig())
+    ? (d91InspectionConfig ?? readD85LandscapeProofConfig() ?? readD84StaticProofConfig())
     : null;
   const staticProofActive = staticProofConfig !== null && D84StaticSanctuaryProof !== null;
+  const d9VisitorActive = d9VisitorConfig !== null && D9SanctuaryScene !== null;
+  const d92QualityInspectionActive =
+    d92QualityInspectionConfig !== null && D9SanctuaryScene !== null;
+  const d9QualityRendererActive = d9VisitorActive || d92QualityInspectionActive;
+  const d9RenderQuality = useD9RenderQuality(d9QualityRendererActive);
   const useD75SanctuaryCamera =
-    (d9VisitorConfig !== null || d91InspectionConfig !== null) && staticProofActive;
-  const d75FramingPolicy = d91InspectionConfig?.framingPolicy ?? "horizontal";
+    d9QualityRendererActive || (d91InspectionConfig !== null && staticProofActive);
+  const d75FramingPolicy =
+    d92QualityInspectionConfig?.framingPolicy ?? d91InspectionConfig?.framingPolicy ?? "horizontal";
   const cinematicRenderer =
-    !staticProofActive && (rendererVerificationStage === null || rendererVerificationStage === "e");
-  const shadowsEnabled = staticProofActive
-    ? staticProofConfig.shadowPolicy !== "off"
-    : cinematicRenderer;
+    !d9QualityRendererActive &&
+    !staticProofActive &&
+    (rendererVerificationStage === null || rendererVerificationStage === "e");
+  const shadowsEnabled = d9QualityRendererActive
+    ? true
+    : staticProofActive
+      ? staticProofConfig.shadowPolicy !== "off"
+      : cinematicRenderer;
 
   return (
     <div
@@ -236,14 +286,22 @@ export function CanvasExperience({
           far: 60,
           position: [...visualCalibration.camera.position],
         }}
-        // Hold proof pixels at CSS resolution so desktop and mobile counters describe the requested viewports.
-        dpr={staticProofActive ? 1 : cinematicRenderer ? [1, 1.5] : [1, 1.25]}
+        // Keep only explicit D84/D85/D91 diagnostics at DPR 1; the D9 visitor receives its bounded quality scale.
+        dpr={
+          d9QualityRendererActive
+            ? d9RenderQuality.dpr
+            : staticProofActive
+              ? 1
+              : cinematicRenderer
+                ? [1, 1.5]
+                : [1, 1.25]
+        }
         gl={(defaults) => {
           try {
             // Construct exactly one renderer with a neutral GPU preference and the reviewed quality level.
             return new WebGLRenderer({
               ...defaults,
-              antialias: cinematicRenderer,
+              antialias: d9QualityRendererActive ? d9RenderQuality.antialias : cinematicRenderer,
               powerPreference: "default",
             });
           } catch {
@@ -288,7 +346,15 @@ export function CanvasExperience({
           visualState={visualState}
         />
         <LocalReflectionEnvironment />
-        {staticProofActive ? (
+        {d9QualityRendererActive ? (
+          <Suspense fallback={null}>
+            <D9SanctuaryScene
+              config={d92QualityInspectionConfig ?? undefined}
+              quality={d9RenderQuality}
+              visualCalibration={visualCalibration}
+            />
+          </Suspense>
+        ) : staticProofActive ? (
           <Suspense fallback={null}>
             <D84StaticSanctuaryProof
               config={staticProofConfig}

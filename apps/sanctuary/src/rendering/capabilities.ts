@@ -49,6 +49,12 @@ export interface D91InspectionConfig extends StaticSanctuaryProofConfig {
   readonly framingPolicy: "horizontal" | "stable-vertical";
 }
 
+// Describe the D9.0A.2 quality inspection separately so ordinary visitors cannot select a raw local asset.
+export interface D92QualityInspectionConfig extends StaticSanctuaryProofConfig {
+  readonly candidate: "batched" | "raw";
+  readonly framingPolicy: "horizontal" | "stable-vertical";
+}
+
 // Keep the viewport-only mobile policy explicit so it does not depend on a browser user-agent claim.
 export interface ViewportSize {
   readonly height: number;
@@ -200,6 +206,42 @@ export function readD91InspectionConfig(): D91InspectionConfig | null {
     return null;
   }
   return selectD91InspectionConfig(window.location.hash);
+}
+
+// Reserve explicit quality-inspection fragments for comparing raw and batched candidates after antialiasing is active.
+export function selectD92QualityInspectionConfig(
+  fragment: string,
+): D92QualityInspectionConfig | null {
+  const matches =
+    /^#inspect-d92-quality-(raw|batched)-(horizontal|stable-vertical)-restrained-shadows$/u.exec(
+      fragment,
+    );
+  if (matches === null) {
+    return null;
+  }
+
+  const [, candidate, framingPolicy] = matches;
+  if (
+    (candidate !== "raw" && candidate !== "batched") ||
+    (framingPolicy !== "horizontal" && framingPolicy !== "stable-vertical")
+  ) {
+    return null;
+  }
+
+  return {
+    candidate,
+    framingPolicy,
+    shadowPolicy: "restrained",
+    transformPolicy: "preserve-authored",
+  };
+}
+
+// Keep high-quality forensic inspection in the development bundle and behind an exact local fragment.
+export function readD92QualityInspectionConfig(): D92QualityInspectionConfig | null {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return null;
+  }
+  return selectD92QualityInspectionConfig(window.location.hash);
 }
 
 // Recognize only the exact local fragments used to compare the two staged assets and three shadow policies.

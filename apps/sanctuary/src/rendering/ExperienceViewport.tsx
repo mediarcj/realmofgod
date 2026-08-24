@@ -17,6 +17,7 @@ import {
   readD84StaticProofConfig,
   readD85LandscapeProofConfig,
   readD91InspectionConfig,
+  readD92QualityInspectionConfig,
   readLocalDiagnosticRoute,
   readLocalVisualCheck,
   selectExperienceMode,
@@ -124,13 +125,15 @@ export function ExperienceViewport({
   const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
   const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
   const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
+  const d92QualityInspectionConfig = import.meta.env.DEV ? readD92QualityInspectionConfig() : null;
   const viewportContent = <ExperienceViewportContent visualState={visualState} />;
 
   // Place the approved narrow-phone policy outside the viewport so portrait never mounts its decorative Canvas.
   if (
     d9VisitorConfig !== null ||
     d85LandscapeProofConfig !== null ||
-    d91InspectionConfig !== null
+    d91InspectionConfig !== null ||
+    d92QualityInspectionConfig !== null
   ) {
     return <SanctuaryOrientationGate>{viewportContent}</SanctuaryOrientationGate>;
   }
@@ -148,12 +151,14 @@ function ExperienceViewportContent({
   const d84StaticProofConfig = import.meta.env.DEV ? readD84StaticProofConfig() : null;
   const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
   const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
+  const d92QualityInspectionConfig = import.meta.env.DEV ? readD92QualityInspectionConfig() : null;
   const diagnosticRouteActive = import.meta.env.DEV && readLocalDiagnosticRoute();
   const staticProofActive =
     d9VisitorConfig !== null ||
     d84StaticProofConfig !== null ||
     d85LandscapeProofConfig !== null ||
-    d91InspectionConfig !== null;
+    d91InspectionConfig !== null ||
+    d92QualityInspectionConfig !== null;
   const d84ProofAttributes =
     import.meta.env.DEV && d84StaticProofConfig !== null ? { [d84ProofAttributeName]: "true" } : {};
   const d85ProofAttributes =
@@ -163,6 +168,10 @@ function ExperienceViewportContent({
   const d91InspectionAttributes =
     import.meta.env.DEV && d91InspectionConfig !== null
       ? { [d91InspectionAttributeName]: d91InspectionConfig.candidate }
+      : {};
+  const d92QualityInspectionAttributes =
+    import.meta.env.DEV && d92QualityInspectionConfig !== null
+      ? { ["data-d92-quality-inspection"]: d92QualityInspectionConfig.candidate }
       : {};
   const [experienceMode] = useState(() => selectExperienceMode(detectGraphicsCapability()));
   const [rendererState, setRendererState] = useState<"failed" | "ready" | "starting">("starting");
@@ -237,6 +246,7 @@ function ExperienceViewportContent({
           {...d84ProofAttributes}
           {...d85ProofAttributes}
           {...d91InspectionAttributes}
+          {...d92QualityInspectionAttributes}
           aria-hidden="true"
         >
           {fallback}
@@ -259,6 +269,7 @@ function ExperienceViewportContent({
         {...d84ProofAttributes}
         {...d85ProofAttributes}
         {...d91InspectionAttributes}
+        {...d92QualityInspectionAttributes}
         aria-hidden="true"
       >
         {cinematicActive ? (
