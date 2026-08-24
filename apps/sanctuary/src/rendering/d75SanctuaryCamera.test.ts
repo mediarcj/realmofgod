@@ -45,6 +45,21 @@ describe("D7.5 SANCTUARY camera", () => {
     );
   });
 
+  it("preserves the exact converted D7.5 vectors for the three guided endpoints", () => {
+    expect(d75SanctuaryCameras.SIT).toMatchObject({
+      forward: [0.0007467248942703009, -0.2754653990268707, -0.9613106846809387],
+      up: [0.00021314318291842937, 0.9613109827041626, -0.27546530961990356],
+    });
+    expect(d75SanctuaryCameras.READ).toMatchObject({
+      forward: [0.008063985034823418, -0.9981837868690491, -0.05969979614019394],
+      up: [0.13363796472549438, 0.06024195998907089, -0.9891975522041321],
+    });
+    expect(d75SanctuaryCameras.PRAY).toMatchObject({
+      forward: [-0.0019341225270181894, 0.5195367336273193, -0.8544459342956543],
+      up: [0.0011753428261727095, 0.854448139667511, 0.5195354223251343],
+    });
+  });
+
   it("keeps Blender's 27 mm horizontal lens constant across browser aspect ratios", () => {
     const approvedAspect = 3120 / 1328;
     const projection = selectD75SanctuaryProjection(approvedAspect);
