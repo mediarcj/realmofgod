@@ -52,7 +52,7 @@ select {
     linear-gradient(155deg, #2b1d14 0%, #172019 58%, #0d1511 100%);
 }
 
-/* Keep the D9 root free of a welcome panel while placing its one inactive semantic control away from the focal table. */
+/* Keep the D9 root free of a welcome panel while reserving the complete scene for its authored environmental cues. */
 .sanctuary-shell--visitor {
   display: grid;
   min-height: 100vh;
@@ -72,29 +72,40 @@ select {
   border: 0;
 }
 
-/* Render the deferred SIT action as a small boundary marker rather than a journey card or dashboard control. */
-.sanctuary-visitor-control {
+/* Hide the semantic environmental control during ordinary use; keyboard focus reveals only its contextual label. */
+.sanctuary-environmental-control {
   position: fixed;
   z-index: 2;
-  inset: auto 1.25rem 1.25rem auto;
+  inset: auto 50% 1.25rem auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  transform: translateX(50%);
 }
 
-.sanctuary-visitor-control button {
-  min-width: auto;
+/* Let a keyboard-focused control escape the normally hidden semantic wrapper without creating a standing overlay. */
+.sanctuary-environmental-control:focus-within {
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+}
+
+.sanctuary-environmental-control button:focus-visible {
+  min-width: 11rem;
+  min-height: 2.75rem;
   padding: 0.45rem 0.75rem;
-  border: 1px solid rgb(237 211 159 / 38%);
-  border-radius: 0.125rem;
-  color: rgb(245 232 201 / 64%);
-  background: rgb(22 15 10 / 58%);
-  box-shadow: none;
+  overflow: visible;
+  clip: auto;
+  border: 1px solid rgb(237 211 159 / 72%);
+  border-radius: 0.2rem;
+  color: #fff4de;
+  background: rgb(22 15 10 / 84%);
+  box-shadow: 0 0.35rem 1.5rem rgb(0 0 0 / 28%);
   font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.sanctuary-visitor-control button:disabled {
-  cursor: not-allowed;
-  opacity: 1;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
 /* Add restrained edge shade so text stays legible without covering the place with a large card. */
@@ -124,6 +135,11 @@ select {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+}
+
+/* Let the normal D9 proof receive intentional world clicks while every diagnostic and fallback surface stays decorative. */
+.experience-viewport[data-sanctuary-environmental-interaction="true"] {
+  pointer-events: auto;
 }
 
 .experience-canvas canvas {

@@ -33,17 +33,27 @@ describe("D9 sanctuary interaction model", () => {
   });
 
   it("leaves every illegal transition unchanged instead of offering backward or free navigation", () => {
-    const states: readonly SanctuaryMvpState[] = [
-      { name: "SANCTUARY" },
-      { name: "SIT" },
-      { name: "READ" },
-      { name: "PRAY" },
+    const illegalTransitions: readonly [
+      SanctuaryMvpState,
+      Parameters<typeof transitionSanctuaryMvp>[1],
+    ][] = [
+      [{ name: "SANCTUARY" }, "ENTER_PRAYER"],
+      [{ name: "SANCTUARY" }, "READ_BIBLE"],
+      [{ name: "SANCTUARY" }, "RETURN_TO_SANCTUARY"],
+      [{ name: "SIT" }, "ENTER_PRAYER"],
+      [{ name: "SIT" }, "RETURN_TO_SANCTUARY"],
+      [{ name: "SIT" }, "SIT"],
+      [{ name: "READ" }, "READ_BIBLE"],
+      [{ name: "READ" }, "RETURN_TO_SANCTUARY"],
+      [{ name: "READ" }, "SIT"],
+      [{ name: "PRAY" }, "ENTER_PRAYER"],
+      [{ name: "PRAY" }, "READ_BIBLE"],
+      [{ name: "PRAY" }, "SIT"],
     ];
 
-    expect(transitionSanctuaryMvp(states[0]!, "READ_BIBLE")).toBe(states[0]);
-    expect(transitionSanctuaryMvp(states[1]!, "ENTER_PRAYER")).toBe(states[1]);
-    expect(transitionSanctuaryMvp(states[2]!, "SIT")).toBe(states[2]);
-    expect(transitionSanctuaryMvp(states[3]!, "READ_BIBLE")).toBe(states[3]);
+    for (const [state, action] of illegalTransitions) {
+      expect(transitionSanctuaryMvp(state, action)).toBe(state);
+    }
   });
 
   it("exposes exactly one meaningful affordance and accessible label in each state", () => {

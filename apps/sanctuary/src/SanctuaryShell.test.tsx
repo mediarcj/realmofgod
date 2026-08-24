@@ -13,14 +13,15 @@ import { SanctuaryShell } from "./SanctuaryShell";
 import { ExperienceFallback, ExperienceLoading } from "./rendering/ExperienceViewport";
 import { selectVisualAtmosphere } from "./rendering/visualAtmosphere";
 
-// Confirm the ordinary root is already inside the sanctuary and exposes only the temporary semantic SIT control.
+// Confirm the ordinary root is already inside the sanctuary and exposes only the first quiet semantic control.
 describe("SanctuaryShell", () => {
   it("renders the D9 visitor document without requiring graphics", () => {
     const markup = renderToStaticMarkup(<SanctuaryShell />);
 
     expect(markup).toContain("Realm of God sanctuary");
-    expect(markup).toContain(">Sit</button>");
-    expect(markup).toContain("disabled");
+    expect(markup).toContain("Sit in the sanctuary");
+    expect(markup).not.toContain(">Sit</button>");
+    expect(markup).not.toContain("sanctuary-visitor-control");
     expect(markup).not.toContain("A place to be still.");
     expect(markup).not.toContain("What brings you here?");
     expect(markup).not.toContain("I need peace");

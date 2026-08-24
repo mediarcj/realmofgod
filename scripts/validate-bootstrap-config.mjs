@@ -36,6 +36,14 @@ const orientationGatePath = resolve(
 );
 const capabilityPath = resolve(repositoryRoot, "apps/sanctuary/src/rendering/capabilities.ts");
 const d9ScenePath = resolve(repositoryRoot, "apps/sanctuary/src/rendering/D9SanctuaryScene.tsx");
+const sanctuaryInteractionModelPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/sanctuary/model.ts",
+);
+const d9EnvironmentalAffordancePath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/D9EnvironmentalAffordances.tsx",
+);
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
 function readRepositoryFile(path) {
@@ -199,9 +207,9 @@ function verifyAuthoredAssetBoundary(viewportSource, assetAdapterSource) {
   }
 }
 
-// Keep the D9 root inside the sanctuary and ensure renderer code remains unable to advance a visitor state machine.
+// Keep the D9 root inside the sanctuary and ensure renderer code remains unable to create its own state authority.
 function verifyVisitorVisualBoundary(shellSource, canvasSource, sceneSource) {
-  for (const retiredRootFragment of ["useReducer", "JourneyExperience", "What brings you here?"]) {
+  for (const retiredRootFragment of ["JourneyExperience", "What brings you here?"]) {
     if (shellSource.includes(retiredRootFragment)) {
       throw new Error(
         `SanctuaryShell must not restore the retired entry journey: ${retiredRootFragment}.`,
@@ -215,6 +223,80 @@ function verifyVisitorVisualBoundary(shellSource, canvasSource, sceneSource) {
 
   if (sceneSource.includes("dispatch") || sceneSource.includes("transitionJourney")) {
     throw new Error("RealmScene must remain a read-only visual projection.");
+  }
+}
+
+// Require the D9.0B interaction proof to remain an exact four-state, DOM-authoritative environmental path.
+function verifyD9InteractionBoundary(
+  shellSource,
+  canvasSource,
+  sceneSource,
+  modelSource,
+  affordanceSource,
+) {
+  for (const requiredFragment of [
+    "useReducer",
+    "transitionSanctuaryMvp",
+    "sanctuary-environmental-control",
+  ]) {
+    if (!shellSource.includes(requiredFragment)) {
+      throw new Error(
+        `SanctuaryShell must preserve the D9.0B semantic interaction boundary: ${requiredFragment}.`,
+      );
+    }
+  }
+
+  for (const forbiddenFragment of [
+    "sanctuary-visitor-control",
+    ">Sit</button>",
+    "disabled aria-describedby",
+  ]) {
+    if (shellSource.includes(forbiddenFragment)) {
+      throw new Error(
+        `SanctuaryShell must not restore the retired visible SIT control: ${forbiddenFragment}.`,
+      );
+    }
+  }
+
+  for (const requiredFragment of [
+    "SANCTUARY",
+    "SIT",
+    "READ",
+    "PRAY",
+    "RETURN_TO_SANCTUARY",
+    "Sit in the sanctuary",
+    "Read the open Bible",
+    "Enter prayer",
+    "Return to the sanctuary",
+  ]) {
+    if (!modelSource.includes(requiredFragment)) {
+      throw new Error(`The guided state model must retain ${requiredFragment}.`);
+    }
+  }
+
+  if (canvasSource.includes("transitionSanctuaryMvp") || canvasSource.includes("useReducer")) {
+    throw new Error(
+      "CanvasExperience must receive a read-only sanctuary state rather than own transitions.",
+    );
+  }
+
+  for (const requiredFragment of ["D9EnvironmentalAffordances", "onSanctuaryInteraction"]) {
+    if (!sceneSource.includes(requiredFragment)) {
+      throw new Error(
+        `D9SanctuaryScene must preserve its environmental interaction projection: ${requiredFragment}.`,
+      );
+    }
+  }
+
+  for (const requiredFragment of [
+    "onClick",
+    "onPointerOver",
+    "meshBasicMaterial",
+    "reducedMotion",
+  ]) {
+    if (!affordanceSource.includes(requiredFragment)) {
+      throw new Error(`Environmental affordances must preserve ${requiredFragment}.`);
+    }
   }
 }
 
@@ -318,6 +400,13 @@ verifyVisitorVisualBoundary(
   readRepositoryFile(sanctuaryShellPath),
   readRepositoryFile(canvasExperiencePath),
   readRepositoryFile(realmScenePath),
+);
+verifyD9InteractionBoundary(
+  readRepositoryFile(sanctuaryShellPath),
+  readRepositoryFile(canvasExperiencePath),
+  readRepositoryFile(d9ScenePath),
+  readRepositoryFile(sanctuaryInteractionModelPath),
+  readRepositoryFile(d9EnvironmentalAffordancePath),
 );
 verifyMotionBoundary(readRepositoryFile(sanctuaryCssPath), readRepositoryFile(realmScenePath));
 verifyViewportAccessibilityBoundary(

@@ -20,7 +20,8 @@ export type SanctuaryMvpAction = "ENTER_PRAYER" | "READ_BIBLE" | "RETURN_TO_SANC
 export interface SanctuaryAffordance {
   readonly action: SanctuaryMvpAction;
   readonly anchor: "bible" | "clerestory" | "grounding" | "seating";
-  readonly label: "Enter prayer" | "Read the open Bible" | "Return to the sanctuary" | "Sit in the sanctuary";
+  readonly label:
+    "Enter prayer" | "Read the open Bible" | "Return to the sanctuary" | "Sit in the sanctuary";
 }
 
 // Start every anonymous visitor in the settled sanctuary frame without retained history.

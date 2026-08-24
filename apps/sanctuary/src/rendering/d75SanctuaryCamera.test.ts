@@ -8,7 +8,11 @@
 // Import the deterministic calibration adapter rather than a renderer so the locked values stay unit-testable.
 import { describe, expect, it } from "vitest";
 
-import { d75SanctuaryCamera, selectD75SanctuaryProjection } from "./d75SanctuaryCamera";
+import {
+  d75SanctuaryCamera,
+  d75SanctuaryCameras,
+  selectD75SanctuaryProjection,
+} from "./d75SanctuaryCamera";
 
 // Keep the known D7.5 SANCTUARY position and camera axes exact after the documented glTF conversion.
 describe("D7.5 SANCTUARY camera", () => {
@@ -22,6 +26,23 @@ describe("D7.5 SANCTUARY camera", () => {
     expect(d75SanctuaryCamera.up).toEqual([
       0.0007038679905235767, 0.9863039255142212, -0.16493673622608185,
     ]);
+  });
+
+  it("selects only the four authored guided-state endpoints without interpolating a camera", () => {
+    const aspect = 1920 / 1080;
+
+    expect(selectD75SanctuaryProjection(aspect, "horizontal", "SANCTUARY").position).toEqual(
+      d75SanctuaryCameras.SANCTUARY.position,
+    );
+    expect(selectD75SanctuaryProjection(aspect, "horizontal", "SIT").position).toEqual(
+      d75SanctuaryCameras.SIT.position,
+    );
+    expect(selectD75SanctuaryProjection(aspect, "horizontal", "READ").position).toEqual(
+      d75SanctuaryCameras.READ.position,
+    );
+    expect(selectD75SanctuaryProjection(aspect, "horizontal", "PRAY").position).toEqual(
+      d75SanctuaryCameras.PRAY.position,
+    );
   });
 
   it("keeps Blender's 27 mm horizontal lens constant across browser aspect ratios", () => {

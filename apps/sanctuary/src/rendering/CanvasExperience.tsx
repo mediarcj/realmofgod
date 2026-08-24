@@ -7,7 +7,16 @@
 
 // Import renderer-specific code only inside this asynchronously loaded visual module.
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   AgXToneMapping,
   PCFShadowMap,
@@ -19,6 +28,7 @@ import {
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 import type { JourneyVisualState } from "../journey/model";
+import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
 import {
   readD84StaticProofConfig,
   readD85LandscapeProofConfig,
@@ -31,6 +41,7 @@ import {
 import {
   d75SanctuaryCamera,
   selectD75SanctuaryProjection,
+  type D75SanctuaryCameraName,
   type D75SanctuaryFramingPolicy,
 } from "./d75SanctuaryCamera";
 import { selectD9VisitorRenderQuality, type D9RenderQuality } from "./d9SanctuaryQuality";
@@ -61,7 +72,9 @@ interface CanvasExperienceProps {
   readonly fallback: ReactNode;
   readonly onRendererFailure: (reason: RendererFailureReason) => void;
   readonly onRendererReady: (api: "webgl1" | "webgl2") => void;
+  readonly onSanctuaryInteraction?: ((action: SanctuaryMvpAction) => void) | undefined;
   readonly reducedMotion: boolean;
+  readonly sanctuaryState?: SanctuaryMvpState | undefined;
   readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
 }
@@ -108,13 +121,19 @@ function applyRendererCalibration(
   sanctuaryHero: boolean,
   useD75SanctuaryCamera: boolean,
   d75FramingPolicy: D75SanctuaryFramingPolicy,
+  d75CameraName: D75SanctuaryCameraName,
 ): void {
   gl.toneMappingExposure = visualCalibration.lighting.exposure;
   if (useD75SanctuaryCamera) {
-    const projection = selectD75SanctuaryProjection(viewportAspect, d75FramingPolicy);
+    const projection = selectD75SanctuaryProjection(
+      viewportAspect,
+      d75FramingPolicy,
+      d75CameraName,
+    );
+    const authoredCamera = d75CameraName === "SANCTUARY" ? d75SanctuaryCamera : null;
     camera.fov = projection.fovDegrees;
-    camera.near = d75SanctuaryCamera.clipStart;
-    camera.far = d75SanctuaryCamera.clipEnd;
+    camera.near = authoredCamera?.clipStart ?? 0.009999999776482582;
+    camera.far = authoredCamera?.clipEnd ?? 500;
     camera.position.set(...projection.position);
     camera.up.set(...projection.up);
     camera.lookAt(
@@ -139,15 +158,17 @@ function RendererCalibration({
   visualState,
   useD75SanctuaryCamera,
   d75FramingPolicy,
+  d75CameraName,
 }: {
   readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
   readonly useD75SanctuaryCamera: boolean;
   readonly d75FramingPolicy: D75SanctuaryFramingPolicy;
+  readonly d75CameraName: D75SanctuaryCameraName;
 }): ReactNode {
   const { camera, gl, size } = useThree();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (camera instanceof PerspectiveCamera) {
       const sanctuaryHero = visualState.stage === "entry" || visualState.stage === "sanctuary";
       applyRendererCalibration(
@@ -158,6 +179,7 @@ function RendererCalibration({
         sanctuaryHero,
         useD75SanctuaryCamera,
         d75FramingPolicy,
+        d75CameraName,
       );
     }
   }, [
@@ -167,6 +189,7 @@ function RendererCalibration({
     size.width,
     useD75SanctuaryCamera,
     d75FramingPolicy,
+    d75CameraName,
     visualCalibration,
     visualState.stage,
   ]);
@@ -239,7 +262,9 @@ export function CanvasExperience({
   fallback,
   onRendererFailure,
   onRendererReady,
+  onSanctuaryInteraction,
   reducedMotion,
+  sanctuaryState,
   visualCalibration,
   visualState,
 }: CanvasExperienceProps): ReactNode {
@@ -261,6 +286,10 @@ export function CanvasExperience({
     d9QualityRendererActive || (d91InspectionConfig !== null && staticProofActive);
   const d75FramingPolicy =
     d92QualityInspectionConfig?.framingPolicy ?? d91InspectionConfig?.framingPolicy ?? "horizontal";
+  // Normal D9 interaction selects one exact endpoint; diagnostics intentionally retain the SANCTUARY frame.
+  const d75CameraName: D75SanctuaryCameraName = d9VisitorActive
+    ? (sanctuaryState?.name ?? "SANCTUARY")
+    : "SANCTUARY";
   const cinematicRenderer =
     !d9QualityRendererActive &&
     !staticProofActive &&
@@ -329,6 +358,7 @@ export function CanvasExperience({
               visualState.stage === "entry" || visualState.stage === "sanctuary",
               useD75SanctuaryCamera,
               d75FramingPolicy,
+              d75CameraName,
             );
           }
         }}
@@ -340,6 +370,7 @@ export function CanvasExperience({
           onRendererReady={onRendererReady}
         />
         <RendererCalibration
+          d75CameraName={d75CameraName}
           d75FramingPolicy={d75FramingPolicy}
           useD75SanctuaryCamera={useD75SanctuaryCamera}
           visualCalibration={visualCalibration}
@@ -350,7 +381,10 @@ export function CanvasExperience({
           <Suspense fallback={null}>
             <D9SanctuaryScene
               config={d92QualityInspectionConfig ?? undefined}
+              onSanctuaryInteraction={d9VisitorActive ? onSanctuaryInteraction : undefined}
               quality={d9RenderQuality}
+              reducedMotion={reducedMotion}
+              sanctuaryState={d9VisitorActive ? sanctuaryState : undefined}
               visualCalibration={visualCalibration}
             />
           </Suspense>

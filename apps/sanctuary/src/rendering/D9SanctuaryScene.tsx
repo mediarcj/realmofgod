@@ -15,7 +15,9 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
 import batchedCandidateUrl from "../assets/candidates/realm-mvp-sanctuary-v1-r2-batched-meshopt.glb?url";
 import rawCandidateUrl from "../../../../tools/hf01/candidates/realm-mvp-sanctuary-v1-raw-r2.glb?url";
+import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
 import type { StaticSanctuaryProofConfig } from "./capabilities";
+import { D9EnvironmentalAffordances } from "./D9EnvironmentalAffordances";
 import { d9VisitorSceneContract, type D9RenderQuality } from "./d9SanctuaryQuality";
 import {
   prepareStaticSanctuaryScene,
@@ -37,7 +39,13 @@ const d9VisitorSceneConfig: StaticSanctuaryProofConfig = {
 };
 
 // Record actual browser render values after the candidate settles without collecting any device identity.
-function D9RuntimeMetrics({ quality }: { readonly quality: D9RenderQuality }): ReactNode {
+function D9RuntimeMetrics({
+  quality,
+  sanctuaryState,
+}: {
+  readonly quality: D9RenderQuality;
+  readonly sanctuaryState: SanctuaryMvpState["name"];
+}): ReactNode {
   const { gl } = useThree();
   const settled = useRef(false);
   const pacingIntervals = useRef<number[]>([]);
@@ -50,6 +58,7 @@ function D9RuntimeMetrics({ quality }: { readonly quality: D9RenderQuality }): R
     canvas.setAttribute("data-d9-render-policy", quality.policy);
     canvas.setAttribute("data-d9-requested-dpr", String(quality.dpr));
     canvas.setAttribute("data-d9-antialias-requested", String(quality.antialias));
+    canvas.setAttribute("data-d9-sanctuary-state", sanctuaryState);
 
     const firstFrame = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
@@ -79,6 +88,7 @@ function D9RuntimeMetrics({ quality }: { readonly quality: D9RenderQuality }): R
         "data-d9-drawing-buffer-width",
         "data-d9-drawing-buffer-height",
         "data-d9-antialias-active",
+        "data-d9-sanctuary-state",
         "data-d9-pacing-ready",
         "data-d9-pacing-median-ms",
         "data-d9-pacing-p95-ms",
@@ -87,7 +97,7 @@ function D9RuntimeMetrics({ quality }: { readonly quality: D9RenderQuality }): R
         canvas.removeAttribute(attribute);
       }
     };
-  }, [gl, quality.antialias, quality.dpr, quality.policy]);
+  }, [gl, quality.antialias, quality.dpr, quality.policy, sanctuaryState]);
 
   useFrame(() => {
     // Wait for the same settled state as the renderer counters before recording ordinary browser presentation intervals.
@@ -177,11 +187,17 @@ function D9Lighting({
 // Render the normal D9 visitor scene from the one accepted local candidate, not through a benchmark selector.
 export function D9SanctuaryScene({
   config = d9VisitorSceneConfig,
+  onSanctuaryInteraction,
   quality,
+  reducedMotion,
+  sanctuaryState,
   visualCalibration,
 }: {
   readonly config?: StaticSanctuaryProofConfig | undefined;
+  readonly onSanctuaryInteraction?: ((action: SanctuaryMvpAction) => void) | undefined;
   readonly quality: D9RenderQuality;
+  readonly reducedMotion: boolean;
+  readonly sanctuaryState?: SanctuaryMvpState | undefined;
   readonly visualCalibration: VisualCalibration;
 }): ReactNode {
   // The D9 visitor uses the accepted batched asset; only the explicit D92 local inspection may request the immutable raw input.
@@ -206,8 +222,15 @@ export function D9SanctuaryScene({
         scale={visualCalibration.room.scale}
       >
         <primitive object={scene} />
+        {sanctuaryState !== undefined && onSanctuaryInteraction !== undefined ? (
+          <D9EnvironmentalAffordances
+            onInteraction={onSanctuaryInteraction}
+            reducedMotion={reducedMotion}
+            state={sanctuaryState}
+          />
+        ) : null}
       </group>
-      <D9RuntimeMetrics quality={quality} />
+      <D9RuntimeMetrics quality={quality} sanctuaryState={sanctuaryState?.name ?? "SANCTUARY"} />
     </>
   );
 }

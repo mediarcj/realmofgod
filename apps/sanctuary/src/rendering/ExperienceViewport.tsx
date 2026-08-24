@@ -9,6 +9,7 @@
 import { Component, lazy, type ReactNode, Suspense, useCallback, useRef, useState } from "react";
 
 import type { JourneyVisualState } from "../journey/model";
+import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
 import type { RendererFailureReason } from "./CanvasExperience";
 import type { CinematicPlaybackHandle } from "./CinematicSanctuaryLayer";
 import {
@@ -117,11 +118,21 @@ export function ExperienceLoading({
 
 // Keep capability selection local and forward only the minimal read-only visual projection.
 export function ExperienceViewport({
+  onSanctuaryInteraction,
+  sanctuaryState,
   visualState,
 }: {
+  readonly onSanctuaryInteraction?: ((action: SanctuaryMvpAction) => void) | undefined;
+  readonly sanctuaryState?: SanctuaryMvpState | undefined;
   readonly visualState: JourneyVisualState;
 }): ReactNode {
-  const viewportContent = <ExperienceViewportContent visualState={visualState} />;
+  const viewportContent = (
+    <ExperienceViewportContent
+      onSanctuaryInteraction={onSanctuaryInteraction}
+      sanctuaryState={sanctuaryState}
+      visualState={visualState}
+    />
+  );
 
   // SanctuaryShell owns the one shared viewport gate before this visual component can initialize a Canvas.
   return viewportContent;
@@ -129,8 +140,12 @@ export function ExperienceViewport({
 
 // Keep the normal viewport behavior together while the D8.5 wrapper decides whether this subtree may mount.
 function ExperienceViewportContent({
+  onSanctuaryInteraction,
+  sanctuaryState,
   visualState,
 }: {
+  readonly onSanctuaryInteraction?: ((action: SanctuaryMvpAction) => void) | undefined;
+  readonly sanctuaryState?: SanctuaryMvpState | undefined;
   readonly visualState: JourneyVisualState;
 }): ReactNode {
   const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
@@ -228,6 +243,9 @@ function ExperienceViewportContent({
           data-reduced-motion={reducedMotion ? "true" : "false"}
           data-renderer-failure={rendererFailure ?? undefined}
           data-renderer-state={experienceMode === "fallback" ? "unavailable" : "failed"}
+          data-sanctuary-environmental-interaction={
+            d9VisitorConfig !== null && sanctuaryState !== undefined ? "true" : undefined
+          }
           data-sanctuary-visitor-path={d9VisitorConfig !== null ? "d9-static-candidate" : undefined}
           {...d84ProofAttributes}
           {...d85ProofAttributes}
@@ -250,6 +268,9 @@ function ExperienceViewportContent({
         data-reduced-motion={reducedMotion ? "true" : "false"}
         data-renderer-api={rendererApi ?? undefined}
         data-renderer-state={shouldRenderRealtime ? rendererState : "not-requested"}
+        data-sanctuary-environmental-interaction={
+          d9VisitorConfig !== null && sanctuaryState !== undefined ? "true" : undefined
+        }
         data-sanctuary-visitor-path={d9VisitorConfig !== null ? "d9-static-candidate" : undefined}
         data-visual-proof-layer={cinematicActive ? "cinematic" : "realtime"}
         {...d84ProofAttributes}
@@ -277,7 +298,9 @@ function ExperienceViewportContent({
                 fallback={fallback}
                 onRendererFailure={handleRendererFailure}
                 onRendererReady={handleRendererReady}
+                onSanctuaryInteraction={onSanctuaryInteraction}
                 reducedMotion={reducedMotion}
+                sanctuaryState={sanctuaryState}
                 visualCalibration={visualCalibration}
                 visualState={visualState}
               />
