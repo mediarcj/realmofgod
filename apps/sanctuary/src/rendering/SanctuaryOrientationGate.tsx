@@ -8,10 +8,7 @@
 // Import only the local React primitives needed to respond to an ordinary viewport resize.
 import { useEffect, useState, type ReactNode } from "react";
 
-import {
-  selectSanctuaryViewportPresentation,
-  type SanctuaryViewportPresentation,
-} from "./capabilities";
+import { selectSanctuaryViewportNotice, type SanctuaryViewportNotice } from "./capabilities";
 import "./sanctuary-orientation-gate.css";
 
 // Read dimensions defensively so static rendering remains a safe no-Canvas document path.
@@ -30,14 +27,14 @@ export function SanctuaryOrientationGate({
 }: {
   readonly children: ReactNode;
 }): ReactNode {
-  const [presentation, setPresentation] = useState<SanctuaryViewportPresentation>(() =>
-    selectSanctuaryViewportPresentation(readViewportSize()),
+  const [notice, setNotice] = useState<SanctuaryViewportNotice>(() =>
+    selectSanctuaryViewportNotice(readViewportSize()),
   );
 
   useEffect(() => {
     // Observe both common browser signals because changing device orientation can expose either one first.
     const updatePresentationState = (): void => {
-      setPresentation(selectSanctuaryViewportPresentation(readViewportSize()));
+      setNotice(selectSanctuaryViewportNotice(readViewportSize()));
     };
     const portraitMediaQuery =
       typeof window.matchMedia === "function" ? window.matchMedia("(orientation: portrait)") : null;
@@ -52,25 +49,27 @@ export function SanctuaryOrientationGate({
     };
   }, []);
 
-  if (presentation === "scene") {
+  if (notice.permitsCanvas) {
     return children;
   }
 
   // Keep the notice practical and quiet: it explains a rendering constraint, not an emotional entry choice.
   return (
-    <main className="sanctuary-orientation-gate" data-sanctuary-orientation-gate={presentation}>
+    <section
+      className="sanctuary-orientation-gate"
+      data-sanctuary-orientation-gate={notice.presentation}
+      aria-labelledby="orientation-title"
+    >
       <section className="sanctuary-orientation-gate__message" aria-labelledby="orientation-title">
-        <h1 id="orientation-title">
-          {presentation === "portrait"
-            ? "Turn your phone sideways to enter the sanctuary."
-            : "Make the sanctuary window a little larger to enter."}
-        </h1>
-        <p>
-          {presentation === "portrait"
-            ? "The sanctuary is available in landscape orientation on phones."
-            : "The quiet room will return when there is enough landscape space for its fixed composition."}
-        </p>
+        <h2 id="orientation-title">{notice.title}</h2>
+        {notice.welcome === null ? null : (
+          <p className="sanctuary-orientation-gate__welcome">{notice.welcome}</p>
+        )}
+        <p>{notice.instruction}</p>
+        {notice.supportingCopy === null ? null : (
+          <p className="sanctuary-orientation-gate__supporting">{notice.supportingCopy}</p>
+        )}
       </section>
-    </main>
+    </section>
   );
 }

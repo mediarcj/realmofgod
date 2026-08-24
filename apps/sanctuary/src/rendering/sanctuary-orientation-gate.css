@@ -24,10 +24,10 @@
   border-left: 2px solid rgb(224 201 157 / 70%);
 }
 
-.sanctuary-orientation-gate__message h1 {
+.sanctuary-orientation-gate__message h2 {
   max-width: none;
   margin: 0;
-  font-size: clamp(1.75rem, 8vw, 2.25rem);
+  font-size: clamp(1.35rem, 5vw, 1.8rem);
   line-height: 1.08;
 }
 
@@ -37,4 +37,15 @@
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
+}
+
+/* Let the portrait welcome remain gentle while its orientation instruction stays the primary action. */
+.sanctuary-orientation-gate__welcome {
+  color: #f2eadc;
+}
+
+/* Keep the optional orientation explanation secondary to the direct turn-your-phone instruction. */
+.sanctuary-orientation-gate__supporting {
+  color: #bfb29d;
+  font-size: 0.9rem;
 }

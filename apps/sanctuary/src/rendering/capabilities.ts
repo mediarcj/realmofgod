@@ -79,6 +79,16 @@ export const D91_CONSTRAINED_LANDSCAPE_MIN_WIDTH = 480;
 // Name the three presentation outcomes without storing a device identity or a browser zoom preference.
 export type SanctuaryViewportPresentation = "constrained" | "portrait" | "scene";
 
+// Describe the DOM-only presentation boundary so both the React gate and focused tests use one exact policy.
+export interface SanctuaryViewportNotice {
+  readonly instruction: string | null;
+  readonly permitsCanvas: boolean;
+  readonly presentation: SanctuaryViewportPresentation;
+  readonly supportingCopy: string | null;
+  readonly title: string | null;
+  readonly welcome: string | null;
+}
+
 // Use a 30fps threshold only to flag a long presentation interval, not to claim a GPU benchmark.
 export const D85_LONG_FRAME_THRESHOLD_MILLISECONDS = 1000 / 30;
 
@@ -316,6 +326,42 @@ export function selectSanctuaryViewportPresentation(
     return "constrained";
   }
   return "scene";
+}
+
+// Keep portrait and constrained-landscape guidance distinct while allowing sufficient landscape space to mount Canvas.
+export function selectSanctuaryViewportNotice(viewport: ViewportSize): SanctuaryViewportNotice {
+  const presentation = selectSanctuaryViewportPresentation(viewport);
+
+  if (presentation === "portrait") {
+    return {
+      instruction: "Turn your phone sideways to enter.",
+      permitsCanvas: false,
+      presentation,
+      supportingCopy: "The sanctuary opens in landscape orientation.",
+      title: "Realm of God",
+      welcome: "Welcome to the sanctuary.",
+    };
+  }
+
+  if (presentation === "constrained") {
+    return {
+      instruction: "Zoom out or enlarge this browser window to continue.",
+      permitsCanvas: false,
+      presentation,
+      supportingCopy: null,
+      title: "The sanctuary needs a little more viewing space.",
+      welcome: null,
+    };
+  }
+
+  return {
+    instruction: null,
+    permitsCanvas: true,
+    presentation,
+    supportingCopy: null,
+    title: null,
+    welcome: null,
+  };
 }
 
 // Preserve the D8.5 helper name for its focused proof tests while D9 uses the product-neutral policy name.

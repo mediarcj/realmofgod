@@ -29,6 +29,13 @@ const hf01AssetAdapterPath = resolve(
 const sanctuaryShellPath = resolve(repositoryRoot, "apps/sanctuary/src/SanctuaryShell.tsx");
 const sanctuaryMainPath = resolve(repositoryRoot, "apps/sanctuary/src/main.tsx");
 const sanctuaryCssPath = resolve(repositoryRoot, "apps/sanctuary/src/sanctuary.css");
+const sanctuaryDocumentPath = resolve(repositoryRoot, "apps/sanctuary/index.html");
+const orientationGatePath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/SanctuaryOrientationGate.tsx",
+);
+const capabilityPath = resolve(repositoryRoot, "apps/sanctuary/src/rendering/capabilities.ts");
+const d9ScenePath = resolve(repositoryRoot, "apps/sanctuary/src/rendering/D9SanctuaryScene.tsx");
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
 function readRepositoryFile(path) {
@@ -222,6 +229,64 @@ function verifyMotionBoundary(cssSource, sceneSource) {
   }
 }
 
+// Preserve browser zoom as an accessibility capability while limiting viewport eligibility to actual usable dimensions.
+function verifyViewportAccessibilityBoundary(documentSource, gateSource, capabilitySource) {
+  if (!documentSource.includes('name="viewport" content="width=device-width, initial-scale=1.0"')) {
+    throw new Error("The sanctuary document must retain its zoom-permitting viewport metadata.");
+  }
+
+  const forbiddenZoomControls = [
+    /user-scalable\s*=\s*(?:no|0|false)/iu,
+    /maximum-scale\s*=\s*1(?:\.0+)?(?:\D|$)/iu,
+    /(?:wheel|gesturestart|gesturechange|touchmove)[\s\S]{0,240}preventDefault\s*\(/iu,
+    /(?:ctrlKey|metaKey)[\s\S]{0,240}preventDefault\s*\(/iu,
+  ];
+  const browserSources = [documentSource, gateSource, capabilitySource].join("\n");
+  for (const forbiddenZoomControl of forbiddenZoomControls) {
+    if (forbiddenZoomControl.test(browserSources)) {
+      throw new Error(
+        "The sanctuary must not suppress browser zoom or pinch accessibility controls.",
+      );
+    }
+  }
+
+  if (capabilitySource.includes("userAgent") || capabilitySource.includes("navigator.userAgent")) {
+    throw new Error("Viewport presentation must not use user-agent detection.");
+  }
+  for (const requiredFragment of [
+    "permitsCanvas: false",
+    "Turn your phone sideways to enter.",
+    "Zoom out or enlarge this browser window to continue.",
+  ]) {
+    if (!capabilitySource.includes(requiredFragment)) {
+      throw new Error(`Viewport presentation must preserve: ${requiredFragment}`);
+    }
+  }
+  if (!gateSource.includes("if (notice.permitsCanvas)")) {
+    throw new Error(
+      "The orientation gate must withhold its children until the viewport permits Canvas.",
+    );
+  }
+}
+
+// Keep the accepted D9 visitor renderer distinct from diagnostic routes after viewport cleanup.
+function verifyD9VisitorQualityBoundary(canvasSource, d9SceneSource) {
+  for (const requiredFragment of ["D9SanctuaryScene", "d9QualityRendererActive", "antialias"]) {
+    if (!canvasSource.includes(requiredFragment)) {
+      throw new Error(
+        `CanvasExperience must preserve the D9 visitor-quality boundary: ${requiredFragment}.`,
+      );
+    }
+  }
+  for (const requiredFragment of ["D9Lighting", "<pointLight", "D9RuntimeMetrics"]) {
+    if (!d9SceneSource.includes(requiredFragment)) {
+      throw new Error(
+        `D9SanctuaryScene must preserve the accepted visitor scene contract: ${requiredFragment}.`,
+      );
+    }
+  }
+}
+
 // Keep local visual-check fragments out of production behavior while retaining repeatable browser evidence.
 function verifyLocalVisualChecks(capabilitySource) {
   if (!capabilitySource.includes("import.meta.env.DEV")) {
@@ -255,7 +320,14 @@ verifyVisitorVisualBoundary(
   readRepositoryFile(realmScenePath),
 );
 verifyMotionBoundary(readRepositoryFile(sanctuaryCssPath), readRepositoryFile(realmScenePath));
-verifyLocalVisualChecks(
-  readRepositoryFile(resolve(repositoryRoot, "apps/sanctuary/src/rendering/capabilities.ts")),
+verifyViewportAccessibilityBoundary(
+  readRepositoryFile(sanctuaryDocumentPath),
+  readRepositoryFile(orientationGatePath),
+  readRepositoryFile(capabilityPath),
 );
+verifyD9VisitorQualityBoundary(
+  readRepositoryFile(canvasExperiencePath),
+  readRepositoryFile(d9ScenePath),
+);
+verifyLocalVisualChecks(readRepositoryFile(capabilityPath));
 console.log("Bootstrap configuration checks passed.");

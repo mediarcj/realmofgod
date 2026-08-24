@@ -30,7 +30,6 @@ import {
 import { useReducedMotion } from "./useReducedMotion";
 import { selectVisualAtmosphere } from "./visualAtmosphere";
 import { createDefaultVisualCalibration, type VisualCalibration } from "./visualCalibration";
-import { SanctuaryOrientationGate } from "./SanctuaryOrientationGate";
 
 // Defer the renderer module until a capable browser reaches the optional visual layer.
 const CanvasExperience = lazy(async () => import("./CanvasExperience"));
@@ -122,22 +121,9 @@ export function ExperienceViewport({
 }: {
   readonly visualState: JourneyVisualState;
 }): ReactNode {
-  const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
-  const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
-  const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
-  const d92QualityInspectionConfig = import.meta.env.DEV ? readD92QualityInspectionConfig() : null;
   const viewportContent = <ExperienceViewportContent visualState={visualState} />;
 
-  // Place the approved narrow-phone policy outside the viewport so portrait never mounts its decorative Canvas.
-  if (
-    d9VisitorConfig !== null ||
-    d85LandscapeProofConfig !== null ||
-    d91InspectionConfig !== null ||
-    d92QualityInspectionConfig !== null
-  ) {
-    return <SanctuaryOrientationGate>{viewportContent}</SanctuaryOrientationGate>;
-  }
-
+  // SanctuaryShell owns the one shared viewport gate before this visual component can initialize a Canvas.
   return viewportContent;
 }
 
