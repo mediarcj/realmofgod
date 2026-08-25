@@ -249,7 +249,11 @@ export function D9SanctuaryScene({
           />
         ) : null}
         {sanctuaryState?.name === "READ" && onReadingPageLayoutChange !== undefined ? (
-          <D9ReadingPageProjection onLayoutChange={onReadingPageLayoutChange} scene={scene} />
+          <D9ReadingPageProjection
+            diagnosticsEnabled={diagnosticsEnabled}
+            onLayoutChange={onReadingPageLayoutChange}
+            scene={scene}
+          />
         ) : null}
       </group>
       <D9RuntimeMetrics quality={quality} sanctuaryState={sanctuaryState?.name ?? "SANCTUARY"} />

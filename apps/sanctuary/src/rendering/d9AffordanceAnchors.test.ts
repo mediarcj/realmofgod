@@ -13,6 +13,8 @@ import {
   d9AffordanceSemanticRoots,
   selectD9AffordanceAnchors,
   selectD9AffordanceBox,
+  selectD9CueIntensity,
+  selectD9CuePosition,
   selectD9ReadingPageAnchors,
 } from "./d9AffordanceAnchors";
 
@@ -57,8 +59,22 @@ describe("D9 authored environmental affordance anchors", () => {
         expect(selectD9AffordanceBox(anchor).getSize(new Vector3()).length()).toBeGreaterThan(0);
       }
     }
-    for (const page of selectD9ReadingPageAnchors()) {
-      expect(selectD9AffordanceBox(page).getSize(new Vector3()).length()).toBeGreaterThan(0);
+    expect(selectD9ReadingPageAnchors()).toHaveLength(2);
+  });
+
+  it("keeps table and Bible invitation light above the measured object with a restrained hover increase", () => {
+    for (const state of ["SANCTUARY", "SIT"] as const) {
+      const [anchor] = selectD9AffordanceAnchors(state);
+      if (anchor === undefined) {
+        throw new Error(`Expected ${state} to have one invitation anchor.`);
+      }
+      expect(selectD9CuePosition(anchor)[1]).toBeGreaterThan(anchor.max[1]);
+      expect(selectD9CueIntensity(anchor, true, false)).toBeGreaterThan(
+        selectD9CueIntensity(anchor, false, false),
+      );
+      expect(selectD9CueIntensity(anchor, true, true)).toBe(
+        selectD9CueIntensity(anchor, false, true),
+      );
     }
   });
 });

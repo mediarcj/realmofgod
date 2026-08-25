@@ -10,11 +10,32 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { D9ReadingSurface, D9ReflectionSurface } from "./ExperienceViewport";
+import { createD9PageMatrix3d, orderD9ScreenQuad } from "./d9ReadingPageGeometry";
 
 // Keep the proof rectangle deliberately ordinary because the test protects semantics, not camera-calibration pixels.
 const developmentPageLayout = {
-  leftPage: { height: 80, left: 100, top: 140, width: 120 },
-  rightPage: { height: 80, left: 230, top: 140, width: 120 },
+  leftPage: {
+    corners: [
+      { x: 100, y: 140 },
+      { x: 220, y: 145 },
+      { x: 212, y: 220 },
+      { x: 96, y: 215 },
+    ],
+    semanticRoot: "Bible_LeftOpenPage",
+    sourceHeight: 76,
+    sourceWidth: 118,
+  },
+  rightPage: {
+    corners: [
+      { x: 230, y: 145 },
+      { x: 350, y: 140 },
+      { x: 356, y: 215 },
+      { x: 238, y: 220 },
+    ],
+    semanticRoot: "Bible_RightOpenPage",
+    sourceHeight: 76,
+    sourceWidth: 118,
+  },
 } as const;
 
 describe("D9 page-anchored DOM reading surfaces", () => {
@@ -27,6 +48,8 @@ describe("D9 page-anchored DOM reading surfaces", () => {
     expect(markup).toContain("Development layout fixture — not Scripture");
     expect(markup).toContain("Let&#x27;s pray");
     expect(markup).toContain("button");
+    expect(markup).toContain("matrix3d");
+    expect(markup).toContain('data-d9-reading-page-root="Bible_RightOpenPage"');
   });
 
   it("renders the deterministic local reflection with an accessible sanctuary return action", () => {
@@ -35,5 +58,17 @@ describe("D9 page-anchored DOM reading surfaces", () => {
     expect(markup).toContain('data-d9-reflection-surface="true"');
     expect(markup).toContain("Development reflection fixture — not spiritual guidance");
     expect(markup).toContain("Return to sanctuary");
+  });
+
+  it("orders page corners and emits a perspective transform instead of an axis-aligned rectangle", () => {
+    const corners = orderD9ScreenQuad([
+      { x: 212, y: 220 },
+      { x: 100, y: 140 },
+      { x: 96, y: 215 },
+      { x: 220, y: 145 },
+    ]);
+
+    expect(corners).toEqual(developmentPageLayout.leftPage.corners);
+    expect(createD9PageMatrix3d(developmentPageLayout.leftPage)).toContain("matrix3d(");
   });
 });

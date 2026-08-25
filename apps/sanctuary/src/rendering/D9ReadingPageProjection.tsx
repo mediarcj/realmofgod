@@ -1,106 +1,65 @@
 /**
  * File: apps/sanctuary/src/rendering/D9ReadingPageProjection.tsx
- * Description: Projects the authored open Bible pages into DOM overlay rectangles for the settled READ state.
- * Purpose: Keeps development reading text semantic and crisp while it remains spatially attached to the real page geometry.
- * Notes: The component has no text or action authority; it measures local scene geometry and reports layout only.
+ * Description: Measures and reports the settled authored Bible-page perspective layout during READ.
+ * Purpose: Lets the DOM reading surface use real page-plane geometry without a per-frame React update loop.
+ * Notes: This component has no text, storage, network, or visitor-content authority.
  */
 
-// Import R3F frame access and Three vectors needed to project an authored page box through the active camera.
+// Import only the R3F settled-frame hook and local React lifecycle helpers needed to publish one static page layout.
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, type ReactNode } from "react";
-import { Box3, Vector3, type Camera, type Object3D } from "three";
+import type { Object3D } from "three";
 
-import { selectD9ReadingPageAnchors, type D9ReadingPageAnchor } from "./d9AffordanceAnchors";
+import { selectD9ReadingPageAnchors } from "./d9AffordanceAnchors";
+import { projectD9PageQuad, type D9ReadingPageLayout } from "./d9ReadingPageGeometry";
 
-// Describe the viewport rectangle of one authored page without exposing mutable Three values to the DOM layer.
-export interface D9ReadingPageRect {
-  readonly height: number;
-  readonly left: number;
-  readonly top: number;
-  readonly width: number;
-}
+// Re-export the public layout type from this component boundary for the Canvas and DOM shell.
+export type { D9ReadingPageLayout } from "./d9ReadingPageGeometry";
 
-// Preserve left/right page identity for future reading replacement or page-turn work without implementing it now.
-export interface D9ReadingPageLayout {
-  readonly leftPage: D9ReadingPageRect;
-  readonly rightPage: D9ReadingPageRect;
-}
-
-// Project all eight measured authored-page corners so responsive layout cannot detach DOM text from its visible geometry.
-function projectPageRect(
-  anchor: D9ReadingPageAnchor,
-  scene: Object3D,
-  canvas: HTMLCanvasElement,
-  camera: Camera,
-): D9ReadingPageRect {
-  const pageNode = scene.getObjectByName(anchor.semanticRoot);
-  if (pageNode === undefined) {
-    throw new Error(`The authored reading page is unavailable: ${anchor.semanticRoot}.`);
-  }
-  const box = new Box3().setFromObject(pageNode);
-  if (box.isEmpty()) {
-    throw new Error(
-      `The authored reading page has no measurable geometry: ${anchor.semanticRoot}.`,
-    );
-  }
-  const horizontal: number[] = [];
-  const vertical: number[] = [];
-  for (const x of [box.min.x, box.max.x]) {
-    for (const y of [box.min.y, box.max.y]) {
-      for (const z of [box.min.z, box.max.z]) {
-        const point = new Vector3(x, y, z).project(camera);
-        horizontal.push((point.x + 1) * 0.5 * canvas.clientWidth);
-        vertical.push((1 - point.y) * 0.5 * canvas.clientHeight);
-      }
-    }
-  }
-  const left = Math.min(...horizontal);
-  const top = Math.min(...vertical);
-  const width = Math.max(0, Math.max(...horizontal) - left);
-  const height = Math.max(0, Math.max(...vertical) - top);
-  // Inset the axis-aligned perspective footprint so page typography avoids its beveled edge and central binding.
-  const insetHorizontal = width * 0.13;
-  const insetVertical = height * 0.1;
-  return {
-    height: Math.max(0, height - insetVertical * 2),
-    left: left + insetHorizontal,
-    top: top + insetVertical,
-    width: Math.max(0, width - insetHorizontal * 2),
-  };
-}
-
-// Measure the static authored pages only while READ is active; the settled camera makes the reported layout stable.
+// Measure only after the R3F scene and camera have settled, then repeat on a real viewport resize rather than updating React on every frame.
 export function D9ReadingPageProjection({
+  diagnosticsEnabled,
   onLayoutChange,
   scene,
 }: {
+  readonly diagnosticsEnabled: boolean;
   readonly onLayoutChange: (layout: D9ReadingPageLayout | null) => void;
   readonly scene: Object3D;
 }): ReactNode {
-  const { camera, gl } = useThree();
-  const lastSerializedLayout = useRef("");
+  const { camera, gl, size } = useThree();
+  const pendingMeasurement = useRef(true);
+
+  useEffect(() => {
+    pendingMeasurement.current = true;
+  }, [size.height, size.width]);
 
   useEffect(() => {
     return () => {
-      // Remove the DOM layout when READ ends so a later state cannot leave text floating over the room.
+      // Remove the DOM layout and diagnostics when READ ends so a later state cannot leave text floating over the room.
       onLayoutChange(null);
+      gl.domElement.removeAttribute("data-d9-reading-left-page");
+      gl.domElement.removeAttribute("data-d9-reading-right-page");
     };
-  }, [onLayoutChange]);
+  }, [gl, onLayoutChange]);
 
   useFrame(() => {
+    if (!pendingMeasurement.current) {
+      return;
+    }
     const [leftAnchor, rightAnchor] = selectD9ReadingPageAnchors();
     if (leftAnchor === undefined || rightAnchor === undefined) {
       return;
     }
     const layout: D9ReadingPageLayout = {
-      leftPage: projectPageRect(leftAnchor, scene, gl.domElement, camera),
-      rightPage: projectPageRect(rightAnchor, scene, gl.domElement, camera),
+      leftPage: projectD9PageQuad(leftAnchor, scene, gl.domElement, camera),
+      rightPage: projectD9PageQuad(rightAnchor, scene, gl.domElement, camera),
     };
-    const serialized = JSON.stringify(layout);
-    if (serialized !== lastSerializedLayout.current) {
-      lastSerializedLayout.current = serialized;
-      onLayoutChange(layout);
+    pendingMeasurement.current = false;
+    if (diagnosticsEnabled) {
+      gl.domElement.setAttribute("data-d9-reading-left-page", JSON.stringify(layout.leftPage));
+      gl.domElement.setAttribute("data-d9-reading-right-page", JSON.stringify(layout.rightPage));
     }
+    onLayoutChange(layout);
   });
 
   return null;

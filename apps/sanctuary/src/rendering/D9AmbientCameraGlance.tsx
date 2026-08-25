@@ -12,7 +12,26 @@ import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from "three";
 
 import type { SanctuaryMvpState } from "../sanctuary/model";
 import { d75SanctuaryCameras } from "./d75SanctuaryCamera";
-import { clampD9AmbientOffset, selectD9AmbientCameraPolicy } from "./d9AmbientCameraPolicy";
+import {
+  applyD9AmbientPointerSignal,
+  clampD9AmbientOffset,
+  selectD9AmbientCameraPolicy,
+  type D9AmbientPointerSignal,
+} from "./d9AmbientCameraPolicy";
+
+// Describe exactly the renderer-local values exposed only through the explicit development diagnostics fragment.
+export interface D9AmbientCameraDiagnosticSnapshot {
+  readonly appliedPitchDegrees: number;
+  readonly appliedYawDegrees: number;
+  readonly holdOrReturnState: "disabled" | "holding" | "intent-delay" | "returning";
+  readonly intentDelayActive: boolean;
+  readonly pendingPitchDegrees: number;
+  readonly pendingYawDegrees: number;
+  readonly pointerEventCount: number;
+  readonly pointerMovement: readonly [number, number];
+  readonly pointerType: string;
+  readonly state: SanctuaryMvpState["name"];
+}
 
 // Apply a local yaw/pitch quaternion over the immutable D7.5 orientation without moving the authored camera position.
 function buildAnchorQuaternion(state: SanctuaryMvpState["name"]): Quaternion {
@@ -26,9 +45,14 @@ function buildAnchorQuaternion(state: SanctuaryMvpState["name"]): Quaternion {
 
 // Keep raw browser movement in refs so normal pointer frames never create React application updates.
 export function D9AmbientCameraGlance({
+  diagnosticsEnabled,
+  onDiagnosticChange,
   reducedMotion,
   state,
 }: {
+  readonly diagnosticsEnabled: boolean;
+  readonly onDiagnosticChange:
+    ((snapshot: D9AmbientCameraDiagnosticSnapshot | null) => void) | undefined;
   readonly reducedMotion: boolean;
   readonly state: SanctuaryMvpState;
 }): ReactNode {
@@ -42,6 +66,13 @@ export function D9AmbientCameraGlance({
   const relativeQuaternion = useRef(new Quaternion());
   const intentStartedAt = useRef<number | null>(null);
   const lastMovementAt = useRef<number | null>(null);
+  const lastPointerMovement = useRef<readonly [number, number]>([0, 0]);
+  const pointerSignal = useRef<D9AmbientPointerSignal>({
+    pendingPitchRadians: 0,
+    pendingYawRadians: 0,
+    pointerEventCount: 0,
+    pointerType: "none",
+  });
   const stateName = useRef(state.name);
   const policy = selectD9AmbientCameraPolicy(state.name, reducedMotion);
 
@@ -55,6 +86,13 @@ export function D9AmbientCameraGlance({
     pendingYaw.current = 0;
     intentStartedAt.current = null;
     lastMovementAt.current = null;
+    lastPointerMovement.current = [0, 0];
+    pointerSignal.current = {
+      pendingPitchRadians: 0,
+      pendingYawRadians: 0,
+      pointerEventCount: 0,
+      pointerType: "none",
+    };
     camera.quaternion.copy(anchorQuaternion.current);
     camera.updateMatrixWorld();
   }, [camera, state.name]);
@@ -69,8 +107,15 @@ export function D9AmbientCameraGlance({
       const now = performance.now();
       intentStartedAt.current ??= now;
       lastMovementAt.current = now;
-      pendingYaw.current += event.movementX * 0.0014;
-      pendingPitch.current += event.movementY * 0.00075;
+      pointerSignal.current = applyD9AmbientPointerSignal(
+        pointerSignal.current,
+        event.movementX,
+        event.movementY,
+        event.pointerType,
+      );
+      pendingYaw.current = pointerSignal.current.pendingYawRadians;
+      pendingPitch.current = pointerSignal.current.pendingPitchRadians;
+      lastPointerMovement.current = [event.movementX, event.movementY];
     };
     canvas.addEventListener("pointermove", handlePointerMove, { passive: true });
     return () => {
@@ -84,6 +129,9 @@ export function D9AmbientCameraGlance({
     const lastMovement = lastMovementAt.current;
     let targetYaw = 0;
     let targetPitch = 0;
+    let motionState: D9AmbientCameraDiagnosticSnapshot["holdOrReturnState"] = policy.enabled
+      ? "returning"
+      : "disabled";
 
     if (
       policy.enabled &&
@@ -99,13 +147,21 @@ export function D9AmbientCameraGlance({
       if (now - lastMovement <= policy.holdMilliseconds) {
         targetYaw = clampedYaw;
         targetPitch = clampedPitch;
+        motionState = "holding";
       }
       if (now - lastMovement > policy.holdMilliseconds) {
         pendingYaw.current = 0;
         pendingPitch.current = 0;
+        pointerSignal.current = {
+          ...pointerSignal.current,
+          pendingPitchRadians: 0,
+          pendingYawRadians: 0,
+        };
         intentStartedAt.current = null;
         lastMovementAt.current = null;
       }
+    } else if (policy.enabled && startedAt !== null) {
+      motionState = "intent-delay";
     }
 
     const damping =
@@ -125,12 +181,52 @@ export function D9AmbientCameraGlance({
     camera.updateMatrixWorld();
 
     // Keep a compact renderer-local diagnostic without creating a DOM/control path in the normal visitor surface.
-    gl.domElement.setAttribute(
-      "data-d9-ambient-camera-offset-degrees",
-      `${MathUtils.radToDeg(appliedYaw.current).toFixed(3)},${MathUtils.radToDeg(appliedPitch.current).toFixed(3)}`,
-    );
-    gl.domElement.setAttribute("data-d9-ambient-camera-state", stateName.current);
+    if (diagnosticsEnabled) {
+      const snapshot: D9AmbientCameraDiagnosticSnapshot = {
+        appliedPitchDegrees: MathUtils.radToDeg(appliedPitch.current),
+        appliedYawDegrees: MathUtils.radToDeg(appliedYaw.current),
+        holdOrReturnState: motionState,
+        intentDelayActive: motionState === "intent-delay",
+        pendingPitchDegrees: MathUtils.radToDeg(pendingPitch.current),
+        pendingYawDegrees: MathUtils.radToDeg(pendingYaw.current),
+        pointerEventCount: pointerSignal.current.pointerEventCount,
+        pointerMovement: lastPointerMovement.current,
+        pointerType: pointerSignal.current.pointerType,
+        state: stateName.current,
+      };
+      gl.domElement.setAttribute(
+        "data-d9-ambient-camera-offset-degrees",
+        `${MathUtils.radToDeg(appliedYaw.current).toFixed(3)},${MathUtils.radToDeg(appliedPitch.current).toFixed(3)}`,
+      );
+      gl.domElement.setAttribute("data-d9-ambient-camera-state", stateName.current);
+      gl.domElement.setAttribute(
+        "data-d9-ambient-camera-pointer-events",
+        String(snapshot.pointerEventCount),
+      );
+      gl.domElement.setAttribute("data-d9-ambient-camera-pointer-type", snapshot.pointerType);
+      gl.domElement.setAttribute("data-d9-ambient-camera-motion-state", snapshot.holdOrReturnState);
+      onDiagnosticChange?.(snapshot);
+    }
   });
+
+  useEffect(() => {
+    if (!diagnosticsEnabled) {
+      onDiagnosticChange?.(null);
+      return undefined;
+    }
+    return () => {
+      onDiagnosticChange?.(null);
+      for (const name of [
+        "data-d9-ambient-camera-offset-degrees",
+        "data-d9-ambient-camera-state",
+        "data-d9-ambient-camera-pointer-events",
+        "data-d9-ambient-camera-pointer-type",
+        "data-d9-ambient-camera-motion-state",
+      ]) {
+        gl.domElement.removeAttribute(name);
+      }
+    };
+  }, [diagnosticsEnabled, gl, onDiagnosticChange]);
 
   return null;
 }

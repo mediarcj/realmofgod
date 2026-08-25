@@ -19,6 +19,9 @@ export const d9AffordanceSemanticRoots = {
 // Describe one deliberately expanded physical bound without treating a whole wall or floor as an interaction target.
 export interface D9AffordanceAnchor {
   readonly cueColor: string;
+  readonly cueClearance: number;
+  readonly cueDistance: number;
+  readonly cueHoverStrength: number;
   readonly cueStrength: number;
   readonly max: readonly [number, number, number];
   readonly min: readonly [number, number, number];
@@ -27,21 +30,15 @@ export interface D9AffordanceAnchor {
 
 // Describe the two authored Bible page surfaces used by the DOM-first READ layout, not by a Canvas text interaction.
 export interface D9ReadingPageAnchor {
-  readonly max: readonly [number, number, number];
-  readonly min: readonly [number, number, number];
   readonly semanticRoot: "Bible_LeftOpenPage" | "Bible_RightOpenPage";
 }
 
 // Preserve the measured page footprints with a small visual edge margin so text remains within the open Bible.
 const readingPageAnchors: readonly D9ReadingPageAnchor[] = [
   {
-    max: [0.47, 2.01, 0.5],
-    min: [-0.4, 1.77, -0.57],
     semanticRoot: "Bible_LeftOpenPage",
   },
   {
-    max: [1.14, 2.01, 0.6],
-    min: [0.28, 1.77, -0.47],
     semanticRoot: "Bible_RightOpenPage",
   },
 ] as const;
@@ -53,7 +50,10 @@ const anchorsByState: Record<SanctuaryMvpStateName, readonly D9AffordanceAnchor[
   SANCTUARY: [
     {
       cueColor: "#d8a566",
-      cueStrength: 0.055,
+      cueClearance: 0.16,
+      cueDistance: 2.35,
+      cueHoverStrength: 0.7,
+      cueStrength: 0.36,
       max: [2.64, 1.93, 1.4],
       min: [-2.64, 1.51, -1.5],
       semanticRoot: "HF01_PrayerTable__Table_Top",
@@ -62,7 +62,10 @@ const anchorsByState: Record<SanctuaryMvpStateName, readonly D9AffordanceAnchor[
   SIT: [
     {
       cueColor: "#e0b26f",
-      cueStrength: 0.07,
+      cueClearance: 0.12,
+      cueDistance: 1.55,
+      cueHoverStrength: 0.62,
+      cueStrength: 0.31,
       max: [1.5, 2.28, 0.94],
       min: [-0.76, 1.52, -0.92],
       semanticRoot: "HF01_Bible_Root",
@@ -96,7 +99,16 @@ export function selectD9CueIntensity(
   if (anchor === undefined) {
     return 0;
   }
-  return anchor.cueStrength + (reducedMotion || !hovered ? 0 : 0.055);
+  return reducedMotion || !hovered ? anchor.cueStrength : anchor.cueHoverStrength;
+}
+
+// Place a warm invitation above the measured tabletop or page volume so it can read as light rather than a buried source.
+export function selectD9CuePosition(
+  anchor: Pick<D9AffordanceAnchor, "cueClearance" | "max" | "min">,
+): readonly [number, number, number] {
+  const box = selectD9AffordanceBox(anchor);
+  const center = box.getCenter(new Vector3());
+  return [center.x, box.max.y + anchor.cueClearance, center.z];
 }
 
 // Inspect one required authored node and fail clearly if a future asset loses the semantic hierarchy.

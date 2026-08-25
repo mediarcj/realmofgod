@@ -15,8 +15,10 @@ import {
   selectD9DevelopmentReflection,
 } from "../sanctuary/developmentReading";
 import type { RendererFailureReason } from "./CanvasExperience";
+import type { D9AmbientCameraDiagnosticSnapshot } from "./D9AmbientCameraGlance";
 import type { D9AffordanceDiagnosticSnapshot } from "./D9EnvironmentalAffordances";
-import type { D9ReadingPageLayout, D9ReadingPageRect } from "./D9ReadingPageProjection";
+import { createD9PageMatrix3d, type D9ReadingPageQuad } from "./d9ReadingPageGeometry";
+import type { D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import type { CinematicPlaybackHandle } from "./CinematicSanctuaryLayer";
 import {
   detectGraphicsCapability,
@@ -126,15 +128,22 @@ export function ExperienceLoading({
 // Keep page placement in a narrow DOM-only helper so future readings can replace fixture content without changing Canvas.
 function D9PageText({
   children,
+  diagnosticsEnabled,
   page,
 }: {
   readonly children: ReactNode;
-  readonly page: D9ReadingPageRect;
+  readonly diagnosticsEnabled: boolean;
+  readonly page: D9ReadingPageQuad;
 }): ReactNode {
   return (
     <article
-      className="d9-reading-page"
-      style={{ height: page.height, left: page.left, top: page.top, width: page.width }}
+      className={`d9-reading-page${diagnosticsEnabled ? " d9-reading-page--diagnostic" : ""}`}
+      data-d9-reading-page-root={page.semanticRoot}
+      style={{
+        height: page.sourceHeight,
+        transform: createD9PageMatrix3d(page),
+        width: page.sourceWidth,
+      }}
     >
       {children}
     </article>
@@ -143,9 +152,11 @@ function D9PageText({
 
 // Render only clearly labeled fixture content during D9.0B.2; no source text is represented as Scripture here.
 export function D9ReadingSurface({
+  diagnosticsEnabled = false,
   layout,
   onLetsPray,
 }: {
+  readonly diagnosticsEnabled?: boolean;
   readonly layout: D9ReadingPageLayout;
   readonly onLetsPray: () => void;
 }): ReactNode {
@@ -155,12 +166,12 @@ export function D9ReadingSurface({
       className="d9-reading-surface"
       data-d9-reading-surface="true"
     >
-      <D9PageText page={layout.leftPage}>
+      <D9PageText diagnosticsEnabled={diagnosticsEnabled} page={layout.leftPage}>
         <p className="d9-reading-fixture">Development layout fixture — not Scripture</p>
         <p className="d9-reading-reference">{d9DevelopmentReading.reference}</p>
         <p className="d9-reading-copy">{d9DevelopmentReading.leftPage}</p>
       </D9PageText>
-      <D9PageText page={layout.rightPage}>
+      <D9PageText diagnosticsEnabled={diagnosticsEnabled} page={layout.rightPage}>
         <p className="d9-reading-source">{d9DevelopmentReading.translationOrSource}</p>
         <p className="d9-reading-copy">{d9DevelopmentReading.rightPage}</p>
         <button
@@ -264,6 +275,8 @@ function ExperienceViewportContent({
   const [rendererApi, setRendererApi] = useState<"webgl1" | "webgl2" | null>(null);
   const [affordanceDiagnostics, setAffordanceDiagnostics] =
     useState<D9AffordanceDiagnosticSnapshot | null>(null);
+  const [ambientCameraDiagnostics, setAmbientCameraDiagnostics] =
+    useState<D9AmbientCameraDiagnosticSnapshot | null>(null);
   const [readingPageLayout, setReadingPageLayout] = useState<D9ReadingPageLayout | null>(null);
   const [visualCalibration, setVisualCalibration] = useState<VisualCalibration>(
     createDefaultVisualCalibration,
@@ -392,6 +405,7 @@ function ExperienceViewportContent({
                 affordanceDiagnosticsEnabled={affordanceDiagnosticsActive}
                 fallback={fallback}
                 onAffordanceDiagnosticChange={setAffordanceDiagnostics}
+                onAmbientCameraDiagnosticChange={setAmbientCameraDiagnostics}
                 onReadingPageLayoutChange={handleReadingPageLayoutChange}
                 onRendererFailure={handleRendererFailure}
                 onRendererReady={handleRendererReady}
@@ -406,28 +420,58 @@ function ExperienceViewportContent({
         ) : null}
       </section>
       {d9VisitorConfig !== null && sanctuaryState?.name === "READ" && readingPageLayout !== null ? (
-        <D9ReadingSurface layout={readingPageLayout} onLetsPray={enterPrayerFromReading} />
+        <D9ReadingSurface
+          diagnosticsEnabled={affordanceDiagnosticsActive}
+          layout={readingPageLayout}
+          onLetsPray={enterPrayerFromReading}
+        />
       ) : null}
       {d9VisitorConfig !== null && sanctuaryState?.name === "PRAY" ? (
         <D9ReflectionSurface onReturn={returnToSanctuaryFromReflection} />
       ) : null}
-      {affordanceDiagnosticsActive && affordanceDiagnostics !== null ? (
+      {affordanceDiagnosticsActive ? (
         <aside className="d9-affordance-diagnostics" data-d9-affordance-diagnostics="true">
-          <p>Active proxy: {affordanceDiagnostics.activeProxy.join(", ")}</p>
-          <p>World bounds: {JSON.stringify(affordanceDiagnostics.worldBounds)}</p>
-          <p>
-            Screen bounds:{" "}
-            {affordanceDiagnostics.screenBounds === null
-              ? "unavailable"
-              : affordanceDiagnostics.screenBounds.map((value) => value.toFixed(1)).join(", ")}
-          </p>
-          <p>State: {affordanceDiagnostics.state}</p>
-          <p>Hover: {affordanceDiagnostics.hoverProxy ?? "none"}</p>
-          <p>Activation events: {affordanceDiagnostics.activationCount}</p>
+          {affordanceDiagnostics !== null ? (
+            <>
+              <p>Active proxy: {affordanceDiagnostics.activeProxy.join(", ")}</p>
+              <p>World bounds: {JSON.stringify(affordanceDiagnostics.worldBounds)}</p>
+              <p>
+                Screen bounds:{" "}
+                {affordanceDiagnostics.screenBounds === null
+                  ? "unavailable"
+                  : affordanceDiagnostics.screenBounds.map((value) => value.toFixed(1)).join(", ")}
+              </p>
+              <p>State: {affordanceDiagnostics.state}</p>
+              <p>Hover: {affordanceDiagnostics.hoverProxy ?? "none"}</p>
+              <p>Activation events: {affordanceDiagnostics.activationCount}</p>
+              <p>Cue: {JSON.stringify(affordanceDiagnostics.cue)}</p>
+            </>
+          ) : null}
+          {ambientCameraDiagnostics !== null ? (
+            <>
+              <p>Pointer events: {ambientCameraDiagnostics.pointerEventCount}</p>
+              <p>
+                Pointer: {ambientCameraDiagnostics.pointerType}{" "}
+                {ambientCameraDiagnostics.pointerMovement.join(", ")}
+              </p>
+              <p>
+                Pending yaw/pitch: {ambientCameraDiagnostics.pendingYawDegrees.toFixed(3)},{" "}
+                {ambientCameraDiagnostics.pendingPitchDegrees.toFixed(3)}
+              </p>
+              <p>
+                Applied yaw/pitch: {ambientCameraDiagnostics.appliedYawDegrees.toFixed(3)},{" "}
+                {ambientCameraDiagnostics.appliedPitchDegrees.toFixed(3)}
+              </p>
+              <p>
+                Intent/motion: {ambientCameraDiagnostics.intentDelayActive ? "delay" : "ready"} /{" "}
+                {ambientCameraDiagnostics.holdOrReturnState}
+              </p>
+            </>
+          ) : null}
           {readingPageLayout !== null ? (
             <>
-              <p>READ left page: {JSON.stringify(readingPageLayout.leftPage)}</p>
-              <p>READ right page: {JSON.stringify(readingPageLayout.rightPage)}</p>
+              <p>READ left page quad: {JSON.stringify(readingPageLayout.leftPage)}</p>
+              <p>READ right page quad: {JSON.stringify(readingPageLayout.rightPage)}</p>
               <p>READ action: Let&apos;s pray</p>
             </>
           ) : null}

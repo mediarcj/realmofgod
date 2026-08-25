@@ -8,15 +8,21 @@
 // Import only the pure policy helpers so this safety test needs no Canvas or browser pointer event.
 import { describe, expect, it } from "vitest";
 
-import { clampD9AmbientOffset, selectD9AmbientCameraPolicy } from "./d9AmbientCameraPolicy";
+import {
+  applyD9AmbientPointerSignal,
+  clampD9AmbientOffset,
+  selectD9AmbientCameraPolicy,
+} from "./d9AmbientCameraPolicy";
 
 describe("D9 ambient camera policy", () => {
   it("keeps SANCTUARY and SIT below the owner safety envelope", () => {
     for (const state of ["SANCTUARY", "SIT"] as const) {
       const policy = selectD9AmbientCameraPolicy(state, false);
       expect(policy.enabled).toBe(true);
-      expect(policy.maxYawRadians).toBeLessThan(Math.PI / 90);
-      expect(policy.maxPitchRadians).toBeLessThan(Math.PI / 180);
+      expect(policy.maxYawRadians).toBeLessThanOrEqual(Math.PI / 60);
+      expect(policy.maxPitchRadians).toBeLessThanOrEqual(Math.PI / 120);
+      expect(policy.intentDelayMilliseconds).toBeGreaterThanOrEqual(120);
+      expect(policy.intentDelayMilliseconds).toBeLessThanOrEqual(220);
     }
   });
 
@@ -32,5 +38,19 @@ describe("D9 ambient camera policy", () => {
 
     expect(yaw).toBe(policy.maxYawRadians);
     expect(pitch).toBe(-policy.maxPitchRadians);
+  });
+
+  it("records a normal mouse signal before the bounded policy applies it", () => {
+    const signal = applyD9AmbientPointerSignal(
+      { pendingPitchRadians: 0, pendingYawRadians: 0, pointerEventCount: 0, pointerType: "none" },
+      24,
+      -12,
+      "mouse",
+    );
+
+    expect(signal.pointerEventCount).toBe(1);
+    expect(signal.pointerType).toBe("mouse");
+    expect(signal.pendingYawRadians).not.toBe(0);
+    expect(signal.pendingPitchRadians).not.toBe(0);
   });
 });

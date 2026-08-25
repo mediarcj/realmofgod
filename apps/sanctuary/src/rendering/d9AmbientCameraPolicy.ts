@@ -21,6 +21,14 @@ export interface D9AmbientCameraPolicy {
   readonly returnDamping: number;
 }
 
+// Describe the compact evidence retained by the development-only diagnostics fragment after an ordinary mouse signal.
+export interface D9AmbientPointerSignal {
+  readonly pendingPitchRadians: number;
+  readonly pendingYawRadians: number;
+  readonly pointerEventCount: number;
+  readonly pointerType: string;
+}
+
 // Keep settled states and reduced motion on the literal authored endpoint.
 const staticPolicy: D9AmbientCameraPolicy = {
   enabled: false,
@@ -35,12 +43,12 @@ const staticPolicy: D9AmbientCameraPolicy = {
 // Keep living-camera values below the owner-approved maximum so the scene can never become free navigation.
 const movingPolicy: D9AmbientCameraPolicy = {
   enabled: true,
-  holdMilliseconds: 340,
-  intentDelayMilliseconds: 180,
-  maxPitchRadians: MathUtils.degToRad(0.7),
-  maxYawRadians: MathUtils.degToRad(1.45),
-  responseDamping: 1.65,
-  returnDamping: 1.1,
+  holdMilliseconds: 520,
+  intentDelayMilliseconds: 150,
+  maxPitchRadians: MathUtils.degToRad(1.15),
+  maxYawRadians: MathUtils.degToRad(2.4),
+  responseDamping: 4.2,
+  returnDamping: 0.55,
 };
 
 // Select only the two approved living-camera states; READ and PRAY remain stable reading/reflection endpoints.
@@ -61,4 +69,19 @@ export function clampD9AmbientOffset(
     MathUtils.clamp(yawRadians, -policy.maxYawRadians, policy.maxYawRadians),
     MathUtils.clamp(pitchRadians, -policy.maxPitchRadians, policy.maxPitchRadians),
   ];
+}
+
+// Accumulate one browser pointer sample in a pure helper so focused tests can prove that a real signal reaches the camera policy.
+export function applyD9AmbientPointerSignal(
+  prior: D9AmbientPointerSignal,
+  movementX: number,
+  movementY: number,
+  pointerType: string,
+): D9AmbientPointerSignal {
+  return {
+    pendingPitchRadians: prior.pendingPitchRadians + movementY * 0.00075,
+    pendingYawRadians: prior.pendingYawRadians + movementX * 0.0014,
+    pointerEventCount: prior.pointerEventCount + 1,
+    pointerType,
+  };
 }

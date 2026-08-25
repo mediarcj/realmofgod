@@ -29,7 +29,10 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 import type { JourneyVisualState } from "../journey/model";
 import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
-import { D9AmbientCameraGlance } from "./D9AmbientCameraGlance";
+import {
+  D9AmbientCameraGlance,
+  type D9AmbientCameraDiagnosticSnapshot,
+} from "./D9AmbientCameraGlance";
 import type { D9AffordanceDiagnosticSnapshot } from "./D9EnvironmentalAffordances";
 import type { D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import {
@@ -76,6 +79,8 @@ interface CanvasExperienceProps {
   readonly fallback: ReactNode;
   readonly onAffordanceDiagnosticChange?:
     ((snapshot: D9AffordanceDiagnosticSnapshot | null) => void) | undefined;
+  readonly onAmbientCameraDiagnosticChange?:
+    ((snapshot: D9AmbientCameraDiagnosticSnapshot | null) => void) | undefined;
   readonly onReadingPageLayoutChange?: ((layout: D9ReadingPageLayout | null) => void) | undefined;
   readonly onRendererFailure: (reason: RendererFailureReason) => void;
   readonly onRendererReady: (api: "webgl1" | "webgl2") => void;
@@ -269,6 +274,7 @@ export function CanvasExperience({
   affordanceDiagnosticsEnabled = false,
   fallback,
   onAffordanceDiagnosticChange,
+  onAmbientCameraDiagnosticChange,
   onReadingPageLayoutChange,
   onRendererFailure,
   onRendererReady,
@@ -387,7 +393,12 @@ export function CanvasExperience({
           visualState={visualState}
         />
         {d9VisitorActive && sanctuaryState !== undefined ? (
-          <D9AmbientCameraGlance reducedMotion={reducedMotion} state={sanctuaryState} />
+          <D9AmbientCameraGlance
+            diagnosticsEnabled={affordanceDiagnosticsEnabled}
+            onDiagnosticChange={onAmbientCameraDiagnosticChange}
+            reducedMotion={reducedMotion}
+            state={sanctuaryState}
+          />
         ) : null}
         <LocalReflectionEnvironment />
         {d9QualityRendererActive ? (

@@ -26,6 +26,7 @@ import {
   selectD9AffordanceAnchors,
   selectD9AffordanceBox,
   selectD9CueIntensity,
+  selectD9CuePosition,
   type D9AffordanceAnchor,
 } from "./d9AffordanceAnchors";
 
@@ -36,6 +37,10 @@ export interface D9AffordanceDiagnosticSnapshot {
   readonly hoverProxy: string | null;
   readonly screenBounds: readonly [number, number, number, number] | null;
   readonly state: SanctuaryMvpState["name"];
+  readonly cue: {
+    readonly intensity: number;
+    readonly position: readonly [number, number, number];
+  } | null;
   readonly worldBounds: readonly {
     readonly dimensions: readonly [number, number, number];
     readonly max: readonly [number, number, number];
@@ -164,6 +169,13 @@ export function D9EnvironmentalAffordances({
       hoverProxy: activeHoveredProxy,
       screenBounds,
       state: state.name,
+      cue:
+        primaryDefinition === undefined
+          ? null
+          : {
+              intensity: cueIntensity,
+              position: selectD9CuePosition(primaryDefinition),
+            },
       worldBounds: describedAnchors.map(({ dimensions, max, min }) => ({ dimensions, max, min })),
     };
     canvas.setAttribute("data-d9-affordance-active-proxy", snapshot.activeProxy.join(","));
@@ -191,6 +203,8 @@ export function D9EnvironmentalAffordances({
     onDiagnosticChange,
     scene,
     state.name,
+    cueIntensity,
+    primaryDefinition,
   ]);
 
   useEffect(() => {
@@ -209,9 +223,9 @@ export function D9EnvironmentalAffordances({
       <pointLight
         color={primaryDefinition.cueColor}
         decay={2}
-        distance={3.1}
+        distance={primaryDefinition.cueDistance}
         intensity={cueIntensity}
-        position={primaryAnchor.box.getCenter(new Vector3()).toArray()}
+        position={selectD9CuePosition(primaryDefinition)}
       />
       <instancedMesh
         ref={proxyMeshRef}
