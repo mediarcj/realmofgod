@@ -266,8 +266,11 @@ function verifyD9InteractionBoundary(
     "RETURN_TO_SANCTUARY",
     "Sit in the sanctuary",
     "Read the open Bible",
-    "Enter prayer",
-    "Return to the sanctuary",
+    "Let's pray",
+    "Return to sanctuary",
+    "tabletop",
+    "page-action",
+    "reflection",
   ]) {
     if (!modelSource.includes(requiredFragment)) {
       throw new Error(`The guided state model must retain ${requiredFragment}.`);

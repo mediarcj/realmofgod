@@ -17,7 +17,11 @@ import batchedCandidateUrl from "../assets/candidates/realm-mvp-sanctuary-v1-r2-
 import rawCandidateUrl from "../../../../tools/hf01/candidates/realm-mvp-sanctuary-v1-raw-r2.glb?url";
 import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
 import type { StaticSanctuaryProofConfig } from "./capabilities";
-import { D9EnvironmentalAffordances } from "./D9EnvironmentalAffordances";
+import {
+  D9EnvironmentalAffordances,
+  type D9AffordanceDiagnosticSnapshot,
+} from "./D9EnvironmentalAffordances";
+import { D9ReadingPageProjection, type D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import { d9VisitorSceneContract, type D9RenderQuality } from "./d9SanctuaryQuality";
 import {
   prepareStaticSanctuaryScene,
@@ -54,6 +58,11 @@ function D9RuntimeMetrics({
 
   useEffect(() => {
     const canvas = gl.domElement;
+    // Restart the local sample for each snapped endpoint so every state has an independent ordinary visitor measure.
+    settled.current = false;
+    pacingIntervals.current = [];
+    previousTimestamp.current = null;
+    frameCount.current = 0;
     canvas.setAttribute("data-d9-visitor-ready", "false");
     canvas.setAttribute("data-d9-render-policy", quality.policy);
     canvas.setAttribute("data-d9-requested-dpr", String(quality.dpr));
@@ -187,6 +196,9 @@ function D9Lighting({
 // Render the normal D9 visitor scene from the one accepted local candidate, not through a benchmark selector.
 export function D9SanctuaryScene({
   config = d9VisitorSceneConfig,
+  diagnosticsEnabled = false,
+  onAffordanceDiagnosticChange,
+  onReadingPageLayoutChange,
   onSanctuaryInteraction,
   quality,
   reducedMotion,
@@ -194,6 +206,10 @@ export function D9SanctuaryScene({
   visualCalibration,
 }: {
   readonly config?: StaticSanctuaryProofConfig | undefined;
+  readonly diagnosticsEnabled?: boolean | undefined;
+  readonly onAffordanceDiagnosticChange?:
+    ((snapshot: D9AffordanceDiagnosticSnapshot | null) => void) | undefined;
+  readonly onReadingPageLayoutChange?: ((layout: D9ReadingPageLayout | null) => void) | undefined;
   readonly onSanctuaryInteraction?: ((action: SanctuaryMvpAction) => void) | undefined;
   readonly quality: D9RenderQuality;
   readonly reducedMotion: boolean;
@@ -224,10 +240,16 @@ export function D9SanctuaryScene({
         <primitive object={scene} />
         {sanctuaryState !== undefined && onSanctuaryInteraction !== undefined ? (
           <D9EnvironmentalAffordances
+            diagnosticsEnabled={diagnosticsEnabled}
+            onDiagnosticChange={onAffordanceDiagnosticChange}
             onInteraction={onSanctuaryInteraction}
             reducedMotion={reducedMotion}
+            scene={scene}
             state={sanctuaryState}
           />
+        ) : null}
+        {sanctuaryState?.name === "READ" && onReadingPageLayoutChange !== undefined ? (
+          <D9ReadingPageProjection onLayoutChange={onReadingPageLayoutChange} scene={scene} />
         ) : null}
       </group>
       <D9RuntimeMetrics quality={quality} sanctuaryState={sanctuaryState?.name ?? "SANCTUARY"} />

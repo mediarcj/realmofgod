@@ -142,6 +142,174 @@ select {
   pointer-events: auto;
 }
 
+/* Show small transparent measurement text only after the explicit local affordance diagnostic fragment is active. */
+.d9-affordance-diagnostics {
+  position: fixed;
+  z-index: 3;
+  top: 0.75rem;
+  left: 0.75rem;
+  max-width: min(32rem, calc(100% - 1.5rem));
+  padding: 0.55rem 0.7rem;
+  color: #d8f8ed;
+  background: rgb(7 17 16 / 72%);
+  border: 1px solid rgb(123 240 216 / 38%);
+  border-radius: 0.25rem;
+  font:
+    0.68rem/1.35 ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    monospace;
+  pointer-events: none;
+}
+
+/* Keep diagnostics compact and non-interactive so they cannot become a second visitor action surface. */
+.d9-affordance-diagnostics p {
+  margin: 0.2rem 0;
+  overflow-wrap: anywhere;
+}
+
+/* Place semantic development reading text over the authored pages without making the whole overlay intercept the room. */
+.d9-reading-surface {
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Keep each projected page quiet and legible while its pixels follow the settled authored READ camera. */
+.d9-reading-page {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 2.2rem;
+  min-height: 1.4rem;
+  padding: clamp(0.08rem, 0.45vw, 0.32rem);
+  overflow: hidden;
+  color: rgb(61 41 25 / 88%);
+  font-size: clamp(0.58rem, 1.05vw, 1rem);
+  line-height: 1.28;
+  pointer-events: none;
+  text-shadow: 0 1px rgb(255 247 221 / 26%);
+}
+
+/* Mark fixture status plainly so no development text can be mistaken for Scripture. */
+.d9-reading-fixture,
+.d9-reading-source,
+.d9-reading-reference,
+.d9-reading-copy {
+  margin: 0;
+}
+
+.d9-reading-fixture,
+.d9-reading-source {
+  opacity: 0.72;
+  font-size: 0.82em;
+  font-style: italic;
+}
+
+.d9-reading-reference {
+  margin-block: 0.12em 0.24em;
+  font-weight: 700;
+}
+
+.d9-reading-copy {
+  overflow-wrap: anywhere;
+}
+
+/* Let only the approved lower-right page action receive pointer input while retaining page-like typography. */
+.d9-reading-action {
+  align-self: flex-end;
+  margin-top: auto;
+  padding: 0.22rem 0.3rem;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.16em;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.d9-reading-action:hover {
+  color: #7f4f20;
+  text-decoration-color: currentcolor;
+}
+
+.d9-reading-action:focus-visible {
+  outline: 1px solid #8d5b22;
+  outline-offset: 0.12rem;
+  text-decoration-color: currentcolor;
+}
+
+/* Keep the PRAY surface warm and transparent instead of introducing a bright modal or product-card treatment. */
+.d9-reflection-surface {
+  position: fixed;
+  z-index: 2;
+  right: clamp(1rem, 8vw, 9rem);
+  bottom: clamp(1rem, 9vh, 6.5rem);
+  width: min(25rem, calc(100% - 2rem));
+  padding: clamp(1rem, 2.3vw, 1.8rem);
+  color: #f0dfbf;
+  background: linear-gradient(145deg, rgb(31 20 14 / 86%), rgb(12 10 9 / 78%));
+  border: 1px solid rgb(216 165 102 / 34%);
+  box-shadow: 0 1.25rem 4rem rgb(0 0 0 / 36%);
+}
+
+.d9-reflection-surface h2,
+.d9-reflection-surface p {
+  margin: 0;
+}
+
+.d9-reflection-surface h2 {
+  margin-block: 0.45rem 0.7rem;
+  font-size: clamp(1.12rem, 2vw, 1.45rem);
+  font-weight: 500;
+}
+
+.d9-reflection-surface p:not(.d9-reflection-fixture) {
+  line-height: 1.55;
+}
+
+.d9-reflection-fixture {
+  color: rgb(237 203 150 / 72%);
+  font-size: 0.76rem;
+  font-style: italic;
+}
+
+.d9-reflection-action {
+  margin-top: 1.1rem;
+  padding: 0.18rem 0;
+  border: 0;
+  color: #f4d39c;
+  background: transparent;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+.d9-reflection-action:focus-visible {
+  outline: 1px solid #f4d39c;
+  outline-offset: 0.28rem;
+}
+
+@media (max-width: 56rem) {
+  /* Preserve readable development overlays on landscape touch without creating a separate mobile interaction system. */
+  .d9-reading-page {
+    font-size: clamp(0.48rem, 1.9vw, 0.76rem);
+  }
+
+  .d9-reflection-surface {
+    right: 0.9rem;
+    bottom: 0.9rem;
+    width: min(21rem, calc(100% - 1.8rem));
+    padding: 0.85rem 1rem;
+  }
+}
+
 .experience-canvas canvas {
   display: block;
   /* Apply a restrained room-only color grade so candle warmth and shadow separation survive display variance. */

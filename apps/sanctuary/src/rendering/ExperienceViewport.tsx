@@ -10,10 +10,17 @@ import { Component, lazy, type ReactNode, Suspense, useCallback, useRef, useStat
 
 import type { JourneyVisualState } from "../journey/model";
 import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
+import {
+  d9DevelopmentReading,
+  selectD9DevelopmentReflection,
+} from "../sanctuary/developmentReading";
 import type { RendererFailureReason } from "./CanvasExperience";
+import type { D9AffordanceDiagnosticSnapshot } from "./D9EnvironmentalAffordances";
+import type { D9ReadingPageLayout, D9ReadingPageRect } from "./D9ReadingPageProjection";
 import type { CinematicPlaybackHandle } from "./CinematicSanctuaryLayer";
 import {
   detectGraphicsCapability,
+  readD9AffordanceDiagnostic,
   readD9VisitorSanctuaryConfig,
   readD84StaticProofConfig,
   readD85LandscapeProofConfig,
@@ -116,6 +123,80 @@ export function ExperienceLoading({
   return <ExperienceFallback visualState={visualState} />;
 }
 
+// Keep page placement in a narrow DOM-only helper so future readings can replace fixture content without changing Canvas.
+function D9PageText({
+  children,
+  page,
+}: {
+  readonly children: ReactNode;
+  readonly page: D9ReadingPageRect;
+}): ReactNode {
+  return (
+    <article
+      className="d9-reading-page"
+      style={{ height: page.height, left: page.left, top: page.top, width: page.width }}
+    >
+      {children}
+    </article>
+  );
+}
+
+// Render only clearly labeled fixture content during D9.0B.2; no source text is represented as Scripture here.
+export function D9ReadingSurface({
+  layout,
+  onLetsPray,
+}: {
+  readonly layout: D9ReadingPageLayout;
+  readonly onLetsPray: () => void;
+}): ReactNode {
+  return (
+    <section
+      aria-label="Development reading surface"
+      className="d9-reading-surface"
+      data-d9-reading-surface="true"
+    >
+      <D9PageText page={layout.leftPage}>
+        <p className="d9-reading-fixture">Development layout fixture — not Scripture</p>
+        <p className="d9-reading-reference">{d9DevelopmentReading.reference}</p>
+        <p className="d9-reading-copy">{d9DevelopmentReading.leftPage}</p>
+      </D9PageText>
+      <D9PageText page={layout.rightPage}>
+        <p className="d9-reading-source">{d9DevelopmentReading.translationOrSource}</p>
+        <p className="d9-reading-copy">{d9DevelopmentReading.rightPage}</p>
+        <button
+          aria-label="Let us pray from this development reading"
+          className="d9-reading-action"
+          onClick={onLetsPray}
+          type="button"
+        >
+          Let&apos;s pray
+        </button>
+      </D9PageText>
+    </section>
+  );
+}
+
+// Keep reflection content visible and semantic while a later reviewed content pass decides any real reading material.
+export function D9ReflectionSurface({ onReturn }: { readonly onReturn: () => void }): ReactNode {
+  const reflection = selectD9DevelopmentReflection(d9DevelopmentReading.relatedPrayerContentId);
+  return (
+    <section
+      aria-label="Development reflection"
+      className="d9-reflection-surface"
+      data-d9-reflection-surface="true"
+    >
+      <p className="d9-reflection-fixture">
+        Development reflection fixture — not spiritual guidance
+      </p>
+      <h2>{reflection.title}</h2>
+      <p>{reflection.body}</p>
+      <button className="d9-reflection-action" onClick={onReturn} type="button">
+        Return to sanctuary
+      </button>
+    </section>
+  );
+}
+
 // Keep capability selection local and forward only the minimal read-only visual projection.
 export function ExperienceViewport({
   onSanctuaryInteraction,
@@ -149,6 +230,7 @@ function ExperienceViewportContent({
   readonly visualState: JourneyVisualState;
 }): ReactNode {
   const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
+  const affordanceDiagnosticsActive = import.meta.env.DEV && readD9AffordanceDiagnostic();
   const d84StaticProofConfig = import.meta.env.DEV ? readD84StaticProofConfig() : null;
   const d85LandscapeProofConfig = import.meta.env.DEV ? readD85LandscapeProofConfig() : null;
   const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
@@ -180,6 +262,9 @@ function ExperienceViewportContent({
     RendererFailureReason | "react-error" | null
   >(null);
   const [rendererApi, setRendererApi] = useState<"webgl1" | "webgl2" | null>(null);
+  const [affordanceDiagnostics, setAffordanceDiagnostics] =
+    useState<D9AffordanceDiagnosticSnapshot | null>(null);
+  const [readingPageLayout, setReadingPageLayout] = useState<D9ReadingPageLayout | null>(null);
   const [visualCalibration, setVisualCalibration] = useState<VisualCalibration>(
     createDefaultVisualCalibration,
   );
@@ -206,6 +291,15 @@ function ExperienceViewportContent({
     setRendererApi(api);
     setRendererState("ready");
   }, []);
+  const handleReadingPageLayoutChange = useCallback((layout: D9ReadingPageLayout | null) => {
+    setReadingPageLayout(layout);
+  }, []);
+  const enterPrayerFromReading = useCallback(() => {
+    onSanctuaryInteraction?.("ENTER_PRAYER");
+  }, [onSanctuaryInteraction]);
+  const returnToSanctuaryFromReflection = useCallback(() => {
+    onSanctuaryInteraction?.("RETURN_TO_SANCTUARY");
+  }, [onSanctuaryInteraction]);
   const handleStartCinematicMotion = useCallback(() => {
     cinematicPlaybackRef.current?.startMotion();
   }, []);
@@ -295,7 +389,10 @@ function ExperienceViewportContent({
           <ViewportErrorBoundary fallback={fallback} onFailure={handleRendererFailure}>
             <Suspense fallback={<ExperienceLoading visualState={visualState} />}>
               <CanvasExperience
+                affordanceDiagnosticsEnabled={affordanceDiagnosticsActive}
                 fallback={fallback}
+                onAffordanceDiagnosticChange={setAffordanceDiagnostics}
+                onReadingPageLayoutChange={handleReadingPageLayoutChange}
                 onRendererFailure={handleRendererFailure}
                 onRendererReady={handleRendererReady}
                 onSanctuaryInteraction={onSanctuaryInteraction}
@@ -308,6 +405,34 @@ function ExperienceViewportContent({
           </ViewportErrorBoundary>
         ) : null}
       </section>
+      {d9VisitorConfig !== null && sanctuaryState?.name === "READ" && readingPageLayout !== null ? (
+        <D9ReadingSurface layout={readingPageLayout} onLetsPray={enterPrayerFromReading} />
+      ) : null}
+      {d9VisitorConfig !== null && sanctuaryState?.name === "PRAY" ? (
+        <D9ReflectionSurface onReturn={returnToSanctuaryFromReflection} />
+      ) : null}
+      {affordanceDiagnosticsActive && affordanceDiagnostics !== null ? (
+        <aside className="d9-affordance-diagnostics" data-d9-affordance-diagnostics="true">
+          <p>Active proxy: {affordanceDiagnostics.activeProxy.join(", ")}</p>
+          <p>World bounds: {JSON.stringify(affordanceDiagnostics.worldBounds)}</p>
+          <p>
+            Screen bounds:{" "}
+            {affordanceDiagnostics.screenBounds === null
+              ? "unavailable"
+              : affordanceDiagnostics.screenBounds.map((value) => value.toFixed(1)).join(", ")}
+          </p>
+          <p>State: {affordanceDiagnostics.state}</p>
+          <p>Hover: {affordanceDiagnostics.hoverProxy ?? "none"}</p>
+          <p>Activation events: {affordanceDiagnostics.activationCount}</p>
+          {readingPageLayout !== null ? (
+            <>
+              <p>READ left page: {JSON.stringify(readingPageLayout.leftPage)}</p>
+              <p>READ right page: {JSON.stringify(readingPageLayout.rightPage)}</p>
+              <p>READ action: Let&apos;s pray</p>
+            </>
+          ) : null}
+        </aside>
+      ) : null}
       {developmentCalibrationTools}
       {developmentHybridProofTools}
     </>

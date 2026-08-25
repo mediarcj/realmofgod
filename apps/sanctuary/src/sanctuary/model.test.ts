@@ -59,7 +59,7 @@ describe("D9 sanctuary interaction model", () => {
   it("exposes exactly one meaningful affordance and accessible label in each state", () => {
     expect(selectSanctuaryAffordance({ name: "SANCTUARY" })).toEqual({
       action: "SIT",
-      anchor: "seating",
+      anchor: "tabletop",
       label: "Sit in the sanctuary",
     });
     expect(selectSanctuaryAffordance({ name: "SIT" })).toEqual({
@@ -69,13 +69,13 @@ describe("D9 sanctuary interaction model", () => {
     });
     expect(selectSanctuaryAffordance({ name: "READ" })).toEqual({
       action: "ENTER_PRAYER",
-      anchor: "clerestory",
-      label: "Enter prayer",
+      anchor: "page-action",
+      label: "Let's pray",
     });
     expect(selectSanctuaryAffordance({ name: "PRAY" })).toEqual({
       action: "RETURN_TO_SANCTUARY",
-      anchor: "grounding",
-      label: "Return to the sanctuary",
+      anchor: "reflection",
+      label: "Return to sanctuary",
     });
   });
 });

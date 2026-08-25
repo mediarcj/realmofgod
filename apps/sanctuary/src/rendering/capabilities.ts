@@ -172,7 +172,9 @@ export function readLocalDiagnosticRoute(): boolean {
 
 // Make the exact unfragmented development root use the approved batched candidate and restrained shadow policy.
 export function selectD9VisitorSanctuaryConfig(fragment: string): D9VisitorSanctuaryConfig | null {
-  return fragment === "" ? d9VisitorSanctuaryConfig : null;
+  return fragment === "" || selectD9AffordanceDiagnostic(fragment)
+    ? d9VisitorSanctuaryConfig
+    : null;
 }
 
 // Keep the unpromoted candidate out of production selection while allowing the normal local root to review it.
@@ -182,6 +184,18 @@ export function readD9VisitorSanctuaryConfig(): D9VisitorSanctuaryConfig | null 
   }
 
   return selectD9VisitorSanctuaryConfig(window.location.hash);
+}
+
+// Reserve one explicit development fragment for measured interaction-bound inspection without changing the ordinary root.
+export function selectD9AffordanceDiagnostic(fragment: string): boolean {
+  return fragment === "#diagnostic-affordances";
+}
+
+// Keep the translucent proxy bounds and local measurement text out of every production and ordinary visitor view.
+export function readD9AffordanceDiagnostic(): boolean {
+  return import.meta.env.DEV && typeof window !== "undefined"
+    ? selectD9AffordanceDiagnostic(window.location.hash)
+    : false;
 }
 
 // Reserve explicit forensic paths for the D9.0A.1 comparison; an ordinary visitor never reaches the immutable raw asset.

@@ -27,6 +27,9 @@ describe("SanctuaryShell", () => {
     expect(markup).not.toContain("I need peace");
     expect(markup).not.toContain("Open visual calibration");
     expect(markup).not.toContain("Cinematic Higgsfield");
+    expect(markup).not.toContain("Active proxy:");
+    expect(markup).not.toContain("World bounds:");
+    expect(markup).not.toContain("Activation events:");
   });
 });
 

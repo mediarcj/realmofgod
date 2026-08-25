@@ -27,6 +27,8 @@ export function SanctuaryShell() {
     initialSanctuaryMvpState,
   );
   const affordance = selectSanctuaryAffordance(sanctuaryState);
+  const environmentalKeyboardControl =
+    sanctuaryState.name === "SANCTUARY" || sanctuaryState.name === "SIT";
 
   return (
     <main className="sanctuary-shell sanctuary-shell--visitor" aria-labelledby="sanctuary-title">
@@ -40,21 +42,23 @@ export function SanctuaryShell() {
           visualState={sanctuaryVisualState}
         />
 
-        <div className="sanctuary-environmental-control">
-          {/* Keep the current environmental action keyboard-reachable while its label stays absent during ordinary pointer use. */}
-          <button
-            aria-label={affordance.label}
-            onClick={() => {
-              sendSanctuaryAction(affordance.action);
-            }}
-            type="button"
-          >
-            {affordance.label}
-          </button>
-          <p aria-live="polite" className="visually-hidden">
-            {sanctuaryState.name.toLowerCase()} sanctuary state
-          </p>
-        </div>
+        {environmentalKeyboardControl ? (
+          <div className="sanctuary-environmental-control">
+            {/* Keep the current environmental action keyboard-reachable while its label stays absent during ordinary pointer use. */}
+            <button
+              aria-label={affordance.label}
+              onClick={() => {
+                sendSanctuaryAction(affordance.action);
+              }}
+              type="button"
+            >
+              {affordance.label}
+            </button>
+          </div>
+        ) : null}
+        <p aria-live="polite" className="visually-hidden">
+          {sanctuaryState.name.toLowerCase()} sanctuary state
+        </p>
       </SanctuaryOrientationGate>
     </main>
   );

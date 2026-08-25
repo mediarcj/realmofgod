@@ -29,6 +29,9 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 import type { JourneyVisualState } from "../journey/model";
 import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
+import { D9AmbientCameraGlance } from "./D9AmbientCameraGlance";
+import type { D9AffordanceDiagnosticSnapshot } from "./D9EnvironmentalAffordances";
+import type { D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import {
   readD84StaticProofConfig,
   readD85LandscapeProofConfig,
@@ -69,7 +72,11 @@ export type RendererFailureReason = "context-lost" | "creation-unavailable";
 
 // Describe the single local preference forwarded from the lightweight viewport boundary.
 interface CanvasExperienceProps {
+  readonly affordanceDiagnosticsEnabled?: boolean | undefined;
   readonly fallback: ReactNode;
+  readonly onAffordanceDiagnosticChange?:
+    ((snapshot: D9AffordanceDiagnosticSnapshot | null) => void) | undefined;
+  readonly onReadingPageLayoutChange?: ((layout: D9ReadingPageLayout | null) => void) | undefined;
   readonly onRendererFailure: (reason: RendererFailureReason) => void;
   readonly onRendererReady: (api: "webgl1" | "webgl2") => void;
   readonly onSanctuaryInteraction?: ((action: SanctuaryMvpAction) => void) | undefined;
@@ -259,7 +266,10 @@ function RendererLifecycle({
 
 // Render a full atmospheric background while keeping every meaningful word and action in the DOM.
 export function CanvasExperience({
+  affordanceDiagnosticsEnabled = false,
   fallback,
+  onAffordanceDiagnosticChange,
+  onReadingPageLayoutChange,
   onRendererFailure,
   onRendererReady,
   onSanctuaryInteraction,
@@ -376,11 +386,17 @@ export function CanvasExperience({
           visualCalibration={visualCalibration}
           visualState={visualState}
         />
+        {d9VisitorActive && sanctuaryState !== undefined ? (
+          <D9AmbientCameraGlance reducedMotion={reducedMotion} state={sanctuaryState} />
+        ) : null}
         <LocalReflectionEnvironment />
         {d9QualityRendererActive ? (
           <Suspense fallback={null}>
             <D9SanctuaryScene
               config={d92QualityInspectionConfig ?? undefined}
+              diagnosticsEnabled={affordanceDiagnosticsEnabled && d9VisitorActive}
+              onAffordanceDiagnosticChange={onAffordanceDiagnosticChange}
+              onReadingPageLayoutChange={d9VisitorActive ? onReadingPageLayoutChange : undefined}
               onSanctuaryInteraction={d9VisitorActive ? onSanctuaryInteraction : undefined}
               quality={d9RenderQuality}
               reducedMotion={reducedMotion}

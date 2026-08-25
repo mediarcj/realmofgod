@@ -19,9 +19,9 @@ export type SanctuaryMvpAction = "ENTER_PRAYER" | "READ_BIBLE" | "RETURN_TO_SANC
 // Describe the one semantic action and stable accessible label available in each state.
 export interface SanctuaryAffordance {
   readonly action: SanctuaryMvpAction;
-  readonly anchor: "bible" | "clerestory" | "grounding" | "seating";
+  readonly anchor: "bible" | "page-action" | "reflection" | "tabletop";
   readonly label:
-    "Enter prayer" | "Read the open Bible" | "Return to the sanctuary" | "Sit in the sanctuary";
+    "Let's pray" | "Read the open Bible" | "Return to sanctuary" | "Sit in the sanctuary";
 }
 
 // Start every anonymous visitor in the settled sanctuary frame without retained history.
@@ -31,7 +31,7 @@ export const initialSanctuaryMvpState: SanctuaryMvpState = { name: "SANCTUARY" }
 const affordancesByState: Record<SanctuaryMvpStateName, SanctuaryAffordance> = {
   SANCTUARY: {
     action: "SIT",
-    anchor: "seating",
+    anchor: "tabletop",
     label: "Sit in the sanctuary",
   },
   SIT: {
@@ -41,13 +41,13 @@ const affordancesByState: Record<SanctuaryMvpStateName, SanctuaryAffordance> = {
   },
   READ: {
     action: "ENTER_PRAYER",
-    anchor: "clerestory",
-    label: "Enter prayer",
+    anchor: "page-action",
+    label: "Let's pray",
   },
   PRAY: {
     action: "RETURN_TO_SANCTUARY",
-    anchor: "grounding",
-    label: "Return to the sanctuary",
+    anchor: "reflection",
+    label: "Return to sanctuary",
   },
 };
 
