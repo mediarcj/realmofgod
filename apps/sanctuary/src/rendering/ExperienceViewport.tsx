@@ -449,14 +449,25 @@ function ExperienceViewportContent({
           ) : null}
           {ambientCameraDiagnostics !== null ? (
             <>
+              <p>Camera state: {ambientCameraDiagnostics.state}</p>
               <p>Pointer events: {ambientCameraDiagnostics.pointerEventCount}</p>
               <p>
-                Pointer: {ambientCameraDiagnostics.pointerType}{" "}
-                {ambientCameraDiagnostics.pointerMovement.join(", ")}
+                Pointer: {ambientCameraDiagnostics.pointerType} / client{" "}
+                {ambientCameraDiagnostics.pointerClientPosition.join(", ")}
+              </p>
+              <p>
+                Normalized pointer:{" "}
+                {ambientCameraDiagnostics.normalizedPointer
+                  .map((value) => value.toFixed(3))
+                  .join(", ")}
               </p>
               <p>
                 Pending yaw/pitch: {ambientCameraDiagnostics.pendingYawDegrees.toFixed(3)},{" "}
                 {ambientCameraDiagnostics.pendingPitchDegrees.toFixed(3)}
+              </p>
+              <p>
+                Target yaw/pitch: {ambientCameraDiagnostics.targetYawDegrees.toFixed(3)},{" "}
+                {ambientCameraDiagnostics.targetPitchDegrees.toFixed(3)}
               </p>
               <p>
                 Applied yaw/pitch: {ambientCameraDiagnostics.appliedYawDegrees.toFixed(3)},{" "}
@@ -465,6 +476,10 @@ function ExperienceViewportContent({
               <p>
                 Intent/motion: {ambientCameraDiagnostics.intentDelayActive ? "delay" : "ready"} /{" "}
                 {ambientCameraDiagnostics.holdOrReturnState}
+              </p>
+              <p>
+                Idle / exact home: {ambientCameraDiagnostics.idleMilliseconds ?? "none"} /{" "}
+                {String(ambientCameraDiagnostics.exactHome)}
               </p>
             </>
           ) : null}

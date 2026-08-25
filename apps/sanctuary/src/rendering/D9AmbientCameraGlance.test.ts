@@ -11,7 +11,9 @@ import { describe, expect, it } from "vitest";
 import {
   applyD9AmbientPointerSignal,
   clampD9AmbientOffset,
+  normalizeD9AmbientPointer,
   selectD9AmbientCameraPolicy,
+  selectD9AmbientMotionState,
 } from "./d9AmbientCameraPolicy";
 
 describe("D9 ambient camera policy", () => {
@@ -19,10 +21,12 @@ describe("D9 ambient camera policy", () => {
     for (const state of ["SANCTUARY", "SIT"] as const) {
       const policy = selectD9AmbientCameraPolicy(state, false);
       expect(policy.enabled).toBe(true);
-      expect(policy.maxYawRadians).toBeLessThanOrEqual(Math.PI / 60);
-      expect(policy.maxPitchRadians).toBeLessThanOrEqual(Math.PI / 120);
+      expect(policy.maxYawRadians).toBeLessThanOrEqual((3.5 * Math.PI) / 180);
+      expect(policy.maxPitchRadians).toBeLessThanOrEqual((1.75 * Math.PI) / 180);
       expect(policy.intentDelayMilliseconds).toBeGreaterThanOrEqual(120);
-      expect(policy.intentDelayMilliseconds).toBeLessThanOrEqual(220);
+      expect(policy.intentDelayMilliseconds).toBeLessThanOrEqual(180);
+      expect(policy.holdMilliseconds).toBeGreaterThanOrEqual(350);
+      expect(policy.holdMilliseconds).toBeLessThanOrEqual(600);
     }
   });
 
@@ -40,17 +44,66 @@ describe("D9 ambient camera policy", () => {
     expect(pitch).toBe(-policy.maxPitchRadians);
   });
 
-  it("records a normal mouse signal before the bounded policy applies it", () => {
+  it("uses a stable Canvas-relative mouse position before the bounded policy applies it", () => {
+    const policy = selectD9AmbientCameraPolicy("SANCTUARY", false);
+    const coordinates = normalizeD9AmbientPointer(130, 70, {
+      height: 200,
+      left: 10,
+      top: 20,
+      width: 200,
+    });
     const signal = applyD9AmbientPointerSignal(
-      { pendingPitchRadians: 0, pendingYawRadians: 0, pointerEventCount: 0, pointerType: "none" },
-      24,
-      -12,
+      {
+        clientX: 0,
+        clientY: 0,
+        normalizedX: 0.5,
+        normalizedY: 0.5,
+        pendingPitchRadians: 0,
+        pendingYawRadians: 0,
+        pointerEventCount: 0,
+        pointerType: "none",
+      },
+      coordinates,
       "mouse",
+      policy,
     );
 
     expect(signal.pointerEventCount).toBe(1);
     expect(signal.pointerType).toBe("mouse");
+    expect(signal.clientX).toBe(130);
+    expect(signal.clientY).toBe(70);
+    expect(signal.normalizedX).toBe(0.6);
+    expect(signal.normalizedY).toBe(0.25);
     expect(signal.pendingYawRadians).not.toBe(0);
     expect(signal.pendingPitchRadians).not.toBe(0);
+  });
+
+  it("waits briefly, holds briefly, and then directs an idle pointer back to the exact anchor", () => {
+    const policy = selectD9AmbientCameraPolicy("SIT", false);
+
+    expect(
+      selectD9AmbientMotionState({
+        intentStartedAt: 100,
+        lastMovementAt: 100,
+        now: 200,
+        policy,
+      }),
+    ).toBe("intent-delay");
+    expect(
+      selectD9AmbientMotionState({
+        intentStartedAt: 100,
+        lastMovementAt: 100,
+        now: 300,
+        policy,
+      }),
+    ).toBe("holding");
+    expect(
+      selectD9AmbientMotionState({
+        intentStartedAt: 100,
+        lastMovementAt: 100,
+        now: 100 + policy.holdMilliseconds + 1,
+        policy,
+      }),
+    ).toBe("returning");
   });
 });

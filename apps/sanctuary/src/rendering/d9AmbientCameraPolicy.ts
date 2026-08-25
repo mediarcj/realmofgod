@@ -1,7 +1,7 @@
 /**
  * File: apps/sanctuary/src/rendering/d9AmbientCameraPolicy.ts
- * Description: Defines the bounded D9 pointer-camera policy and pure clamp helper.
- * Purpose: Lets renderer code and focused tests share one small safety contract without exposing navigation controls.
+ * Description: Defines the bounded D9 pointer-camera policy and pure coordinate helpers.
+ * Purpose: Lets renderer code and focused tests share one calm, Canvas-relative camera contract.
  * Notes: This module has no DOM, renderer, storage, network, or visitor-state side effects.
  */
 
@@ -21,8 +21,16 @@ export interface D9AmbientCameraPolicy {
   readonly returnDamping: number;
 }
 
+// Describe one stable Canvas-relative pointer sample retained only for developer diagnostics.
+export interface D9AmbientPointerCoordinates {
+  readonly clientX: number;
+  readonly clientY: number;
+  readonly normalizedX: number;
+  readonly normalizedY: number;
+}
+
 // Describe the compact evidence retained by the development-only diagnostics fragment after an ordinary mouse signal.
-export interface D9AmbientPointerSignal {
+export interface D9AmbientPointerSignal extends D9AmbientPointerCoordinates {
   readonly pendingPitchRadians: number;
   readonly pendingYawRadians: number;
   readonly pointerEventCount: number;
@@ -32,23 +40,23 @@ export interface D9AmbientPointerSignal {
 // Keep settled states and reduced motion on the literal authored endpoint.
 const staticPolicy: D9AmbientCameraPolicy = {
   enabled: false,
-  holdMilliseconds: 340,
-  intentDelayMilliseconds: 180,
+  holdMilliseconds: 450,
+  intentDelayMilliseconds: 150,
   maxPitchRadians: 0,
   maxYawRadians: 0,
   responseDamping: 0,
   returnDamping: 0,
 };
 
-// Keep living-camera values below the owner-approved maximum so the scene can never become free navigation.
+// Keep living-camera values inside the owner-approved proof envelope, not a free-navigation range.
 const movingPolicy: D9AmbientCameraPolicy = {
   enabled: true,
-  holdMilliseconds: 520,
+  holdMilliseconds: 460,
   intentDelayMilliseconds: 150,
-  maxPitchRadians: MathUtils.degToRad(1.15),
-  maxYawRadians: MathUtils.degToRad(2.4),
-  responseDamping: 4.2,
-  returnDamping: 0.55,
+  maxPitchRadians: MathUtils.degToRad(1.5),
+  maxYawRadians: MathUtils.degToRad(3),
+  responseDamping: 5.2,
+  returnDamping: 1.65,
 };
 
 // Select only the two approved living-camera states; READ and PRAY remain stable reading/reflection endpoints.
@@ -59,7 +67,7 @@ export function selectD9AmbientCameraPolicy(
   return reducedMotion || (state !== "SANCTUARY" && state !== "SIT") ? staticPolicy : movingPolicy;
 }
 
-// Clamp every accumulated pointer impulse before it reaches mutable camera state so the view cannot drift or spin.
+// Clamp every requested offset before it reaches mutable camera state so the view cannot drift or spin.
 export function clampD9AmbientOffset(
   yawRadians: number,
   pitchRadians: number,
@@ -71,17 +79,68 @@ export function clampD9AmbientOffset(
   ];
 }
 
-// Accumulate one browser pointer sample in a pure helper so focused tests can prove that a real signal reaches the camera policy.
+// Normalize a client pointer against the actual Canvas rectangle so edge position remains meaningful without movement deltas.
+export function normalizeD9AmbientPointer(
+  clientX: number,
+  clientY: number,
+  canvasRect: Pick<DOMRect, "height" | "left" | "top" | "width">,
+): D9AmbientPointerCoordinates {
+  const normalizedX = canvasRect.width === 0 ? 0 : (clientX - canvasRect.left) / canvasRect.width;
+  const normalizedY = canvasRect.height === 0 ? 0 : (clientY - canvasRect.top) / canvasRect.height;
+
+  return {
+    clientX,
+    clientY,
+    normalizedX: MathUtils.clamp(normalizedX, 0, 1),
+    normalizedY: MathUtils.clamp(normalizedY, 0, 1),
+  };
+}
+
+// Convert one stable pointer position into a calm camera target rather than accumulating unreliable pointer movement deltas.
 export function applyD9AmbientPointerSignal(
   prior: D9AmbientPointerSignal,
-  movementX: number,
-  movementY: number,
+  coordinates: D9AmbientPointerCoordinates,
   pointerType: string,
+  policy: D9AmbientCameraPolicy,
 ): D9AmbientPointerSignal {
+  const [pendingYawRadians, pendingPitchRadians] = clampD9AmbientOffset(
+    (coordinates.normalizedX - 0.5) * policy.maxYawRadians * 2,
+    (0.5 - coordinates.normalizedY) * policy.maxPitchRadians * 2,
+    policy,
+  );
+
   return {
-    pendingPitchRadians: prior.pendingPitchRadians + movementY * 0.00075,
-    pendingYawRadians: prior.pendingYawRadians + movementX * 0.0014,
+    ...coordinates,
+    pendingPitchRadians,
+    pendingYawRadians,
     pointerEventCount: prior.pointerEventCount + 1,
     pointerType,
   };
+}
+
+// Decide the time-bounded motion phase in one pure helper so an idle pointer is always directed home.
+export function selectD9AmbientMotionState({
+  intentStartedAt,
+  lastMovementAt,
+  now,
+  policy,
+}: {
+  readonly intentStartedAt: number | null;
+  readonly lastMovementAt: number | null;
+  readonly now: number;
+  readonly policy: D9AmbientCameraPolicy;
+}): "disabled" | "holding" | "intent-delay" | "returning" {
+  if (!policy.enabled) {
+    return "disabled";
+  }
+
+  if (intentStartedAt === null || lastMovementAt === null) {
+    return "returning";
+  }
+
+  if (now - intentStartedAt < policy.intentDelayMilliseconds) {
+    return "intent-delay";
+  }
+
+  return now - lastMovementAt <= policy.holdMilliseconds ? "holding" : "returning";
 }
