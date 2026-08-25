@@ -1,7 +1,7 @@
 /**
  * File: apps/sanctuary/src/rendering/D9EnvironmentalAffordances.test.ts
- * Description: Covers the small cue and action projections used by D9 environmental proxies.
- * Purpose: Keeps touch discovery static, pointer feedback modest, and Canvas activation aligned with the DOM model.
+ * Description: Covers the small cue and DOM action projections used by D9 environmental affordances.
+ * Purpose: Keeps touch discovery static, pointer feedback modest, and the reducer aligned with semantic DOM targets.
  * Notes: These tests use no renderer and do not exercise a real device pointer.
  */
 
@@ -13,7 +13,7 @@ import { selectD9AffordanceAnchors, selectD9CueIntensity } from "./d9AffordanceA
 
 // Check that an environmental activation always resolves through the exact current semantic action.
 describe("D9 environmental action projection", () => {
-  it("maps the tabletop and Bible proxies to their legal DOM-authoritative actions", () => {
+  it("maps the tabletop and Bible DOM targets to their legal reducer actions", () => {
     expect(selectSanctuaryAffordance({ name: "SANCTUARY" }).action).toBe("SIT");
     expect(selectSanctuaryAffordance({ name: "SIT" }).action).toBe("READ_BIBLE");
     expect(selectD9AffordanceAnchors("READ")).toEqual([]);

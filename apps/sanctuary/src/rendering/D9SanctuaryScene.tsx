@@ -15,12 +15,13 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
 import batchedCandidateUrl from "../assets/candidates/realm-mvp-sanctuary-v1-r2-batched-meshopt.glb?url";
 import rawCandidateUrl from "../../../../tools/hf01/candidates/realm-mvp-sanctuary-v1-raw-r2.glb?url";
-import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
+import type { SanctuaryMvpState } from "../sanctuary/model";
 import type { StaticSanctuaryProofConfig } from "./capabilities";
 import {
   D9EnvironmentalAffordances,
   type D9AffordanceDiagnosticSnapshot,
 } from "./D9EnvironmentalAffordances";
+import type { D9DomInteractionTarget, D9DomInteractionVisualState } from "./d9DomInteractionTarget";
 import { D9ReadingPageProjection, type D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import { d9VisitorSceneContract, type D9RenderQuality } from "./d9SanctuaryQuality";
 import {
@@ -50,7 +51,7 @@ function D9RuntimeMetrics({
   readonly quality: D9RenderQuality;
   readonly sanctuaryState: SanctuaryMvpState["name"];
 }): ReactNode {
-  const { gl } = useThree();
+  const { gl, invalidate } = useThree();
   const settled = useRef(false);
   const pacingIntervals = useRef<number[]>([]);
   const previousTimestamp = useRef<number | null>(null);
@@ -68,6 +69,7 @@ function D9RuntimeMetrics({
     canvas.setAttribute("data-d9-requested-dpr", String(quality.dpr));
     canvas.setAttribute("data-d9-antialias-requested", String(quality.antialias));
     canvas.setAttribute("data-d9-sanctuary-state", sanctuaryState);
+    canvas.setAttribute("data-d9-idle-render-loop", "demand");
 
     const firstFrame = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
@@ -81,8 +83,12 @@ function D9RuntimeMetrics({
         canvas.setAttribute("data-d9-antialias-active", String(antialias));
         canvas.setAttribute("data-d9-visitor-ready", "true");
         settled.current = true;
+        // Continue the bounded diagnostics sample after the renderer is settled, then return to true idle demand mode.
+        invalidate();
       });
     });
+    // Ensure the first demand-rendered frame is scheduled after each snapped D7.5 endpoint.
+    invalidate();
 
     return () => {
       window.cancelAnimationFrame(firstFrame);
@@ -97,6 +103,7 @@ function D9RuntimeMetrics({
         "data-d9-drawing-buffer-width",
         "data-d9-drawing-buffer-height",
         "data-d9-antialias-active",
+        "data-d9-idle-render-loop",
         "data-d9-sanctuary-state",
         "data-d9-pacing-ready",
         "data-d9-pacing-median-ms",
@@ -106,7 +113,7 @@ function D9RuntimeMetrics({
         canvas.removeAttribute(attribute);
       }
     };
-  }, [gl, quality.antialias, quality.dpr, quality.policy, sanctuaryState]);
+  }, [gl, invalidate, quality.antialias, quality.dpr, quality.policy, sanctuaryState]);
 
   useFrame(() => {
     // Wait for the same settled state as the renderer counters before recording ordinary browser presentation intervals.
@@ -119,10 +126,13 @@ function D9RuntimeMetrics({
     previousTimestamp.current = timestamp;
     frameCount.current += 1;
     if (priorTimestamp === null || frameCount.current <= 30) {
+      // Keep this initial measurement bounded; it is the only intentional short multi-frame idle sample.
+      invalidate();
       return;
     }
     pacingIntervals.current.push(timestamp - priorTimestamp);
     if (pacingIntervals.current.length !== 120) {
+      invalidate();
       return;
     }
 
@@ -197,9 +207,10 @@ function D9Lighting({
 export function D9SanctuaryScene({
   config = d9VisitorSceneConfig,
   diagnosticsEnabled = false,
+  interactionVisualState = "idle",
   onAffordanceDiagnosticChange,
+  onInteractionTargetChange,
   onReadingPageLayoutChange,
-  onSanctuaryInteraction,
   quality,
   reducedMotion,
   sanctuaryState,
@@ -207,10 +218,12 @@ export function D9SanctuaryScene({
 }: {
   readonly config?: StaticSanctuaryProofConfig | undefined;
   readonly diagnosticsEnabled?: boolean | undefined;
+  readonly interactionVisualState?: D9DomInteractionVisualState | undefined;
   readonly onAffordanceDiagnosticChange?:
     ((snapshot: D9AffordanceDiagnosticSnapshot | null) => void) | undefined;
+  readonly onInteractionTargetChange?:
+    ((target: D9DomInteractionTarget | null) => void) | undefined;
   readonly onReadingPageLayoutChange?: ((layout: D9ReadingPageLayout | null) => void) | undefined;
-  readonly onSanctuaryInteraction?: ((action: SanctuaryMvpAction) => void) | undefined;
   readonly quality: D9RenderQuality;
   readonly reducedMotion: boolean;
   readonly sanctuaryState?: SanctuaryMvpState | undefined;
@@ -238,11 +251,12 @@ export function D9SanctuaryScene({
         scale={visualCalibration.room.scale}
       >
         <primitive object={scene} />
-        {sanctuaryState !== undefined && onSanctuaryInteraction !== undefined ? (
+        {sanctuaryState !== undefined && onInteractionTargetChange !== undefined ? (
           <D9EnvironmentalAffordances
             diagnosticsEnabled={diagnosticsEnabled}
+            interactionVisualState={interactionVisualState}
             onDiagnosticChange={onAffordanceDiagnosticChange}
-            onInteraction={onSanctuaryInteraction}
+            onInteractionTargetChange={onInteractionTargetChange}
             reducedMotion={reducedMotion}
             scene={scene}
             state={sanctuaryState}

@@ -15,6 +15,7 @@ import { d75SanctuaryCameras } from "./d75SanctuaryCamera";
 import {
   applyD9AmbientPointerSignal,
   clampD9AmbientOffset,
+  isD9PointerWithinViewport,
   normalizeD9AmbientPointer,
   selectD9AmbientCameraPolicy,
   selectD9AmbientMotionState,
@@ -36,6 +37,7 @@ export interface D9AmbientCameraDiagnosticSnapshot {
   readonly pointerEventCount: number;
   readonly pointerType: string;
   readonly state: SanctuaryMvpState["name"];
+  readonly systemReducedMotion: boolean;
   readonly targetPitchDegrees: number;
   readonly targetYawDegrees: number;
 }
@@ -53,17 +55,21 @@ function buildAnchorQuaternion(state: SanctuaryMvpState["name"]): Quaternion {
 // Keep raw browser pointer records in refs so normal pointer frames never create React application updates.
 export function D9AmbientCameraGlance({
   diagnosticsEnabled,
+  diagnosticMotionOverride,
   onDiagnosticChange,
   reducedMotion,
   state,
+  systemReducedMotion,
 }: {
   readonly diagnosticsEnabled: boolean;
+  readonly diagnosticMotionOverride: boolean;
   readonly onDiagnosticChange:
     ((snapshot: D9AmbientCameraDiagnosticSnapshot | null) => void) | undefined;
   readonly reducedMotion: boolean;
   readonly state: SanctuaryMvpState;
+  readonly systemReducedMotion: boolean;
 }): ReactNode {
-  const { camera, gl } = useThree();
+  const { camera, gl, invalidate } = useThree();
   const anchorQuaternion = useRef(new Quaternion());
   const appliedPitch = useRef(0);
   const appliedYaw = useRef(0);
@@ -84,7 +90,7 @@ export function D9AmbientCameraGlance({
     pointerType: "none",
   });
   const stateName = useRef(state.name);
-  const policy = selectD9AmbientCameraPolicy(state.name, reducedMotion);
+  const policy = selectD9AmbientCameraPolicy(state.name, reducedMotion, diagnosticMotionOverride);
 
   useEffect(() => {
     // State snaps always win: clear any old glance and reset the exact authored quaternion immediately.
@@ -111,10 +117,15 @@ export function D9AmbientCameraGlance({
   }, [camera, state.name]);
 
   useEffect(() => {
-    const canvas = gl.domElement;
     const handlePointerMove = (event: PointerEvent): void => {
       // Touch has direct targets but never simulates a desktop camera response.
       if (!policy.enabled || event.pointerType !== "mouse") {
+        return;
+      }
+
+      const canvasRect = gl.domElement.getBoundingClientRect();
+      // DOM interaction buttons can sit above Canvas, so inspect the stable window stream but reject off-viewport input.
+      if (!isD9PointerWithinViewport(event.clientX, event.clientY, canvasRect)) {
         return;
       }
 
@@ -123,20 +134,22 @@ export function D9AmbientCameraGlance({
       lastMovementAt.current = now;
       pointerSignal.current = applyD9AmbientPointerSignal(
         pointerSignal.current,
-        normalizeD9AmbientPointer(event.clientX, event.clientY, canvas.getBoundingClientRect()),
+        normalizeD9AmbientPointer(event.clientX, event.clientY, canvasRect),
         event.pointerType,
         policy,
       );
       pendingYaw.current = pointerSignal.current.pendingYawRadians;
       pendingPitch.current = pointerSignal.current.pendingPitchRadians;
+      // Wake the demand-driven D9 canvas only for an accepted local pointer signal.
+      invalidate();
     };
 
-    canvas.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
 
     return () => {
-      canvas.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointermove", handlePointerMove);
     };
-  }, [gl, policy]);
+  }, [gl, invalidate, policy]);
 
   useFrame((_, deltaSeconds) => {
     const now = performance.now();
@@ -189,6 +202,15 @@ export function D9AmbientCameraGlance({
     camera.quaternion.copy(anchorQuaternion.current).multiply(relativeQuaternion.current);
     camera.updateMatrixWorld();
 
+    // Continue only while an intentional glance or nonzero return is active; a settled D9 room stays demand-rendered.
+    if (
+      motionState === "intent-delay" ||
+      motionState === "holding" ||
+      (motionState === "returning" && (appliedYaw.current !== 0 || appliedPitch.current !== 0))
+    ) {
+      invalidate();
+    }
+
     // Keep compact renderer-local evidence without creating a DOM/control path in the normal visitor surface.
     if (diagnosticsEnabled) {
       const snapshot: D9AmbientCameraDiagnosticSnapshot = {
@@ -205,6 +227,7 @@ export function D9AmbientCameraGlance({
         pointerEventCount: pointerSignal.current.pointerEventCount,
         pointerType: pointerSignal.current.pointerType,
         state: stateName.current,
+        systemReducedMotion,
         targetPitchDegrees: MathUtils.radToDeg(targetPitch),
         targetYawDegrees: MathUtils.radToDeg(targetYaw),
       };

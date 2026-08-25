@@ -17,6 +17,7 @@ import {
 import type { RendererFailureReason } from "./CanvasExperience";
 import type { D9AmbientCameraDiagnosticSnapshot } from "./D9AmbientCameraGlance";
 import type { D9AffordanceDiagnosticSnapshot } from "./D9EnvironmentalAffordances";
+import type { D9DomInteractionTarget, D9DomInteractionVisualState } from "./d9DomInteractionTarget";
 import { createD9PageMatrix3d, type D9ReadingPageQuad } from "./d9ReadingPageGeometry";
 import type { D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import type { CinematicPlaybackHandle } from "./CinematicSanctuaryLayer";
@@ -37,7 +38,7 @@ import {
   type CinematicMotionStatus,
   type VisualProofMode,
 } from "./hybridProof";
-import { useReducedMotion } from "./useReducedMotion";
+import { readSystemReducedMotionPreference, useReducedMotion } from "./useReducedMotion";
 import { selectVisualAtmosphere } from "./visualAtmosphere";
 import { createDefaultVisualCalibration, type VisualCalibration } from "./visualCalibration";
 
@@ -187,6 +188,75 @@ export function D9ReadingSurface({
   );
 }
 
+// Keep READ recoverable when page-perspective registration is unavailable; this is deliberately labeled development content.
+export function D9ReadingFallback({ onLetsPray }: { readonly onLetsPray: () => void }): ReactNode {
+  return (
+    <section
+      aria-label="Development reading fallback"
+      className="d9-reading-surface d9-reading-surface--fallback"
+      data-d9-reading-fallback="true"
+    >
+      <p className="d9-reading-fixture">
+        Development reading overlay unavailable — the sanctuary reading journey remains available.
+      </p>
+      <button
+        aria-label="Let us pray from the development reading fallback"
+        className="d9-reading-action"
+        onClick={onLetsPray}
+        type="button"
+      >
+        Let&apos;s pray
+      </button>
+    </section>
+  );
+}
+
+// Render the sole visible-object action as a bounded semantic DOM button rather than a Canvas raycast proxy.
+export function D9ProjectedInteractionTarget({
+  onInteraction,
+  onVisualStateChange,
+  target,
+}: {
+  readonly onInteraction: (action: SanctuaryMvpAction) => void;
+  readonly onVisualStateChange: (state: D9DomInteractionVisualState) => void;
+  readonly target: D9DomInteractionTarget;
+}): ReactNode {
+  const { screenBounds } = target;
+
+  return (
+    <button
+      aria-label={target.ariaLabel}
+      className="d9-projected-interaction-target"
+      data-d9-dom-interaction-target={target.semanticRoot}
+      data-d9-dom-interaction-target-key={target.key}
+      onBlur={() => {
+        onVisualStateChange("idle");
+      }}
+      onClick={() => {
+        onInteraction(target.action);
+      }}
+      onFocus={() => {
+        onVisualStateChange("focused");
+      }}
+      onPointerEnter={() => {
+        onVisualStateChange("hovered");
+      }}
+      onPointerLeave={() => {
+        onVisualStateChange("idle");
+      }}
+      style={{
+        height: `${screenBounds.height.toString()}px`,
+        left: `${screenBounds.left.toString()}px`,
+        top: `${screenBounds.top.toString()}px`,
+        width: `${screenBounds.width.toString()}px`,
+      }}
+      type="button"
+    >
+      <span>{target.ariaLabel}</span>
+    </button>
+  );
+}
+
 // Keep reflection content visible and semantic while a later reviewed content pass decides any real reading material.
 export function D9ReflectionSurface({ onReturn }: { readonly onReturn: () => void }): ReactNode {
   const reflection = selectD9DevelopmentReflection(d9DevelopmentReading.relatedPrayerContentId);
@@ -278,6 +348,12 @@ function ExperienceViewportContent({
   const [ambientCameraDiagnostics, setAmbientCameraDiagnostics] =
     useState<D9AmbientCameraDiagnosticSnapshot | null>(null);
   const [readingPageLayout, setReadingPageLayout] = useState<D9ReadingPageLayout | null>(null);
+  const [domInteractionTarget, setDomInteractionTarget] = useState<D9DomInteractionTarget | null>(
+    null,
+  );
+  const [interactionVisualState, setInteractionVisualState] =
+    useState<D9DomInteractionVisualState>("idle");
+  const [diagnosticMotionOverride, setDiagnosticMotionOverride] = useState(false);
   const [visualCalibration, setVisualCalibration] = useState<VisualCalibration>(
     createDefaultVisualCalibration,
   );
@@ -289,6 +365,7 @@ function ExperienceViewportContent({
   const [cinematicMotionStatus, setCinematicMotionStatus] =
     useState<CinematicMotionStatus>("loading");
   const reducedMotion = useReducedMotion();
+  const systemReducedMotion = readSystemReducedMotionPreference();
   const fallback = <ExperienceFallback visualState={visualState} />;
   const visualProofLayer = selectVisualProofLayer(visualProofMode, visualState.stage);
   const cinematicActive =
@@ -306,6 +383,11 @@ function ExperienceViewportContent({
   }, []);
   const handleReadingPageLayoutChange = useCallback((layout: D9ReadingPageLayout | null) => {
     setReadingPageLayout(layout);
+  }, []);
+  const handleDomInteractionTargetChange = useCallback((target: D9DomInteractionTarget | null) => {
+    // A target replacement can happen before pointer-leave, so return the local cue to its resting warmth atomically.
+    setInteractionVisualState("idle");
+    setDomInteractionTarget(target);
   }, []);
   const enterPrayerFromReading = useCallback(() => {
     onSanctuaryInteraction?.("ENTER_PRAYER");
@@ -406,11 +488,14 @@ function ExperienceViewportContent({
                 fallback={fallback}
                 onAffordanceDiagnosticChange={setAffordanceDiagnostics}
                 onAmbientCameraDiagnosticChange={setAmbientCameraDiagnostics}
+                onInteractionTargetChange={handleDomInteractionTargetChange}
                 onReadingPageLayoutChange={handleReadingPageLayoutChange}
                 onRendererFailure={handleRendererFailure}
                 onRendererReady={handleRendererReady}
-                onSanctuaryInteraction={onSanctuaryInteraction}
+                diagnosticMotionOverride={affordanceDiagnosticsActive && diagnosticMotionOverride}
+                interactionVisualState={interactionVisualState}
                 reducedMotion={reducedMotion}
+                systemReducedMotion={systemReducedMotion}
                 sanctuaryState={sanctuaryState}
                 visualCalibration={visualCalibration}
                 visualState={visualState}
@@ -419,12 +504,25 @@ function ExperienceViewportContent({
           </ViewportErrorBoundary>
         ) : null}
       </section>
-      {d9VisitorConfig !== null && sanctuaryState?.name === "READ" && readingPageLayout !== null ? (
-        <D9ReadingSurface
-          diagnosticsEnabled={affordanceDiagnosticsActive}
-          layout={readingPageLayout}
-          onLetsPray={enterPrayerFromReading}
+      {d9VisitorConfig !== null &&
+      domInteractionTarget !== null &&
+      onSanctuaryInteraction !== undefined ? (
+        <D9ProjectedInteractionTarget
+          onInteraction={onSanctuaryInteraction}
+          onVisualStateChange={setInteractionVisualState}
+          target={domInteractionTarget}
         />
+      ) : null}
+      {d9VisitorConfig !== null && sanctuaryState?.name === "READ" ? (
+        readingPageLayout !== null ? (
+          <D9ReadingSurface
+            diagnosticsEnabled={affordanceDiagnosticsActive}
+            layout={readingPageLayout}
+            onLetsPray={enterPrayerFromReading}
+          />
+        ) : (
+          <D9ReadingFallback onLetsPray={enterPrayerFromReading} />
+        )
       ) : null}
       {d9VisitorConfig !== null && sanctuaryState?.name === "PRAY" ? (
         <D9ReflectionSurface onReturn={returnToSanctuaryFromReflection} />
@@ -433,7 +531,7 @@ function ExperienceViewportContent({
         <aside className="d9-affordance-diagnostics" data-d9-affordance-diagnostics="true">
           {affordanceDiagnostics !== null ? (
             <>
-              <p>Active proxy: {affordanceDiagnostics.activeProxy.join(", ")}</p>
+              <p>Active DOM target: {affordanceDiagnostics.activeTarget ?? "none"}</p>
               <p>World bounds: {JSON.stringify(affordanceDiagnostics.worldBounds)}</p>
               <p>
                 Screen bounds:{" "}
@@ -442,13 +540,26 @@ function ExperienceViewportContent({
                   : affordanceDiagnostics.screenBounds.map((value) => value.toFixed(1)).join(", ")}
               </p>
               <p>State: {affordanceDiagnostics.state}</p>
-              <p>Hover: {affordanceDiagnostics.hoverProxy ?? "none"}</p>
-              <p>Activation events: {affordanceDiagnostics.activationCount}</p>
+              <p>DOM visual state: {affordanceDiagnostics.visualState}</p>
               <p>Cue: {JSON.stringify(affordanceDiagnostics.cue)}</p>
             </>
           ) : null}
           {ambientCameraDiagnostics !== null ? (
             <>
+              <p>
+                System reduced motion / Realm resolved: {String(systemReducedMotion)} /{" "}
+                {String(reducedMotion)}
+              </p>
+              <button
+                aria-pressed={diagnosticMotionOverride}
+                data-d9-diagnostic-motion-override="true"
+                onClick={() => {
+                  setDiagnosticMotionOverride((current) => !current);
+                }}
+                type="button"
+              >
+                {diagnosticMotionOverride ? "Disable" : "Enable"} diagnostic camera motion proof
+              </button>
               <p>Camera state: {ambientCameraDiagnostics.state}</p>
               <p>Pointer events: {ambientCameraDiagnostics.pointerEventCount}</p>
               <p>

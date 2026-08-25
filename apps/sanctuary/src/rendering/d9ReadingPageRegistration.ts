@@ -22,7 +22,8 @@ export function createD9ReadingPageRegistrationGate<T>() {
     // Set the attempt flag before measurement so a thrown registration cannot retry on the next render frame.
     register(measure: () => T): D9ReadingPageRegistrationResult<T> {
       if (failure !== null) {
-        return { status: "unavailable", error: failure };
+        // The first unavailable result is reported by the caller; later frames do no additional overlay work.
+        return { status: "skipped" };
       }
       if (hasAttemptedForViewport) {
         return { status: "skipped" };

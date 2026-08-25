@@ -44,6 +44,14 @@ const d9EnvironmentalAffordancePath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/rendering/D9EnvironmentalAffordances.tsx",
 );
+const d9DomInteractionTargetPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/d9DomInteractionTarget.ts",
+);
+const d9AffordanceAnchorsPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/d9AffordanceAnchors.ts",
+);
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
 function readRepositoryFile(path) {
@@ -229,10 +237,13 @@ function verifyVisitorVisualBoundary(shellSource, canvasSource, sceneSource) {
 // Require the D9.0B interaction proof to remain an exact four-state, DOM-authoritative environmental path.
 function verifyD9InteractionBoundary(
   shellSource,
+  viewportSource,
   canvasSource,
   sceneSource,
   modelSource,
   affordanceSource,
+  domTargetSource,
+  anchorSource,
 ) {
   for (const requiredFragment of [
     "useReducer",
@@ -283,22 +294,47 @@ function verifyD9InteractionBoundary(
     );
   }
 
-  for (const requiredFragment of ["D9EnvironmentalAffordances", "onSanctuaryInteraction"]) {
+  for (const requiredFragment of ["D9EnvironmentalAffordances", "onInteractionTargetChange"]) {
     if (!sceneSource.includes(requiredFragment)) {
       throw new Error(
-        `D9SanctuaryScene must preserve its environmental interaction projection: ${requiredFragment}.`,
+        `D9SanctuaryScene must preserve its DOM interaction projection: ${requiredFragment}.`,
       );
     }
   }
 
+  if (canvasSource.includes("onSanctuaryInteraction")) {
+    throw new Error("CanvasExperience must not own visitor pointer-action authority.");
+  }
+
   for (const requiredFragment of [
-    "onClick",
-    "onPointerOver",
-    "meshBasicMaterial",
-    "reducedMotion",
+    "D9ProjectedInteractionTarget",
+    "d9-projected-interaction-target",
+    "onInteraction",
   ]) {
+    if (!viewportSource.includes(requiredFragment)) {
+      throw new Error(
+        `ExperienceViewport must preserve a bounded semantic DOM action: ${requiredFragment}.`,
+      );
+    }
+  }
+
+  for (const requiredFragment of ["pointLight", "onInteractionTargetChange", "reducedMotion"]) {
     if (!affordanceSource.includes(requiredFragment)) {
-      throw new Error(`Environmental affordances must preserve ${requiredFragment}.`);
+      throw new Error(
+        `Environmental affordances must preserve the local visual cue boundary: ${requiredFragment}.`,
+      );
+    }
+  }
+
+  for (const requiredFragment of ["HF01_PrayerTable__Table_Top", "HF01_Bible_Root"]) {
+    if (!anchorSource.includes(requiredFragment)) {
+      throw new Error(`D9 DOM interaction anchors must preserve ${requiredFragment}.`);
+    }
+  }
+
+  for (const requiredFragment of ["projectD9DomInteractionTarget"]) {
+    if (!domTargetSource.includes(requiredFragment)) {
+      throw new Error(`D9 DOM interaction projection must preserve ${requiredFragment}.`);
     }
   }
 }
@@ -406,10 +442,13 @@ verifyVisitorVisualBoundary(
 );
 verifyD9InteractionBoundary(
   readRepositoryFile(sanctuaryShellPath),
+  readRepositoryFile(viewportPath),
   readRepositoryFile(canvasExperiencePath),
   readRepositoryFile(d9ScenePath),
   readRepositoryFile(sanctuaryInteractionModelPath),
   readRepositoryFile(d9EnvironmentalAffordancePath),
+  readRepositoryFile(d9DomInteractionTargetPath),
+  readRepositoryFile(d9AffordanceAnchorsPath),
 );
 verifyMotionBoundary(readRepositoryFile(sanctuaryCssPath), readRepositoryFile(realmScenePath));
 verifyViewportAccessibilityBoundary(

@@ -1,39 +1,39 @@
 /**
  * File: apps/sanctuary/src/rendering/D9EnvironmentalAffordances.tsx
- * Description: Renders state-specific local interaction proxies and optional local diagnostics data.
- * Purpose: Lets visitors discover one real sanctuary object at a time without a visible game-control layer.
- * Notes: Proxies are local and stateless; semantic labels and transition authority stay in the DOM shell.
+ * Description: Renders state-specific warmth cues and reports projected DOM interaction regions.
+ * Purpose: Leaves visitor actions to semantic DOM buttons while keeping the room's visual invitation local to Three.js.
+ * Notes: This component owns neither browser pointer events nor state transitions and contains no visitor content.
  */
 
-// Import only local R3F, React, and Three helpers needed for one measured proxy box at a time.
-import { useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Vector3, type Camera, type Object3D } from "three";
+// Import renderer-local hooks and Three helpers needed to project one existing authored object after a settled frame.
+import { useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { Vector3, type Object3D } from "three";
 
-import {
-  selectSanctuaryAffordance,
-  type SanctuaryMvpAction,
-  type SanctuaryMvpState,
-} from "../sanctuary/model";
+import type { SanctuaryMvpState } from "../sanctuary/model";
 import {
   selectD9AffordanceBox,
+  selectD9AffordanceAnchors,
   selectD9CueIntensity,
   selectD9CuePosition,
   type D9AffordanceAnchor,
 } from "./d9AffordanceAnchors";
-import { selectD9InteractionProxy } from "./d9InteractionProxy";
+import {
+  projectD9DomInteractionTarget,
+  type D9DomInteractionTarget,
+  type D9DomInteractionVisualState,
+} from "./d9DomInteractionTarget";
 
-// Describe the small local-only diagnostic record shown outside the Canvas after an explicit development fragment.
+// Describe local development evidence without reintroducing Canvas-hitbox or activation authority.
 export interface D9AffordanceDiagnosticSnapshot {
-  readonly activeProxy: readonly string[];
-  readonly activationCount: number;
-  readonly hoverProxy: string | null;
-  readonly screenBounds: readonly [number, number, number, number] | null;
-  readonly state: SanctuaryMvpState["name"];
+  readonly activeTarget: string | null;
   readonly cue: {
     readonly intensity: number;
     readonly position: readonly [number, number, number];
   } | null;
+  readonly screenBounds: readonly [number, number, number, number] | null;
+  readonly state: SanctuaryMvpState["name"];
+  readonly visualState: D9DomInteractionVisualState;
   readonly worldBounds: readonly {
     readonly dimensions: readonly [number, number, number];
     readonly max: readonly [number, number, number];
@@ -41,101 +41,80 @@ export interface D9AffordanceDiagnosticSnapshot {
   }[];
 }
 
-// Turn a measured box into immutable values so React never depends on Three's mutable box instances.
+// Turn a measured authored anchor into immutable diagnostic values without retaining mutable Box3 instances in React.
 function describeBox(anchor: D9AffordanceAnchor) {
   const box = selectD9AffordanceBox(anchor);
   const dimensions = box.getSize(new Vector3());
   return {
-    box,
     dimensions: [dimensions.x, dimensions.y, dimensions.z] as const,
     max: [box.max.x, box.max.y, box.max.z] as const,
     min: [box.min.x, box.min.y, box.min.z] as const,
   };
 }
 
-// Project a local proxy box through the real camera only for diagnostics, never for ordinary interaction.
-function projectBoxesToScreen(
-  anchors: readonly D9AffordanceAnchor[],
-  scene: Object3D,
-  camera: Camera,
-  canvas: HTMLCanvasElement,
-): readonly [number, number, number, number] | null {
-  const points: Vector3[] = [];
-  const sceneParent = scene.parent;
-
-  for (const anchor of anchors) {
-    const box = selectD9AffordanceBox(anchor);
-
-    for (const x of [box.min.x, box.max.x]) {
-      for (const y of [box.min.y, box.max.y]) {
-        for (const z of [box.min.z, box.max.z]) {
-          const point = new Vector3(x, y, z);
-          // Convert from the D9 scene's authored coordinates into the active camera's world coordinates.
-          sceneParent?.localToWorld(point);
-          points.push(point.project(camera));
-        }
-      }
-    }
-  }
-
-  if (points.length === 0) {
-    return null;
-  }
-
-  const projectedX = points.map((point) => (point.x + 1) * 0.5 * canvas.clientWidth);
-  const projectedY = points.map((point) => (1 - point.y) * 0.5 * canvas.clientHeight);
-
-  return [
-    Math.min(...projectedX),
-    Math.min(...projectedY),
-    Math.max(...projectedX),
-    Math.max(...projectedY),
-  ];
-}
-
-// Place one freshly keyed proxy for the current state so Three discards stale raycast bounds during a transition.
+// Project once after an active-camera or state update; a DOM button owns all subsequent visitor pointer interaction.
 export function D9EnvironmentalAffordances({
   diagnosticsEnabled,
+  interactionVisualState,
   onDiagnosticChange,
-  onInteraction,
+  onInteractionTargetChange,
   reducedMotion,
   scene,
   state,
 }: {
   readonly diagnosticsEnabled: boolean;
+  readonly interactionVisualState: D9DomInteractionVisualState;
   readonly onDiagnosticChange:
     ((snapshot: D9AffordanceDiagnosticSnapshot | null) => void) | undefined;
-  readonly onInteraction: (action: SanctuaryMvpAction) => void;
+  readonly onInteractionTargetChange: (target: D9DomInteractionTarget | null) => void;
   readonly reducedMotion: boolean;
   readonly scene: Object3D;
   readonly state: SanctuaryMvpState;
 }): ReactNode {
-  const { camera, gl } = useThree();
-  const activationCount = useRef(0);
-  const [hoveredProxy, setHoveredProxy] = useState<string | null>(null);
-  const proxyDefinition = useMemo(() => selectD9InteractionProxy(state.name), [state.name]);
-  const primaryDefinition = proxyDefinition?.anchor;
+  const { camera, gl, size } = useThree();
+  const pendingProjection = useRef(true);
+  const targetRef = useRef<D9DomInteractionTarget | null>(null);
+  const [primaryAnchor] = selectD9AffordanceAnchors(state.name);
   const describedAnchor = useMemo(
-    () => (primaryDefinition === undefined ? null : describeBox(primaryDefinition)),
-    [primaryDefinition],
+    () => (primaryAnchor === undefined ? null : describeBox(primaryAnchor)),
+    [primaryAnchor],
   );
-  const anchors = useMemo(
-    () => (primaryDefinition === undefined ? [] : [primaryDefinition]),
-    [primaryDefinition],
-  );
-  // A state change can replace the mesh before pointerout arrives, so only the current object may stay hovered.
-  const activeHoveredProxy = primaryDefinition?.semanticRoot === hoveredProxy ? hoveredProxy : null;
-  // Keep one warm cue on the current meaningful object and increase it only after a normal pointer enters it.
   const cueIntensity = selectD9CueIntensity(
-    primaryDefinition,
-    activeHoveredProxy !== null,
+    primaryAnchor,
+    interactionVisualState !== "idle",
     reducedMotion,
   );
 
   useEffect(() => {
-    // A prior physical surface cannot retain the browser cursor after its state-specific proxy is replaced.
-    document.body.style.cursor = "";
-  }, [state.name]);
+    // A newly selected D7.5 endpoint requires one fresh projection; no per-frame React state is written afterward.
+    pendingProjection.current = true;
+  }, [camera, size.height, size.width, state.name]);
+
+  useEffect(() => {
+    // READ and PRAY deliberately have no projected object action: their DOM semantic controls remain explicit.
+    if (primaryAnchor === undefined) {
+      targetRef.current = null;
+      onInteractionTargetChange(null);
+    }
+  }, [onInteractionTargetChange, primaryAnchor]);
+
+  useFrame(() => {
+    if (!pendingProjection.current) {
+      return;
+    }
+    pendingProjection.current = false;
+
+    const sceneParent = scene.parent;
+    const target = projectD9DomInteractionTarget(
+      state,
+      camera,
+      { height: gl.domElement.clientHeight, width: gl.domElement.clientWidth },
+      (point) => (sceneParent === null ? point : sceneParent.localToWorld(point)),
+    );
+
+    targetRef.current = target;
+    onInteractionTargetChange(target);
+  });
 
   useEffect(() => {
     if (!diagnosticsEnabled) {
@@ -143,119 +122,57 @@ export function D9EnvironmentalAffordances({
       return undefined;
     }
 
-    // Make the Canvas evidence-bearing while the matching simple DOM card remains development-only.
-    const canvas = gl.domElement;
-    const screenBounds = projectBoxesToScreen(anchors, scene, camera, canvas);
+    const target = targetRef.current;
     const snapshot: D9AffordanceDiagnosticSnapshot = {
-      activeProxy: proxyDefinition === null ? [] : [proxyDefinition.key],
-      activationCount: activationCount.current,
-      hoverProxy: activeHoveredProxy,
-      screenBounds,
-      state: state.name,
+      activeTarget: target?.key ?? null,
       cue:
-        primaryDefinition === undefined
+        primaryAnchor === undefined
           ? null
-          : {
-              intensity: cueIntensity,
-              position: selectD9CuePosition(primaryDefinition),
-            },
-      worldBounds:
-        describedAnchor === null
-          ? []
+          : { intensity: cueIntensity, position: selectD9CuePosition(primaryAnchor) },
+      screenBounds:
+        target === null
+          ? null
           : [
-              {
-                dimensions: describedAnchor.dimensions,
-                max: describedAnchor.max,
-                min: describedAnchor.min,
-              },
+              target.screenBounds.left,
+              target.screenBounds.top,
+              target.screenBounds.right,
+              target.screenBounds.bottom,
             ],
+      state: state.name,
+      visualState: interactionVisualState,
+      worldBounds: describedAnchor === null ? [] : [describedAnchor],
     };
 
-    canvas.setAttribute("data-d9-affordance-active-proxy", snapshot.activeProxy.join(","));
-    canvas.setAttribute("data-d9-affordance-hover-proxy", snapshot.hoverProxy ?? "");
-    canvas.setAttribute("data-d9-affordance-state", snapshot.state);
-    canvas.setAttribute("data-d9-affordance-activations", String(snapshot.activationCount));
+    gl.domElement.setAttribute("data-d9-dom-target", snapshot.activeTarget ?? "");
+    gl.domElement.setAttribute("data-d9-dom-target-state", snapshot.state);
     onDiagnosticChange?.(snapshot);
 
     return () => {
-      for (const name of [
-        "data-d9-affordance-active-proxy",
-        "data-d9-affordance-hover-proxy",
-        "data-d9-affordance-state",
-        "data-d9-affordance-activations",
-      ]) {
-        canvas.removeAttribute(name);
-      }
+      gl.domElement.removeAttribute("data-d9-dom-target");
+      gl.domElement.removeAttribute("data-d9-dom-target-state");
     };
   }, [
-    activeHoveredProxy,
-    anchors,
-    camera,
+    cueIntensity,
     describedAnchor,
     diagnosticsEnabled,
     gl,
+    interactionVisualState,
     onDiagnosticChange,
-    primaryDefinition,
-    proxyDefinition,
-    scene,
+    primaryAnchor,
     state.name,
-    cueIntensity,
   ]);
 
-  useEffect(() => {
-    return () => {
-      // Never leave a page-level cursor override behind if this local scene unmounts during a state change.
-      document.body.style.cursor = "";
-    };
-  }, []);
-
-  if (proxyDefinition === null || primaryDefinition === undefined || describedAnchor === null) {
+  if (primaryAnchor === undefined) {
     return null;
   }
 
-  const center = describedAnchor.box.getCenter(new Vector3());
-
   return (
-    <>
-      <pointLight
-        color={primaryDefinition.cueColor}
-        decay={2}
-        distance={primaryDefinition.cueDistance}
-        intensity={cueIntensity}
-        position={selectD9CuePosition(primaryDefinition)}
-      />
-      <mesh
-        key={proxyDefinition.key}
-        name={proxyDefinition.key}
-        onClick={(event) => {
-          // Stop propagation so a pointer can advance only the one state-legal environmental action.
-          event.stopPropagation();
-          activationCount.current += 1;
-          onInteraction(selectSanctuaryAffordance(state).action);
-        }}
-        onPointerOut={() => {
-          // Restore the ordinary cursor when the pointer leaves the actual current proxy surface.
-          document.body.style.cursor = "";
-          setHoveredProxy(null);
-        }}
-        onPointerOver={(event) => {
-          // Keep the browser's familiar pointer cursor without a reticle, label, or hover-only action requirement.
-          event.stopPropagation();
-          document.body.style.cursor = "pointer";
-          setHoveredProxy(primaryDefinition.semanticRoot);
-        }}
-        position={center}
-      >
-        <boxGeometry args={describedAnchor.dimensions} />
-        <meshBasicMaterial
-          color="#7bf0d8"
-          colorWrite={diagnosticsEnabled}
-          depthTest={!diagnosticsEnabled}
-          depthWrite={false}
-          transparent
-          opacity={diagnosticsEnabled ? 0.28 : 0}
-        />
-      </mesh>
-    </>
+    <pointLight
+      color={primaryAnchor.cueColor}
+      decay={2}
+      distance={primaryAnchor.cueDistance}
+      intensity={cueIntensity}
+      position={selectD9CuePosition(primaryAnchor)}
+    />
   );
 }

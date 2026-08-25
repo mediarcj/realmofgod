@@ -9,7 +9,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { D9ReadingSurface, D9ReflectionSurface } from "./ExperienceViewport";
+import {
+  D9ProjectedInteractionTarget,
+  D9ReadingFallback,
+  D9ReadingSurface,
+  D9ReflectionSurface,
+} from "./ExperienceViewport";
 import { createD9PageMatrix3d, orderD9ScreenQuad } from "./d9ReadingPageGeometry";
 
 // Keep the proof rectangle deliberately ordinary because the test protects semantics, not camera-calibration pixels.
@@ -58,6 +63,36 @@ describe("D9 page-anchored DOM reading surfaces", () => {
     expect(markup).toContain('data-d9-reflection-surface="true"');
     expect(markup).toContain("Development reflection fixture — not spiritual guidance");
     expect(markup).toContain("Return to sanctuary");
+  });
+
+  it("keeps the semantic READ-to-PRAY action available when authored page projection is disabled", () => {
+    // The fallback is a stable development path, not a visual substitute for final Bible typography.
+    const markup = renderToStaticMarkup(<D9ReadingFallback onLetsPray={() => undefined} />);
+
+    expect(markup).toContain('data-d9-reading-fallback="true"');
+    expect(markup).toContain("Let&#x27;s pray");
+    expect(markup).toContain("overlay unavailable");
+  });
+
+  it("renders a transparent semantic DOM target for an authored object without a standing action box", () => {
+    // This static check protects the DOM-first authority boundary; dispatch remains reducer-owned by the shell.
+    const markup = renderToStaticMarkup(
+      <D9ProjectedInteractionTarget
+        onInteraction={() => undefined}
+        onVisualStateChange={() => undefined}
+        target={{
+          action: "SIT",
+          ariaLabel: "Sit in the sanctuary",
+          key: "dom:SANCTUARY:HF01_PrayerTable__Table_Top",
+          screenBounds: { bottom: 420, height: 140, left: 300, right: 620, top: 280, width: 320 },
+          semanticRoot: "HF01_PrayerTable__Table_Top",
+        }}
+      />,
+    );
+
+    expect(markup).toContain('data-d9-dom-interaction-target="HF01_PrayerTable__Table_Top"');
+    expect(markup).toContain('aria-label="Sit in the sanctuary"');
+    expect(markup).not.toContain("d9-affordance-proxy");
   });
 
   it("orders page corners and emits a perspective transform instead of an axis-aligned rectangle", () => {

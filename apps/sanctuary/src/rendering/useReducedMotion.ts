@@ -10,6 +10,14 @@ import { useEffect, useState } from "react";
 
 import { readLocalVisualCheck } from "./capabilities";
 
+// Report the raw operating-system truth separately so DEV diagnostics can distinguish it from Realm's local proof policy.
+export function readSystemReducedMotionPreference(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return true;
+  }
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 // Read the media query defensively so a non-browser render remains calm by default.
 export function readReducedMotionPreference(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -30,7 +38,7 @@ export function readReducedMotionPreference(): boolean {
     return false;
   }
 
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return readSystemReducedMotionPreference();
 }
 
 // Follow a visitor's live operating-system preference without writing it to browser storage.

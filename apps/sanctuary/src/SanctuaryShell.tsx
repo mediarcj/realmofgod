@@ -40,7 +40,7 @@ export function SanctuaryShell() {
   };
   const affordance = selectSanctuaryAffordance(activeState);
   const environmentalKeyboardControl =
-    activeState.name === "SANCTUARY" || activeState.name === "SIT";
+    activeState.name === "SANCTUARY" || activeState.name === "SIT" || activeState.name === "READ";
 
   return (
     <main className="sanctuary-shell sanctuary-shell--visitor" aria-labelledby="sanctuary-title">

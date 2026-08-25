@@ -28,12 +28,13 @@ import {
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 import type { JourneyVisualState } from "../journey/model";
-import type { SanctuaryMvpAction, SanctuaryMvpState } from "../sanctuary/model";
+import type { SanctuaryMvpState } from "../sanctuary/model";
 import {
   D9AmbientCameraGlance,
   type D9AmbientCameraDiagnosticSnapshot,
 } from "./D9AmbientCameraGlance";
 import type { D9AffordanceDiagnosticSnapshot } from "./D9EnvironmentalAffordances";
+import type { D9DomInteractionTarget, D9DomInteractionVisualState } from "./d9DomInteractionTarget";
 import type { D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import {
   readD84StaticProofConfig,
@@ -76,17 +77,21 @@ export type RendererFailureReason = "context-lost" | "creation-unavailable";
 // Describe the single local preference forwarded from the lightweight viewport boundary.
 interface CanvasExperienceProps {
   readonly affordanceDiagnosticsEnabled?: boolean | undefined;
+  readonly diagnosticMotionOverride?: boolean | undefined;
   readonly fallback: ReactNode;
+  readonly interactionVisualState?: D9DomInteractionVisualState | undefined;
   readonly onAffordanceDiagnosticChange?:
     ((snapshot: D9AffordanceDiagnosticSnapshot | null) => void) | undefined;
   readonly onAmbientCameraDiagnosticChange?:
     ((snapshot: D9AmbientCameraDiagnosticSnapshot | null) => void) | undefined;
+  readonly onInteractionTargetChange?:
+    ((target: D9DomInteractionTarget | null) => void) | undefined;
   readonly onReadingPageLayoutChange?: ((layout: D9ReadingPageLayout | null) => void) | undefined;
   readonly onRendererFailure: (reason: RendererFailureReason) => void;
   readonly onRendererReady: (api: "webgl1" | "webgl2") => void;
-  readonly onSanctuaryInteraction?: ((action: SanctuaryMvpAction) => void) | undefined;
   readonly reducedMotion: boolean;
   readonly sanctuaryState?: SanctuaryMvpState | undefined;
+  readonly systemReducedMotion?: boolean | undefined;
   readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
 }
@@ -272,15 +277,18 @@ function RendererLifecycle({
 // Render a full atmospheric background while keeping every meaningful word and action in the DOM.
 export function CanvasExperience({
   affordanceDiagnosticsEnabled = false,
+  diagnosticMotionOverride = false,
   fallback,
+  interactionVisualState = "idle",
   onAffordanceDiagnosticChange,
   onAmbientCameraDiagnosticChange,
+  onInteractionTargetChange,
   onReadingPageLayoutChange,
   onRendererFailure,
   onRendererReady,
-  onSanctuaryInteraction,
   reducedMotion,
   sanctuaryState,
+  systemReducedMotion = reducedMotion,
   visualCalibration,
   visualState,
 }: CanvasExperienceProps): ReactNode {
@@ -355,6 +363,8 @@ export function CanvasExperience({
           }
         }}
         fallback={fallback}
+        // The D9 visitor renders only for scene updates or bounded camera motion instead of burning idle display-refresh frames.
+        frameloop={d9QualityRendererActive ? "demand" : "always"}
         onCreated={({ camera, gl, scene }) => {
           // Use photographic highlight rolloff and explicit sRGB output without a postprocessing chain.
           gl.outputColorSpace = SRGBColorSpace;
@@ -395,9 +405,11 @@ export function CanvasExperience({
         {d9VisitorActive && sanctuaryState !== undefined ? (
           <D9AmbientCameraGlance
             diagnosticsEnabled={affordanceDiagnosticsEnabled}
+            diagnosticMotionOverride={diagnosticMotionOverride}
             onDiagnosticChange={onAmbientCameraDiagnosticChange}
             reducedMotion={reducedMotion}
             state={sanctuaryState}
+            systemReducedMotion={systemReducedMotion}
           />
         ) : null}
         <LocalReflectionEnvironment />
@@ -406,9 +418,10 @@ export function CanvasExperience({
             <D9SanctuaryScene
               config={d92QualityInspectionConfig ?? undefined}
               diagnosticsEnabled={affordanceDiagnosticsEnabled && d9VisitorActive}
+              interactionVisualState={interactionVisualState}
               onAffordanceDiagnosticChange={onAffordanceDiagnosticChange}
+              onInteractionTargetChange={d9VisitorActive ? onInteractionTargetChange : undefined}
               onReadingPageLayoutChange={d9VisitorActive ? onReadingPageLayoutChange : undefined}
-              onSanctuaryInteraction={d9VisitorActive ? onSanctuaryInteraction : undefined}
               quality={d9RenderQuality}
               reducedMotion={reducedMotion}
               sanctuaryState={d9VisitorActive ? sanctuaryState : undefined}

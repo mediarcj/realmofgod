@@ -25,7 +25,7 @@ describe("createD9ReadingPageRegistrationGate", () => {
     });
 
     expect(firstResult.status).toBe("unavailable");
-    expect(laterResult.status).toBe("unavailable");
+    expect(laterResult.status).toBe("skipped");
     expect(attempts).toBe(1);
     expect(gate.getFailure()?.message).toContain("four upper-face vertices");
   });

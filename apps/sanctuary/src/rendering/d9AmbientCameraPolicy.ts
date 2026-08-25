@@ -29,6 +29,20 @@ export interface D9AmbientPointerCoordinates {
   readonly normalizedY: number;
 }
 
+// Accept only a pointer that falls inside the active sanctuary viewport when listening at the stable window boundary.
+export function isD9PointerWithinViewport(
+  clientX: number,
+  clientY: number,
+  viewport: Pick<DOMRect, "bottom" | "left" | "right" | "top">,
+): boolean {
+  return (
+    clientX >= viewport.left &&
+    clientX <= viewport.right &&
+    clientY >= viewport.top &&
+    clientY <= viewport.bottom
+  );
+}
+
 // Describe the compact evidence retained by the development-only diagnostics fragment after an ordinary mouse signal.
 export interface D9AmbientPointerSignal extends D9AmbientPointerCoordinates {
   readonly pendingPitchRadians: number;
@@ -59,12 +73,27 @@ const movingPolicy: D9AmbientCameraPolicy = {
   returnDamping: 1.65,
 };
 
+// Use an unmistakable but bounded envelope only behind the development diagnostic control to prove camera mechanics.
+const diagnosticMovingPolicy: D9AmbientCameraPolicy = {
+  ...movingPolicy,
+  maxPitchRadians: MathUtils.degToRad(2.5),
+  maxYawRadians: MathUtils.degToRad(5),
+};
+
 // Select only the two approved living-camera states; READ and PRAY remain stable reading/reflection endpoints.
 export function selectD9AmbientCameraPolicy(
   state: SanctuaryMvpState["name"],
   reducedMotion: boolean,
+  diagnosticMotionOverride = false,
 ): D9AmbientCameraPolicy {
-  return reducedMotion || (state !== "SANCTUARY" && state !== "SIT") ? staticPolicy : movingPolicy;
+  if (state !== "SANCTUARY" && state !== "SIT") {
+    return staticPolicy;
+  }
+  // The override is supplied only from a development diagnostic route and never changes the normal visitor route.
+  if (diagnosticMotionOverride) {
+    return diagnosticMovingPolicy;
+  }
+  return reducedMotion ? staticPolicy : movingPolicy;
 }
 
 // Clamp every requested offset before it reaches mutable camera state so the view cannot drift or spin.

@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyD9AmbientPointerSignal,
   clampD9AmbientOffset,
+  isD9PointerWithinViewport,
   normalizeD9AmbientPointer,
   selectD9AmbientCameraPolicy,
   selectD9AmbientMotionState,
@@ -34,6 +35,24 @@ describe("D9 ambient camera policy", () => {
     expect(selectD9AmbientCameraPolicy("READ", false).enabled).toBe(false);
     expect(selectD9AmbientCameraPolicy("PRAY", false).enabled).toBe(false);
     expect(selectD9AmbientCameraPolicy("SANCTUARY", true).enabled).toBe(false);
+  });
+
+  it("keeps the diagnostic proof DEV envelope separate from normal visitor motion", () => {
+    const normalPolicy = selectD9AmbientCameraPolicy("SANCTUARY", false);
+    const diagnosticPolicy = selectD9AmbientCameraPolicy("SANCTUARY", true, true);
+
+    expect(normalPolicy.maxYawRadians).toBeCloseTo((3 * Math.PI) / 180);
+    expect(normalPolicy.maxPitchRadians).toBeCloseTo((1.5 * Math.PI) / 180);
+    expect(diagnosticPolicy.maxYawRadians).toBeCloseTo((5 * Math.PI) / 180);
+    expect(diagnosticPolicy.maxPitchRadians).toBeCloseTo((2.5 * Math.PI) / 180);
+  });
+
+  it("accepts window pointer input only inside the active sanctuary viewport", () => {
+    const viewport = { bottom: 220, left: 10, right: 310, top: 20 };
+
+    expect(isD9PointerWithinViewport(160, 120, viewport)).toBe(true);
+    expect(isD9PointerWithinViewport(9, 120, viewport)).toBe(false);
+    expect(isD9PointerWithinViewport(160, 221, viewport)).toBe(false);
   });
 
   it("clamps arbitrary pointer impulses instead of accumulating a free camera", () => {
