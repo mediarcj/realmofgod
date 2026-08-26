@@ -15,6 +15,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import {
@@ -46,6 +47,7 @@ import {
   type D75SanctuaryCameraName,
   type D75SanctuaryFramingPolicy,
 } from "./d75SanctuaryCamera";
+import { D9CameraTransitionController } from "./D9CameraTransitionController";
 import { selectD9VisitorRenderQuality, type D9RenderQuality } from "./d9SanctuaryQuality";
 import { RealmScene } from "./RealmScene";
 import { selectSanctuaryHeroCamera, type VisualCalibration } from "./visualCalibration";
@@ -118,6 +120,11 @@ function useD9RenderQuality(active: boolean): D9RenderQuality {
 }
 
 // Update Three's deliberately mutable renderer and camera objects behind one reviewed imperative boundary.
+function applyRendererExposure(gl: WebGLRenderer, visualCalibration: VisualCalibration): void {
+  gl.toneMappingExposure = visualCalibration.lighting.exposure;
+}
+
+// Update Three's deliberately mutable renderer and camera objects behind one reviewed imperative boundary.
 function applyRendererCalibration(
   gl: WebGLRenderer,
   camera: PerspectiveCamera,
@@ -128,7 +135,7 @@ function applyRendererCalibration(
   d75FramingPolicy: D75SanctuaryFramingPolicy,
   d75CameraName: D75SanctuaryCameraName,
 ): void {
-  gl.toneMappingExposure = visualCalibration.lighting.exposure;
+  applyRendererExposure(gl, visualCalibration);
   if (useD75SanctuaryCamera) {
     const projection = selectD75SanctuaryProjection(
       viewportAspect,
@@ -159,12 +166,14 @@ function applyRendererCalibration(
 
 // Apply live-safe camera and exposure values without rebuilding the WebGL renderer during local calibration.
 function RendererCalibration({
+  d9CameraTransitionEnabled,
   visualCalibration,
   visualState,
   useD75SanctuaryCamera,
   d75FramingPolicy,
   d75CameraName,
 }: {
+  readonly d9CameraTransitionEnabled: boolean;
   readonly visualCalibration: VisualCalibration;
   readonly visualState: JourneyVisualState;
   readonly useD75SanctuaryCamera: boolean;
@@ -174,7 +183,9 @@ function RendererCalibration({
   const { camera, gl, size } = useThree();
 
   useLayoutEffect(() => {
-    if (camera instanceof PerspectiveCamera) {
+    // D9.0C.0 has one dedicated transform writer; this legacy calibration path still owns exposure for every route.
+    applyRendererExposure(gl, visualCalibration);
+    if (camera instanceof PerspectiveCamera && !d9CameraTransitionEnabled) {
       const sanctuaryHero = visualState.stage === "entry" || visualState.stage === "sanctuary";
       applyRendererCalibration(
         gl,
@@ -189,6 +200,7 @@ function RendererCalibration({
     }
   }, [
     camera,
+    d9CameraTransitionEnabled,
     gl,
     size.height,
     size.width,
@@ -288,12 +300,17 @@ export function CanvasExperience({
   const d92QualityInspectionActive =
     d92QualityInspectionConfig !== null && D9SanctuaryScene !== null;
   const d9QualityRendererActive = d9VisitorActive || d92QualityInspectionActive;
+  const [d9CameraTransitionActive, setD9CameraTransitionActive] = useState(false);
+  // Keep the controller callback referentially stable so renderer-only state does not restart an active visual path.
+  const handleD9CameraTransitionActivity = useCallback((active: boolean): void => {
+    setD9CameraTransitionActive(active);
+  }, []);
   const d9RenderQuality = useD9RenderQuality(d9QualityRendererActive);
   const useD75SanctuaryCamera =
     d9QualityRendererActive || (d91InspectionConfig !== null && staticProofActive);
   const d75FramingPolicy =
     d92QualityInspectionConfig?.framingPolicy ?? d91InspectionConfig?.framingPolicy ?? "horizontal";
-  // Normal D9 interaction selects one exact authored endpoint without browser-controlled camera motion.
+  // Normal D9 interaction selects immutable authored endpoints; D9.0C.0 may only animate the SANCTUARY-to-SIT presentation path.
   const d75CameraName: D75SanctuaryCameraName = d9VisitorActive
     ? (sanctuaryState?.name ?? "SANCTUARY")
     : "SANCTUARY";
@@ -358,17 +375,19 @@ export function CanvasExperience({
           // Keep restrained local reflections on metal and varnished wood without introducing a pictured third lamp.
           scene.environmentIntensity = 0.35;
           if (camera instanceof PerspectiveCamera) {
-            // Apply the exact D7.5 frame only to the D9 visitor candidate; older proof routes retain their evidence camera.
-            applyRendererCalibration(
-              gl,
-              camera,
-              visualCalibration,
-              gl.domElement.clientWidth / Math.max(gl.domElement.clientHeight, 1),
-              visualState.stage === "entry" || visualState.stage === "sanctuary",
-              useD75SanctuaryCamera,
-              d75FramingPolicy,
-              d75CameraName,
-            );
+            // The D9 controller applies its first exact pose before paint; older proof routes retain this calibration writer.
+            if (!d9VisitorActive) {
+              applyRendererCalibration(
+                gl,
+                camera,
+                visualCalibration,
+                gl.domElement.clientWidth / Math.max(gl.domElement.clientHeight, 1),
+                visualState.stage === "entry" || visualState.stage === "sanctuary",
+                useD75SanctuaryCamera,
+                d75FramingPolicy,
+                d75CameraName,
+              );
+            }
           }
         }}
         // Select the same percentage-closer map explicitly so R3F does not initialize its deprecated soft default first.
@@ -379,17 +398,27 @@ export function CanvasExperience({
           onRendererReady={onRendererReady}
         />
         <RendererCalibration
+          d9CameraTransitionEnabled={d9VisitorActive}
           d75CameraName={d75CameraName}
           d75FramingPolicy={d75FramingPolicy}
           useD75SanctuaryCamera={useD75SanctuaryCamera}
           visualCalibration={visualCalibration}
           visualState={visualState}
         />
+        {d9VisitorActive && sanctuaryState !== undefined ? (
+          <D9CameraTransitionController
+            cameraName={sanctuaryState.name}
+            framingPolicy={d75FramingPolicy}
+            onTransitionActiveChange={handleD9CameraTransitionActivity}
+            reducedMotion={reducedMotion}
+          />
+        ) : null}
         <LocalReflectionEnvironment />
         {d9QualityRendererActive ? (
           <Suspense fallback={null}>
             <D9SanctuaryScene
               config={d92QualityInspectionConfig ?? undefined}
+              cameraTransitionActive={d9VisitorActive && d9CameraTransitionActive}
               interactionVisualState={interactionVisualState}
               onInteractionTargetChange={d9VisitorActive ? onInteractionTargetChange : undefined}
               onReadingPageLayoutChange={d9VisitorActive ? onReadingPageLayoutChange : undefined}

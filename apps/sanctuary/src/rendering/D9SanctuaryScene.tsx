@@ -202,6 +202,7 @@ function D9Lighting({
 
 // Render the normal D9 visitor scene from the one accepted local candidate, not through a benchmark selector.
 export function D9SanctuaryScene({
+  cameraTransitionActive = false,
   config = d9VisitorSceneConfig,
   interactionVisualState = "idle",
   onInteractionTargetChange,
@@ -211,6 +212,7 @@ export function D9SanctuaryScene({
   sanctuaryState,
   visualCalibration,
 }: {
+  readonly cameraTransitionActive?: boolean | undefined;
   readonly config?: StaticSanctuaryProofConfig | undefined;
   readonly interactionVisualState?: D9DomInteractionVisualState | undefined;
   readonly onInteractionTargetChange?:
@@ -245,6 +247,7 @@ export function D9SanctuaryScene({
         <primitive object={scene} />
         {sanctuaryState !== undefined && onInteractionTargetChange !== undefined ? (
           <D9EnvironmentalAffordances
+            cameraTransitionActive={cameraTransitionActive}
             interactionVisualState={interactionVisualState}
             onInteractionTargetChange={onInteractionTargetChange}
             reducedMotion={reducedMotion}

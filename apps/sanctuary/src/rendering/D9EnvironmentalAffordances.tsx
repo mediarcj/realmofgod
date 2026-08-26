@@ -24,19 +24,21 @@ import {
 
 // Project once after an active-camera or state update; a DOM button owns all subsequent visitor pointer interaction.
 export function D9EnvironmentalAffordances({
+  cameraTransitionActive,
   interactionVisualState,
   onInteractionTargetChange,
   reducedMotion,
   scene,
   state,
 }: {
+  readonly cameraTransitionActive: boolean;
   readonly interactionVisualState: D9DomInteractionVisualState;
   readonly onInteractionTargetChange: (target: D9DomInteractionTarget | null) => void;
   readonly reducedMotion: boolean;
   readonly scene: Object3D;
   readonly state: SanctuaryMvpState;
 }): ReactNode {
-  const { camera, gl, size } = useThree();
+  const { camera, gl, invalidate, size } = useThree();
   const pendingProjection = useRef(true);
   const [primaryAnchor] = selectD9AffordanceAnchors(state.name);
   const cueIntensity = selectD9CueIntensity(
@@ -46,9 +48,23 @@ export function D9EnvironmentalAffordances({
   );
 
   useEffect(() => {
-    // A newly selected D7.5 endpoint requires one fresh projection; no per-frame React state is written afterward.
+    // A moving camera has no stable screen rectangle, so preserve keyboard recovery while withdrawing only the projected pointer target.
     pendingProjection.current = true;
-  }, [camera, size.height, size.width, state.name]);
+    if (cameraTransitionActive) {
+      onInteractionTargetChange(null);
+      return;
+    }
+    // Request one settled demand frame so the bounded DOM target returns after camera motion without reviving an idle loop.
+    invalidate();
+  }, [
+    camera,
+    cameraTransitionActive,
+    invalidate,
+    onInteractionTargetChange,
+    size.height,
+    size.width,
+    state.name,
+  ]);
 
   useEffect(() => {
     // READ and PRAY deliberately have no projected object action: their DOM semantic controls remain explicit.
@@ -58,6 +74,11 @@ export function D9EnvironmentalAffordances({
   }, [onInteractionTargetChange, primaryAnchor]);
 
   useFrame(() => {
+    if (cameraTransitionActive) {
+      // Resume one settled projection after the controller finishes rather than tracking pointer targets through a moving camera.
+      pendingProjection.current = true;
+      return;
+    }
     if (!pendingProjection.current) {
       return;
     }
@@ -74,7 +95,7 @@ export function D9EnvironmentalAffordances({
     onInteractionTargetChange(target);
   });
 
-  if (primaryAnchor === undefined) {
+  if (cameraTransitionActive || primaryAnchor === undefined) {
     return null;
   }
 

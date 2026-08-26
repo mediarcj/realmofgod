@@ -60,6 +60,14 @@ const d9AmbientCameraPolicyPath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/rendering/d9AmbientCameraPolicy.ts",
 );
+const d9CameraTransitionControllerPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/D9CameraTransitionController.tsx",
+);
+const d9CameraTransitionPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/d9CameraTransition.ts",
+);
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
 function readRepositoryFile(path) {
@@ -384,6 +392,61 @@ function verifyD9InteractionBoundary(
   }
 }
 
+// Require the D9.0C.0 controller to remain the one rendering-layer camera writer while keeping all semantic state outside it.
+function verifyD9CameraTransitionBoundary(canvasSource, controllerSource, transitionSource) {
+  for (const requiredFragment of [
+    "D9CameraTransitionController",
+    "d9CameraTransitionEnabled",
+    "d9CameraTransitionActive",
+  ]) {
+    if (!canvasSource.includes(requiredFragment)) {
+      throw new Error(
+        `CanvasExperience must preserve the D9.0C.0 transition boundary: ${requiredFragment}.`,
+      );
+    }
+  }
+
+  for (const requiredFragment of [
+    "useFrame",
+    "invalidate",
+    "reducedMotion",
+    "data-d9-camera-transition",
+    "createD9CameraEndpoint",
+  ]) {
+    if (!controllerSource.includes(requiredFragment)) {
+      throw new Error(`D9CameraTransitionController must preserve ${requiredFragment}.`);
+    }
+  }
+
+  for (const requiredFragment of [
+    "d75SanctuaryCameras",
+    "slerpQuaternions",
+    "d9SanctuaryToSitDurationMs",
+    "selectD9CameraTransitionPlan",
+    "shouldInvalidateD9CameraTransition",
+  ]) {
+    if (!transitionSource.includes(requiredFragment)) {
+      throw new Error(`D9 camera transition math must preserve ${requiredFragment}.`);
+    }
+  }
+
+  for (const forbiddenFragment of [
+    "transitionSanctuaryMvp",
+    "useReducer",
+    "localStorage",
+    "sessionStorage",
+  ]) {
+    if (
+      controllerSource.includes(forbiddenFragment) ||
+      transitionSource.includes(forbiddenFragment)
+    ) {
+      throw new Error(
+        `D9 camera presentation must not own semantic state or browser persistence: ${forbiddenFragment}.`,
+      );
+    }
+  }
+}
+
 // Require both CSS and renderer motion paths to keep an intentional reduced-motion behavior.
 function verifyMotionBoundary(cssSource, sceneSource) {
   if (!cssSource.includes("@media (prefers-reduced-motion: reduce)")) {
@@ -494,6 +557,11 @@ verifyD9InteractionBoundary(
   readRepositoryFile(d9EnvironmentalAffordancePath),
   readRepositoryFile(d9DomInteractionTargetPath),
   readRepositoryFile(d9AffordanceAnchorsPath),
+);
+verifyD9CameraTransitionBoundary(
+  readRepositoryFile(canvasExperiencePath),
+  readRepositoryFile(d9CameraTransitionControllerPath),
+  readRepositoryFile(d9CameraTransitionPath),
 );
 verifyMotionBoundary(readRepositoryFile(sanctuaryCssPath), readRepositoryFile(realmScenePath));
 verifyViewportAccessibilityBoundary(
