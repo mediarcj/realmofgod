@@ -6,7 +6,7 @@
  */
 
 // Import only the optional decorative viewport; visitor meaning remains ordinary DOM rather than Canvas state.
-import { useReducer, useState } from "react";
+import { useReducer } from "react";
 
 import {
   initialSanctuaryMvpState,
@@ -15,7 +15,6 @@ import {
 } from "./sanctuary/model";
 import { ExperienceViewport } from "./rendering/ExperienceViewport";
 import { SanctuaryOrientationGate } from "./rendering/SanctuaryOrientationGate";
-import { readD9AffordanceDiagnostic } from "./rendering/capabilities";
 
 // Keep the approved starting state immutable until a later owner-approved interaction pass introduces authored movement.
 const sanctuaryVisualState = { choice: null, stage: "sanctuary" } as const;
@@ -27,20 +26,11 @@ export function SanctuaryShell() {
     transitionSanctuaryMvp,
     initialSanctuaryMvpState,
   );
-  // Make explicit local diagnostics recoverable without adding controls to the normal visitor route or production bundle.
-  const diagnosticAffordancesEnabled = import.meta.env.DEV && readD9AffordanceDiagnostic();
-  const [diagnosticState, setDiagnosticState] = useState(initialSanctuaryMvpState);
-  const activeState = diagnosticAffordancesEnabled ? diagnosticState : sanctuaryState;
-  const advanceState = (action: Parameters<typeof transitionSanctuaryMvp>[1]) => {
-    if (diagnosticAffordancesEnabled) {
-      setDiagnosticState((current) => transitionSanctuaryMvp(current, action));
-      return;
-    }
-    sendSanctuaryAction(action);
-  };
-  const affordance = selectSanctuaryAffordance(activeState);
+  const affordance = selectSanctuaryAffordance(sanctuaryState);
   const environmentalKeyboardControl =
-    activeState.name === "SANCTUARY" || activeState.name === "SIT" || activeState.name === "READ";
+    sanctuaryState.name === "SANCTUARY" ||
+    sanctuaryState.name === "SIT" ||
+    sanctuaryState.name === "READ";
 
   return (
     <main className="sanctuary-shell sanctuary-shell--visitor" aria-labelledby="sanctuary-title">
@@ -49,33 +39,10 @@ export function SanctuaryShell() {
       </h1>
       <SanctuaryOrientationGate>
         <ExperienceViewport
-          onSanctuaryInteraction={advanceState}
-          sanctuaryState={activeState}
+          onSanctuaryInteraction={sendSanctuaryAction}
+          sanctuaryState={sanctuaryState}
           visualState={sanctuaryVisualState}
         />
-
-        {diagnosticAffordancesEnabled ? (
-          <section
-            aria-label="Development sanctuary state tester"
-            className="d9-diagnostic-state-tester"
-            data-d9-diagnostic-state-tester="true"
-          >
-            <p>Development state</p>
-            {(["SANCTUARY", "SIT", "READ", "PRAY"] as const).map((stateName) => (
-              <button
-                aria-pressed={activeState.name === stateName}
-                key={stateName}
-                onClick={() => {
-                  // Let a developer recover the one local state machine without a refresh when testing a Canvas target.
-                  setDiagnosticState({ name: stateName });
-                }}
-                type="button"
-              >
-                {stateName}
-              </button>
-            ))}
-          </section>
-        ) : null}
 
         {environmentalKeyboardControl ? (
           <div className="sanctuary-environmental-control">
@@ -83,7 +50,7 @@ export function SanctuaryShell() {
             <button
               aria-label={affordance.label}
               onClick={() => {
-                advanceState(affordance.action);
+                sendSanctuaryAction(affordance.action);
               }}
               type="button"
             >
@@ -92,7 +59,7 @@ export function SanctuaryShell() {
           </div>
         ) : null}
         <p aria-live="polite" className="visually-hidden">
-          {activeState.name.toLowerCase()} sanctuary state
+          {sanctuaryState.name.toLowerCase()} sanctuary state
         </p>
       </SanctuaryOrientationGate>
     </main>

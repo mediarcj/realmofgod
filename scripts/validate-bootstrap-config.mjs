@@ -6,7 +6,7 @@
  */
 
 // Import only Node standard-library helpers so configuration validation has no runtime dependency.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -51,6 +51,14 @@ const d9DomInteractionTargetPath = resolve(
 const d9AffordanceAnchorsPath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/rendering/d9AffordanceAnchors.ts",
+);
+const d9AmbientCameraGlancePath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/D9AmbientCameraGlance.tsx",
+);
+const d9AmbientCameraPolicyPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/d9AmbientCameraPolicy.ts",
 );
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
@@ -335,6 +343,43 @@ function verifyD9InteractionBoundary(
   for (const requiredFragment of ["projectD9DomInteractionTarget"]) {
     if (!domTargetSource.includes(requiredFragment)) {
       throw new Error(`D9 DOM interaction projection must preserve ${requiredFragment}.`);
+    }
+  }
+
+  // Keep the approved D9 baseline camera-authored: browser pointer motion must not re-enter as ambient movement.
+  for (const [label, path] of [
+    ["D9 ambient camera component", d9AmbientCameraGlancePath],
+    ["D9 ambient camera policy", d9AmbientCameraPolicyPath],
+  ]) {
+    if (existsSync(path)) {
+      throw new Error(`${label} must remain removed from the sanctuary interaction baseline.`);
+    }
+  }
+
+  for (const forbiddenFragment of [
+    "D9AmbientCameraGlance",
+    "d9AmbientCameraPolicy",
+    "diagnostic-affordances",
+    "d9-affordance-diagnostics",
+    "d9-diagnostic-state-tester",
+    "d9-diagnostic-motion-override",
+    "OrbitControls",
+    "PointerLockControls",
+    "KeyboardControls",
+    "pointermove",
+    "onPointerMove",
+    "touchmove",
+    "onTouchMove",
+    "WASD",
+  ]) {
+    if (
+      [shellSource, viewportSource, canvasSource, sceneSource].some((source) =>
+        source.includes(forbiddenFragment),
+      )
+    ) {
+      throw new Error(
+        `The retired D9 pointer-camera or diagnostic surface returned: ${forbiddenFragment}.`,
+      );
     }
   }
 }

@@ -17,10 +17,7 @@ import batchedCandidateUrl from "../assets/candidates/realm-mvp-sanctuary-v1-r2-
 import rawCandidateUrl from "../../../../tools/hf01/candidates/realm-mvp-sanctuary-v1-raw-r2.glb?url";
 import type { SanctuaryMvpState } from "../sanctuary/model";
 import type { StaticSanctuaryProofConfig } from "./capabilities";
-import {
-  D9EnvironmentalAffordances,
-  type D9AffordanceDiagnosticSnapshot,
-} from "./D9EnvironmentalAffordances";
+import { D9EnvironmentalAffordances } from "./D9EnvironmentalAffordances";
 import type { D9DomInteractionTarget, D9DomInteractionVisualState } from "./d9DomInteractionTarget";
 import { D9ReadingPageProjection, type D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import { d9VisitorSceneContract, type D9RenderQuality } from "./d9SanctuaryQuality";
@@ -206,9 +203,7 @@ function D9Lighting({
 // Render the normal D9 visitor scene from the one accepted local candidate, not through a benchmark selector.
 export function D9SanctuaryScene({
   config = d9VisitorSceneConfig,
-  diagnosticsEnabled = false,
   interactionVisualState = "idle",
-  onAffordanceDiagnosticChange,
   onInteractionTargetChange,
   onReadingPageLayoutChange,
   quality,
@@ -217,10 +212,7 @@ export function D9SanctuaryScene({
   visualCalibration,
 }: {
   readonly config?: StaticSanctuaryProofConfig | undefined;
-  readonly diagnosticsEnabled?: boolean | undefined;
   readonly interactionVisualState?: D9DomInteractionVisualState | undefined;
-  readonly onAffordanceDiagnosticChange?:
-    ((snapshot: D9AffordanceDiagnosticSnapshot | null) => void) | undefined;
   readonly onInteractionTargetChange?:
     ((target: D9DomInteractionTarget | null) => void) | undefined;
   readonly onReadingPageLayoutChange?: ((layout: D9ReadingPageLayout | null) => void) | undefined;
@@ -253,9 +245,7 @@ export function D9SanctuaryScene({
         <primitive object={scene} />
         {sanctuaryState !== undefined && onInteractionTargetChange !== undefined ? (
           <D9EnvironmentalAffordances
-            diagnosticsEnabled={diagnosticsEnabled}
             interactionVisualState={interactionVisualState}
-            onDiagnosticChange={onAffordanceDiagnosticChange}
             onInteractionTargetChange={onInteractionTargetChange}
             reducedMotion={reducedMotion}
             scene={scene}
@@ -263,11 +253,7 @@ export function D9SanctuaryScene({
           />
         ) : null}
         {sanctuaryState?.name === "READ" && onReadingPageLayoutChange !== undefined ? (
-          <D9ReadingPageProjection
-            diagnosticsEnabled={diagnosticsEnabled}
-            onLayoutChange={onReadingPageLayoutChange}
-            scene={scene}
-          />
+          <D9ReadingPageProjection onLayoutChange={onReadingPageLayoutChange} scene={scene} />
         ) : null}
       </group>
       <D9RuntimeMetrics quality={quality} sanctuaryState={sanctuaryState?.name ?? "SANCTUARY"} />

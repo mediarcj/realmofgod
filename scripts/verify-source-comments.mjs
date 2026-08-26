@@ -6,7 +6,7 @@
  */
 
 // Import Node helpers only; Git supplies the authoritative tracked-file inventory.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, extname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -72,7 +72,10 @@ function verifyHeader(relativePath) {
 }
 
 // Verify every tracked, human-authored file before reporting a compact result for local use.
-const eligiblePaths = readTrackedPaths().filter(requiresHeader);
+const eligiblePaths = readTrackedPaths().filter(
+  (relativePath) =>
+    requiresHeader(relativePath) && existsSync(resolve(repositoryRoot, relativePath)),
+);
 for (const relativePath of eligiblePaths) {
   verifyHeader(relativePath);
 }

@@ -22,11 +22,9 @@ let hasReportedD9ReadingPageRegistrationFailure = false;
 
 // Measure only after the R3F scene and camera have settled, then repeat on a real viewport resize rather than updating React on every frame.
 export function D9ReadingPageProjection({
-  diagnosticsEnabled,
   onLayoutChange,
   scene,
 }: {
-  readonly diagnosticsEnabled: boolean;
   readonly onLayoutChange: (layout: D9ReadingPageLayout | null) => void;
   readonly scene: Object3D;
 }): ReactNode {
@@ -40,10 +38,8 @@ export function D9ReadingPageProjection({
 
   useEffect(() => {
     return () => {
-      // Remove the DOM layout and diagnostics when READ ends so a later state cannot leave text floating over the room.
+      // Remove the DOM layout when READ ends so a later state cannot leave text floating over the room.
       onLayoutChange(null);
-      gl.domElement.removeAttribute("data-d9-reading-left-page");
-      gl.domElement.removeAttribute("data-d9-reading-right-page");
     };
   }, [gl, onLayoutChange]);
 
@@ -67,9 +63,6 @@ export function D9ReadingPageProjection({
     if (registration.status === "unavailable") {
       // Remove the optional page visual only; the semantic journey remains usable in READ.
       onLayoutChange(null);
-      if (diagnosticsEnabled) {
-        gl.domElement.setAttribute("data-d9-reading-page-registration", "unavailable");
-      }
       if (import.meta.env.DEV && !hasReportedD9ReadingPageRegistrationFailure) {
         hasReportedD9ReadingPageRegistrationFailure = true;
         console.warn(
@@ -80,11 +73,6 @@ export function D9ReadingPageProjection({
     }
 
     const layout = registration.value;
-    if (diagnosticsEnabled) {
-      gl.domElement.setAttribute("data-d9-reading-left-page", JSON.stringify(layout.leftPage));
-      gl.domElement.setAttribute("data-d9-reading-right-page", JSON.stringify(layout.rightPage));
-      gl.domElement.setAttribute("data-d9-reading-page-registration", "registered");
-    }
     onLayoutChange(layout);
   });
 

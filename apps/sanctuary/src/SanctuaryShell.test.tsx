@@ -30,6 +30,9 @@ describe("SanctuaryShell", () => {
     expect(markup).not.toContain("Active proxy:");
     expect(markup).not.toContain("World bounds:");
     expect(markup).not.toContain("Activation events:");
+    expect(markup).not.toContain("d9-affordance-diagnostics");
+    expect(markup).not.toContain("d9-diagnostic-state-tester");
+    expect(markup).not.toContain("diagnostic camera motion proof");
   });
 });
 

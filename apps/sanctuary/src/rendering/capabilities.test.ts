@@ -11,7 +11,6 @@ import { describe, expect, it } from "vitest";
 import {
   hasUsableGraphicsApi,
   readRendererVerificationStage,
-  selectD9AffordanceDiagnostic,
   selectD91InspectionConfig,
   selectD92QualityInspectionConfig,
   selectD9VisitorSanctuaryConfig,
@@ -102,15 +101,8 @@ describe("D9 visitor sanctuary selection", () => {
     expect(selectD9VisitorSanctuaryConfig("#verify-d85-batched-restrained-shadows")).toBeNull();
   });
 
-  it("permits the affordance diagnostic only through its exact explicit fragment", () => {
-    expect(selectD9AffordanceDiagnostic("#diagnostic-affordances")).toBe(true);
-    expect(selectD9AffordanceDiagnostic("")).toBe(false);
-    expect(selectD9AffordanceDiagnostic("#diagnostic-hf01")).toBe(false);
-    expect(selectD9VisitorSanctuaryConfig("#diagnostic-affordances")).toEqual({
-      candidate: "batched",
-      shadowPolicy: "restrained",
-      transformPolicy: "preserve-authored",
-    });
+  it("rejects the retired affordance diagnostic fragment", () => {
+    expect(selectD9VisitorSanctuaryConfig("#diagnostic-affordances")).toBeNull();
   });
 
   it("recognizes only the explicit local diagnostics fragment", () => {

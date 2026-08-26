@@ -189,89 +189,6 @@ select {
   transform: translate(-50%, -50%);
 }
 
-/* Show small transparent measurement text only after the explicit local affordance diagnostic fragment is active. */
-.d9-affordance-diagnostics {
-  position: fixed;
-  z-index: 3;
-  top: 0.75rem;
-  left: 0.75rem;
-  max-width: min(32rem, calc(100% - 1.5rem));
-  padding: 0.55rem 0.7rem;
-  color: #d8f8ed;
-  background: rgb(7 17 16 / 72%);
-  border: 1px solid rgb(123 240 216 / 38%);
-  border-radius: 0.25rem;
-  font:
-    0.68rem/1.35 ui-monospace,
-    "SFMono-Regular",
-    Menlo,
-    monospace;
-  pointer-events: none;
-}
-
-/* Keep diagnostics compact and non-interactive so they cannot become a second visitor action surface. */
-.d9-affordance-diagnostics p {
-  margin: 0.2rem 0;
-  overflow-wrap: anywhere;
-}
-
-/* Permit only the explicit DEV camera-proof toggle inside the otherwise non-interactive diagnostic card. */
-.d9-affordance-diagnostics button {
-  pointer-events: auto;
-  margin-top: 0.25rem;
-  padding: 0.24rem 0.38rem;
-  color: #d8f8ed;
-  background: rgb(12 32 28 / 90%);
-  border: 1px solid rgb(123 240 216 / 48%);
-  border-radius: 0.15rem;
-  cursor: pointer;
-  font: inherit;
-}
-
-/* Keep the recovery switch visible only on the exact development diagnostic route so an owner can retest every state without reload. */
-.d9-diagnostic-state-tester {
-  position: fixed;
-  z-index: 4;
-  right: 0.75rem;
-  bottom: 0.75rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  max-width: min(23rem, calc(100% - 1.5rem));
-  padding: 0.55rem 0.7rem;
-  color: #d8f8ed;
-  background: rgb(7 17 16 / 80%);
-  border: 1px solid rgb(123 240 216 / 38%);
-  border-radius: 0.25rem;
-  font:
-    0.68rem/1.35 ui-monospace,
-    "SFMono-Regular",
-    Menlo,
-    monospace;
-  pointer-events: auto;
-}
-
-/* Keep the local state label compact while the buttons remain ordinary accessible browser controls. */
-.d9-diagnostic-state-tester p {
-  width: 100%;
-  margin: 0;
-}
-
-.d9-diagnostic-state-tester button {
-  min-height: 1.9rem;
-  padding: 0.2rem 0.42rem;
-  color: inherit;
-  background: rgb(20 47 43 / 84%);
-  border: 1px solid rgb(123 240 216 / 38%);
-  border-radius: 0.15rem;
-  cursor: pointer;
-}
-
-.d9-diagnostic-state-tester button[aria-pressed="true"] {
-  color: #15221e;
-  background: #bdebdc;
-}
-
 /* Place semantic development reading text over the authored pages without making the whole overlay intercept the room. */
 .d9-reading-surface {
   position: fixed;
@@ -322,12 +239,6 @@ select {
   pointer-events: none;
   text-shadow: 0 1px rgb(255 247 221 / 26%);
   transform-origin: 0 0;
-}
-
-/* Draw the actual projected page boundary only behind the explicit development diagnostics fragment. */
-.d9-reading-page--diagnostic {
-  outline: 1px solid rgb(123 240 216 / 78%);
-  outline-offset: -1px;
 }
 
 /* Mark fixture status plainly so no development text can be mistaken for Scripture. */
