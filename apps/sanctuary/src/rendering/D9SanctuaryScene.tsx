@@ -18,6 +18,7 @@ import rawCandidateUrl from "../../../../tools/hf01/candidates/realm-mvp-sanctua
 import type { SanctuaryMvpState } from "../sanctuary/model";
 import type { StaticSanctuaryProofConfig } from "./capabilities";
 import { D9EnvironmentalAffordances } from "./D9EnvironmentalAffordances";
+import { D9LivingSanctuaryAtmosphere } from "./D9LivingSanctuaryAtmosphere";
 import type { D9DomInteractionTarget, D9DomInteractionVisualState } from "./d9DomInteractionTarget";
 import { D9ReadingPageProjection, type D9ReadingPageLayout } from "./D9ReadingPageProjection";
 import { d9VisitorSceneContract, type D9RenderQuality } from "./d9SanctuaryQuality";
@@ -190,6 +191,7 @@ function D9Lighting({
         castShadow
         color={visualCalibration.lighting.exteriorKey.color}
         intensity={visualCalibration.lighting.exteriorKey.intensity * 30}
+        name="D9_Exterior_RuntimeLight"
         position={[4.5, 7.5, 1.5]}
         shadow-bias={-0.0001}
         shadow-normalBias={0.012}
@@ -202,6 +204,7 @@ function D9Lighting({
         decay={2}
         distance={2.75}
         intensity={warmKey.intensity * 1.2}
+        name="D9_CandleLeft_RuntimeLight"
         position={[...candleFlamePositions.left]}
       />
       <pointLight
@@ -209,6 +212,7 @@ function D9Lighting({
         decay={2}
         distance={2.75}
         intensity={warmKey.intensity * 1.2}
+        name="D9_CandleRight_RuntimeLight"
         position={[...candleFlamePositions.right]}
       />
     </>
@@ -260,6 +264,14 @@ export function D9SanctuaryScene({
         scale={visualCalibration.room.scale}
       >
         <primitive object={scene} />
+        {sanctuaryState !== undefined ? (
+          <D9LivingSanctuaryAtmosphere
+            reducedMotion={reducedMotion}
+            scene={scene}
+            state={sanctuaryState}
+            visualCalibration={visualCalibration}
+          />
+        ) : null}
         {sanctuaryState !== undefined && onInteractionTargetChange !== undefined ? (
           <D9EnvironmentalAffordances
             cameraTransitionActive={cameraTransitionActive}

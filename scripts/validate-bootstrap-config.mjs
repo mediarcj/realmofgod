@@ -80,6 +80,14 @@ const d9CameraTransitionPath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/rendering/d9CameraTransition.ts",
 );
+const d9LivingSanctuaryAtmospherePath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/D9LivingSanctuaryAtmosphere.tsx",
+);
+const d9LivingSanctuaryPolicyPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/d9LivingSanctuaryPolicy.ts",
+);
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
 function readRepositoryFile(path) {
@@ -579,6 +587,61 @@ function verifyD9VisitorQualityBoundary(canvasSource, d9SceneSource) {
   }
 }
 
+// Keep D9.1 atmosphere visual-only, paced in demand mode, and separate from camera/reducer or browser-persistence authority.
+function verifyD9LivingSanctuaryBoundary(
+  canvasSource,
+  d9SceneSource,
+  atmosphereSource,
+  policySource,
+) {
+  for (const requiredFragment of [
+    'frameloop={d9QualityRendererActive ? "demand" : "always"}',
+    "D9LivingSanctuaryAtmosphere",
+  ]) {
+    if (!canvasSource.includes(requiredFragment) && !d9SceneSource.includes(requiredFragment)) {
+      throw new Error(`D9.1 must preserve the living-sanctuary boundary: ${requiredFragment}.`);
+    }
+  }
+
+  for (const requiredFragment of [
+    "useFrame",
+    "setTimeout",
+    "visibilitychange",
+    "document.hidden",
+    "D9_CandleLeft_RuntimeLight",
+    "D9_CandleRight_RuntimeLight",
+    "D9_Exterior_RuntimeLight",
+    "<points",
+  ]) {
+    if (!atmosphereSource.includes(requiredFragment)) {
+      throw new Error(`D9.1 atmosphere must preserve ${requiredFragment}.`);
+    }
+  }
+
+  for (const requiredFragment of [
+    "d9CandleChannels",
+    "d9MaximumDustParticleCount",
+    "createD9RareEventSchedule",
+    "shouldD9AtmosphereScheduleFrames",
+  ]) {
+    if (!policySource.includes(requiredFragment)) {
+      throw new Error(`D9.1 atmosphere policy must preserve ${requiredFragment}.`);
+    }
+  }
+
+  for (const forbiddenFragment of [
+    "useState(",
+    "localStorage",
+    "sessionStorage",
+    "dispatch",
+    "OrbitControls",
+  ]) {
+    if (atmosphereSource.includes(forbiddenFragment) || policySource.includes(forbiddenFragment)) {
+      throw new Error(`D9.1 atmosphere must not introduce ${forbiddenFragment}.`);
+    }
+  }
+}
+
 // Keep local visual-check fragments out of production behavior while retaining repeatable browser evidence.
 function verifyLocalVisualChecks(capabilitySource) {
   if (!capabilitySource.includes("import.meta.env.DEV")) {
@@ -638,6 +701,12 @@ verifyViewportAccessibilityBoundary(
 verifyD9VisitorQualityBoundary(
   readRepositoryFile(canvasExperiencePath),
   readRepositoryFile(d9ScenePath),
+);
+verifyD9LivingSanctuaryBoundary(
+  readRepositoryFile(canvasExperiencePath),
+  readRepositoryFile(d9ScenePath),
+  readRepositoryFile(d9LivingSanctuaryAtmospherePath),
+  readRepositoryFile(d9LivingSanctuaryPolicyPath),
 );
 verifyLocalVisualChecks(readRepositoryFile(capabilityPath));
 console.log("Bootstrap configuration checks passed.");

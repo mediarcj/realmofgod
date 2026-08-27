@@ -19,7 +19,7 @@ interface ShadowableMesh {
 }
 
 // Keep the two runtime candle lights attached to their named authored flame anchors instead of legacy guessed coordinates.
-const authoredCandleFlameNames = [
+export const authoredCandleFlameNames = [
   "HF01_CandleLeft__Candle_0_Flame",
   "HF01_CandleRight__Candle_1_Flame",
 ] as const;
