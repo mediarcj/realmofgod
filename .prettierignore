@@ -13,3 +13,6 @@ coverage/
 supabase/.branches/
 supabase/.temp/
 pnpm-lock.yaml
+
+# Preserve the exact owner-approved Blender export bytes; its source file intentionally has no trailing newline.
+apps/sanctuary/src/assets/animation/realm-candle-motion-reference-v1.json

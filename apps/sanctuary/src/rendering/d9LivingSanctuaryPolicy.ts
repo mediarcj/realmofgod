@@ -10,14 +10,6 @@ import { MathUtils } from "three";
 
 import type { SanctuaryMvpState } from "../sanctuary/model";
 
-// Name the two authored candle channels once so the visual layer cannot grow a third decorative light source.
-export const d9CandleChannels = [
-  { key: "left", phase: 0.41, swayRate: 0.73 },
-  { key: "right", phase: 2.17, swayRate: 0.61 },
-] as const;
-
-export type D9CandleChannelKey = (typeof d9CandleChannels)[number]["key"];
-
 // Describe the small state-targeted values that the rendering layer may crossfade without changing journey meaning.
 export interface D9LivingSanctuaryPolicy {
   readonly allowCloudEvent: boolean;
@@ -38,7 +30,7 @@ export const d9MaximumDustParticleCount = 36;
 
 // Bound light changes tightly enough that candle and daylight life cannot look like a flashing effect.
 export const d9CandleLightBounds = {
-  maximum: 1.04,
+  maximum: 1.07,
   minimum: 0.96,
 } as const;
 
@@ -145,45 +137,6 @@ export function selectD9LivingSanctuaryPolicy({
     cadenceFramesPerSecond: selectD9AtmosphereCadenceFramesPerSecond(narrowLandscape),
     dustCount: narrowLandscape ? Math.max(3, Math.floor(base.dustCount * 0.58)) : base.dustCount,
     reducedMotion: false,
-  };
-}
-
-// Produce a small composite signal rather than one recognizably repeating sine wave for a candle channel.
-function sampleD9IrregularSignal(seconds: number, phase: number, rate: number): number {
-  const slowSway = Math.sin(seconds * rate + phase);
-  const slowerCorrection = Math.sin(seconds * rate * 0.37 + phase * 2.3) * 0.42;
-  const fineCorrection = Math.sin(seconds * rate * 1.91 + phase * 4.7) * 0.16;
-  return (slowSway + slowerCorrection + fineCorrection) / 1.58;
-}
-
-// Describe only transform-level flame life so the authored mesh can remain the source of flame shape and material.
-export function sampleD9CandleFlame(
-  channel: (typeof d9CandleChannels)[number],
-  seconds: number,
-): {
-  readonly leanX: number;
-  readonly leanZ: number;
-  readonly lightMultiplier: number;
-  readonly stretchY: number;
-} {
-  const primary = sampleD9IrregularSignal(seconds, channel.phase, channel.swayRate);
-  const lateral = sampleD9IrregularSignal(seconds, channel.phase + 0.91, channel.swayRate * 0.83);
-  // Keep the light related to, but intentionally out of phase with, visible flame movement.
-  const lightSignal = sampleD9IrregularSignal(
-    seconds,
-    channel.phase + 1.74,
-    channel.swayRate * 1.17,
-  );
-
-  return {
-    leanX: primary * 0.035,
-    leanZ: lateral * 0.026,
-    lightMultiplier: MathUtils.clamp(
-      1 + lightSignal * 0.038,
-      d9CandleLightBounds.minimum,
-      d9CandleLightBounds.maximum,
-    ),
-    stretchY: 1 + primary * 0.018,
   };
 }
 

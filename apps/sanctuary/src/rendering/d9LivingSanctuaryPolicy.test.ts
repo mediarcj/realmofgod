@@ -12,13 +12,10 @@ import {
   clampD9AtmosphereDeltaSeconds,
   createD9CloudEvent,
   createD9RareEventSchedule,
-  d9CandleChannels,
-  d9CandleLightBounds,
   d9CloudSofteningBounds,
   d9MaximumDustParticleCount,
   isD9CloudEventComplete,
   isD9NarrowLandscapeAtmosphereViewport,
-  sampleD9CandleFlame,
   sampleD9CloudSoftening,
   sampleD9DaylightModulation,
   selectD9LivingSanctuaryPolicy,
@@ -27,27 +24,11 @@ import {
 import { d9VisitorSceneContract } from "./d9SanctuaryQuality";
 import { STATIC_CANDLE_LIGHT_COUNT } from "./staticSanctuaryProof";
 
-// Confirm that the environment has an intentionally small pair of independent authored-candle channels.
+// Confirm that the environment keeps the approved two-light budget; map sampling itself is covered in the D9.1B focused test.
 describe("D9 living sanctuary candle policy", () => {
-  it("keeps exactly two channels with different deterministic phase signatures", () => {
-    const [left, right] = d9CandleChannels;
-    expect(d9CandleChannels).toHaveLength(2);
-    expect(left.phase).not.toBe(right.phase);
-    expect(left.swayRate).not.toBe(right.swayRate);
+  it("keeps exactly two authored candle lights without retaining a procedural motion authority", () => {
     expect(STATIC_CANDLE_LIGHT_COUNT).toBe(2);
     expect(d9VisitorSceneContract.candleLightCount).toBe(2);
-  });
-
-  it("keeps each candle light response inside the reviewed small variation bounds", () => {
-    for (const channel of d9CandleChannels) {
-      for (const seconds of [0, 1, 7, 31, 83]) {
-        const sample = sampleD9CandleFlame(channel, seconds);
-        expect(sample.lightMultiplier).toBeGreaterThanOrEqual(d9CandleLightBounds.minimum);
-        expect(sample.lightMultiplier).toBeLessThanOrEqual(d9CandleLightBounds.maximum);
-        expect(Math.abs(sample.leanX)).toBeLessThan(0.04);
-        expect(Math.abs(sample.leanZ)).toBeLessThan(0.03);
-      }
-    }
   });
 });
 

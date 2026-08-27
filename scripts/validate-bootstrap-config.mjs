@@ -88,6 +88,10 @@ const d9LivingSanctuaryPolicyPath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/rendering/d9LivingSanctuaryPolicy.ts",
 );
+const d91bBlenderCandleMotionPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/rendering/d91bBlenderCandleMotion.ts",
+);
 
 // Read a UTF-8 repository file with a direct failure message when the expected contract is absent.
 function readRepositoryFile(path) {
@@ -593,6 +597,7 @@ function verifyD9LivingSanctuaryBoundary(
   d9SceneSource,
   atmosphereSource,
   policySource,
+  d91bCandleMotionSource,
 ) {
   for (const requiredFragment of [
     'frameloop={d9QualityRendererActive ? "demand" : "always"}',
@@ -619,7 +624,6 @@ function verifyD9LivingSanctuaryBoundary(
   }
 
   for (const requiredFragment of [
-    "d9CandleChannels",
     "d9MaximumDustParticleCount",
     "createD9RareEventSchedule",
     "shouldD9AtmosphereScheduleFrames",
@@ -629,14 +633,33 @@ function verifyD9LivingSanctuaryBoundary(
     }
   }
 
+  for (const requiredFragment of [
+    "realm-candle-motion-reference-v1.json",
+    "prepareD91BBlenderCandleMotion",
+    "applyD91BBlenderCandleMotion",
+    "mapD91BBlenderSampleToThree",
+  ]) {
+    if (!d91bCandleMotionSource.includes(requiredFragment)) {
+      throw new Error(
+        `D9.1B must preserve the approved Blender candle map boundary: ${requiredFragment}.`,
+      );
+    }
+  }
+
   for (const forbiddenFragment of [
     "useState(",
     "localStorage",
     "sessionStorage",
     "dispatch",
     "OrbitControls",
+    "sampleD9CandleFlame",
+    "d9CandleChannels",
   ]) {
-    if (atmosphereSource.includes(forbiddenFragment) || policySource.includes(forbiddenFragment)) {
+    if (
+      atmosphereSource.includes(forbiddenFragment) ||
+      policySource.includes(forbiddenFragment) ||
+      d91bCandleMotionSource.includes(forbiddenFragment)
+    ) {
       throw new Error(`D9.1 atmosphere must not introduce ${forbiddenFragment}.`);
     }
   }
@@ -707,6 +730,7 @@ verifyD9LivingSanctuaryBoundary(
   readRepositoryFile(d9ScenePath),
   readRepositoryFile(d9LivingSanctuaryAtmospherePath),
   readRepositoryFile(d9LivingSanctuaryPolicyPath),
+  readRepositoryFile(d91bBlenderCandleMotionPath),
 );
 verifyLocalVisualChecks(readRepositoryFile(capabilityPath));
 console.log("Bootstrap configuration checks passed.");

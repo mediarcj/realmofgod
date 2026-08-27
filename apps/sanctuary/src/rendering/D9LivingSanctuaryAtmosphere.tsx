@@ -12,24 +12,28 @@ import {
   BufferAttribute,
   DirectionalLight,
   DynamicDrawUsage,
-  Euler,
   MathUtils,
   Object3D,
   PointLight,
   Points,
-  Vector3,
 } from "three";
 
 import type { SanctuaryMvpState } from "../sanctuary/model";
-import { authoredCandleFlameNames } from "./staticSanctuaryProof";
+import {
+  applyD91BBlenderCandleMotion,
+  d91bCandleLoopSeconds,
+  prepareD91BBlenderCandleMotion,
+  restoreD91BBlenderCandleMotion,
+  sampleD91BBlenderCandleMotion,
+  type D91BCandleSide,
+  type D91BFlameRuntimeRig,
+} from "./d91bBlenderCandleMotion";
 import {
   clampD9AtmosphereDeltaSeconds,
   createD9CloudEvent,
   createD9RareEventSchedule,
-  d9CandleChannels,
   d9MaximumDustParticleCount,
   isD9CloudEventComplete,
-  sampleD9CandleFlame,
   sampleD9CloudSoftening,
   sampleD9DaylightModulation,
   selectD9LivingSanctuaryPolicy,
@@ -37,13 +41,6 @@ import {
   type D9CloudEvent,
 } from "./d9LivingSanctuaryPolicy";
 import type { VisualCalibration } from "./visualCalibration";
-
-// Hold each authored flame's original transform so reduced motion and unmount can return exactly to the local GLB presentation.
-interface AuthoredFlameBaseline {
-  readonly object: Object3D;
-  readonly rotation: Euler;
-  readonly scale: Vector3;
-}
 
 // Keep renderer-only crossfade values together so semantic state changes do not cause abrupt lighting changes.
 interface D9AtmosphereCurrentValues {
@@ -69,48 +66,6 @@ function createD9DustBasePositions(): Float32Array {
   return basePositions;
 }
 
-// Resolve the two known local flame objects without creating duplicate geometry or lamps.
-function collectAuthoredFlameBaselines(scene: Object3D): AuthoredFlameBaseline[] {
-  return authoredCandleFlameNames.flatMap((name) => {
-    const object = scene.getObjectByName(name);
-    if (object === undefined) {
-      return [];
-    }
-    return [{ object, rotation: object.rotation.clone(), scale: object.scale.clone() }];
-  });
-}
-
-// Apply a very small transform response while preserving every authored flame position, mesh shape, and material.
-function applyD9FlameLife(
-  baseline: AuthoredFlameBaseline,
-  channelIndex: number,
-  seconds: number,
-  amount: number,
-): number {
-  const channel = d9CandleChannels[channelIndex];
-  if (channel === undefined) {
-    return 1;
-  }
-  const sample = sampleD9CandleFlame(channel, seconds);
-  baseline.object.rotation.set(
-    baseline.rotation.x + sample.leanX * amount,
-    baseline.rotation.y,
-    baseline.rotation.z + sample.leanZ * amount,
-  );
-  baseline.object.scale.set(
-    baseline.scale.x,
-    baseline.scale.y * (1 + (sample.stretchY - 1) * amount),
-    baseline.scale.z,
-  );
-  return MathUtils.lerp(1, sample.lightMultiplier, amount);
-}
-
-// Reset one flame exactly when the component leaves the renderer tree.
-function restoreD9FlameBaseline(baseline: AuthoredFlameBaseline): void {
-  baseline.object.rotation.set(baseline.rotation.x, baseline.rotation.y, baseline.rotation.z);
-  baseline.object.scale.copy(baseline.scale);
-}
-
 // Render one isolated decoration layer whose inputs are visual state and existing authored scene objects only.
 export function D9LivingSanctuaryAtmosphere({
   reducedMotion,
@@ -133,7 +88,7 @@ export function D9LivingSanctuaryAtmosphere({
   // The array remains immutable from React's perspective; only the GPU attribute copy is updated inside the renderer frame loop.
   const dustBasePositions = useMemo(() => createD9DustBasePositions(), []);
   const dustPointsRef = useRef<Points>(null);
-  const flameBaselinesRef = useRef<AuthoredFlameBaseline[] | null>(null);
+  const flameRigsRef = useRef<Record<D91BCandleSide, D91BFlameRuntimeRig> | null>(null);
   const runtimeLights = useRef<{
     exterior: DirectionalLight | null;
     left: PointLight | null;
@@ -170,13 +125,13 @@ export function D9LivingSanctuaryAtmosphere({
   }, [rendererScene]);
 
   useEffect(() => {
-    // Retain mutable authored transforms locally and restore them during teardown so a remount cannot compound a lean.
-    flameBaselinesRef.current = collectAuthoredFlameBaselines(scene);
+    // Reparent only the two visible flame meshes at their bases so approved Blender transforms cannot spill into their candles or nearby props.
+    flameRigsRef.current = prepareD91BBlenderCandleMotion(scene);
     return () => {
-      for (const baseline of flameBaselinesRef.current ?? []) {
-        restoreD9FlameBaseline(baseline);
+      for (const rig of Object.values(flameRigsRef.current ?? {})) {
+        restoreD91BBlenderCandleMotion(rig);
       }
-      flameBaselinesRef.current = null;
+      flameRigsRef.current = null;
     };
   }, [scene]);
 
@@ -189,6 +144,8 @@ export function D9LivingSanctuaryAtmosphere({
     canvas.setAttribute("data-d9-atmosphere-reduced-motion", String(policy.reducedMotion));
     canvas.setAttribute("data-d9-atmosphere-state", policy.state);
     canvas.setAttribute("data-d9-atmosphere-bird", "deferred-art");
+    canvas.setAttribute("data-d9-candle-source", "blender-approved-v1");
+    canvas.setAttribute("data-d9-candle-loop-seconds", String(d91bCandleLoopSeconds));
 
     return () => {
       for (const attribute of [
@@ -201,6 +158,10 @@ export function D9LivingSanctuaryAtmosphere({
         "data-d9-atmosphere-hidden",
         "data-d9-atmosphere-rare-event",
         "data-d9-atmosphere-update-count",
+        "data-d9-candle-source",
+        "data-d9-candle-loop-seconds",
+        "data-d9-candle-left-sample",
+        "data-d9-candle-right-sample",
       ]) {
         canvas.removeAttribute(attribute);
       }
@@ -321,10 +282,22 @@ export function D9LivingSanctuaryAtmosphere({
       cloudEvent.current === null ? "none" : "cloud-softening",
     );
 
-    // Mutate only the two named authored flames and their two existing local lights; no extra table illumination is created.
-    const flameLightMultipliers = (flameBaselinesRef.current ?? []).map((baseline, index) =>
-      applyD9FlameLife(baseline, index, localSeconds.current, current.current.candleMotionAmount),
-    );
+    // Apply only the approved independent Blender streams to their dedicated pivots; no procedural browser candle signal remains.
+    // Snap the approved flame pivots to neutral for reduced motion rather than letting the ordinary visual crossfade leave one moving frame.
+    const candleMotionAmount = policy.reducedMotion ? 0 : current.current.candleMotionAmount;
+    const flameLightMultipliers = (["left", "right"] as const).map((side) => {
+      const rig = flameRigsRef.current?.[side];
+      const transform =
+        rig === undefined
+          ? { lightMultiplier: 1 }
+          : applyD91BBlenderCandleMotion(rig, side, localSeconds.current, candleMotionAmount);
+      const sample = sampleD91BBlenderCandleMotion(side, localSeconds.current);
+      gl.domElement.setAttribute(
+        `data-d9-candle-${side}-sample`,
+        `main=${sample.lean_main_deg.toFixed(6)};depth=${sample.lean_depth_deg.toFixed(6)};stretch=${sample.stretch.toFixed(6)};light=${sample.light_multiplier.toFixed(6)}`,
+      );
+      return transform.lightMultiplier;
+    });
     const candleBaseIntensity = visualCalibration.lighting.warmKey.intensity * 1.2;
     if (runtimeLights.current.left !== null) {
       runtimeLights.current.left.intensity =
