@@ -2,7 +2,7 @@
  * File: scripts/verify-sanctuary-boundary.mjs
  * Description: Scans browser source for forbidden persistence, provider, and outbound-request primitives.
  * Purpose: Keeps the anonymous local sanctuary from quietly gaining data collection or network behavior.
- * Notes: This is a focused static guard; it complements code review and runtime browser checks.
+ * Notes: This is a focused static guard; the one reviewed same-tab state module is the only permitted browser session-storage boundary.
  */
 
 // Import Node standard-library helpers for a local, deterministic source-tree scan.
@@ -14,12 +14,12 @@ import { dirname, extname, join, resolve } from "node:path";
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sanctuarySourceDirectory = resolve(repositoryRoot, "apps/sanctuary/src");
 const sourceExtensions = new Set([".ts", ".tsx", ".css"]);
+const permittedSessionStoragePath = resolve(sanctuarySourceDirectory, "sanctuary/sessionState.ts");
 const forbiddenPatterns = [
   { label: "browser fetch", expression: /\bfetch\s*\(/u },
   { label: "XMLHttpRequest", expression: /\bXMLHttpRequest\b/u },
   { label: "WebSocket", expression: /\bWebSocket\b/u },
   { label: "localStorage", expression: /\blocalStorage\b/u },
-  { label: "sessionStorage", expression: /\bsessionStorage\b/u },
   { label: "IndexedDB", expression: /\bindexedDB\b/u },
   { label: "sendBeacon", expression: /\bsendBeacon\b/u },
   { label: "Supabase", expression: /\bsupabase\b/iu },
@@ -47,6 +47,12 @@ function verifyFile(path) {
       const relativePath = path.slice(repositoryRoot.length + 1);
       throw new Error(`${relativePath} contains forbidden ${forbiddenPattern.label} behavior.`);
     }
+  }
+
+  // Permit the narrowly reviewed same-tab state helper and reject session persistence from every other browser module.
+  if (path !== permittedSessionStoragePath && /\bsessionStorage\b/u.test(source)) {
+    const relativePath = path.slice(repositoryRoot.length + 1);
+    throw new Error(`${relativePath} contains forbidden sessionStorage behavior.`);
   }
 }
 

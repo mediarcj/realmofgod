@@ -1,6 +1,6 @@
 /**
  * File: apps/sanctuary/src/sanctuary/model.test.ts
- * Description: Tests the D9 sanctuary interaction sequence and its single-affordance discipline.
+ * Description: Tests the D9 sanctuary interaction sequence, secondary Home escape, and single-affordance discipline.
  * Purpose: Prevents old journey stages, free navigation, or illegal camera-state jumps from entering the MVP proof.
  * Notes: These tests use only synthetic in-memory state and do not construct a renderer or persist visitor behavior.
  */
@@ -32,6 +32,14 @@ describe("D9 sanctuary interaction model", () => {
     ]);
   });
 
+  it("lets the universal Home action return each settled non-entry state to SANCTUARY", () => {
+    for (const state of [{ name: "SIT" }, { name: "READ" }, { name: "PRAY" }] as const) {
+      expect(transitionSanctuaryMvp(state, "RETURN_HOME_TO_SANCTUARY")).toEqual(
+        initialSanctuaryMvpState,
+      );
+    }
+  });
+
   it("leaves every illegal transition unchanged instead of offering backward or free navigation", () => {
     const illegalTransitions: readonly [
       SanctuaryMvpState,
@@ -40,6 +48,7 @@ describe("D9 sanctuary interaction model", () => {
       [{ name: "SANCTUARY" }, "ENTER_PRAYER"],
       [{ name: "SANCTUARY" }, "READ_BIBLE"],
       [{ name: "SANCTUARY" }, "RETURN_TO_SANCTUARY"],
+      [{ name: "SANCTUARY" }, "RETURN_HOME_TO_SANCTUARY"],
       [{ name: "SIT" }, "ENTER_PRAYER"],
       [{ name: "SIT" }, "RETURN_TO_SANCTUARY"],
       [{ name: "SIT" }, "SIT"],

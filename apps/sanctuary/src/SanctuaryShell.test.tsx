@@ -20,6 +20,7 @@ describe("SanctuaryShell", () => {
 
     expect(markup).toContain("Realm of God sanctuary");
     expect(markup).toContain("Sit in the sanctuary");
+    expect(markup).not.toContain('aria-label="Return to sanctuary"');
     expect(markup).not.toContain(">Sit</button>");
     expect(markup).not.toContain("sanctuary-visitor-control");
     expect(markup).not.toContain("A place to be still.");

@@ -127,4 +127,19 @@ describe("D9.0C.0 transition policy", () => {
     expect(shouldInvalidateD9CameraTransition(1)).toBe(false);
     expect(shouldInvalidateD9CameraTransition(2)).toBe(false);
   });
+
+  it("treats restored SIT, READ, and PRAY states as settled endpoints with no inferred inbound route", () => {
+    expect(selectD9CameraTransitionPlan(null, "SIT", false)).toEqual({
+      kind: "snap",
+      target: "SIT",
+    });
+    expect(selectD9CameraTransitionPlan(null, "READ", false)).toEqual({
+      kind: "snap",
+      target: "READ",
+    });
+    expect(selectD9CameraTransitionPlan(null, "PRAY", false)).toEqual({
+      kind: "snap",
+      target: "PRAY",
+    });
+  });
 });

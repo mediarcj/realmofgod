@@ -1,8 +1,8 @@
 /**
  * File: apps/sanctuary/src/sanctuary/model.ts
- * Description: Defines the four-state, in-memory visitor interaction model for the D9 sanctuary proof.
+ * Description: Defines the four-state visitor interaction model for the D9 sanctuary proof.
  * Purpose: Keeps the approved environmental interaction sequence deterministic without reusing the retired peace journey.
- * Notes: This model has no account, network, browser-storage, camera-animation, score, or free-navigation behavior.
+ * Notes: Browser session continuity is handled outside this pure model; it has no account, network, camera-animation, score, or free-navigation behavior.
  */
 
 // Keep the durable MVP vocabulary limited to the owner-approved sanctuary states.
@@ -14,7 +14,8 @@ export interface SanctuaryMvpState {
 }
 
 // Name only the environmental actions the visitor may perform during this proof.
-export type SanctuaryMvpAction = "ENTER_PRAYER" | "READ_BIBLE" | "RETURN_TO_SANCTUARY" | "SIT";
+export type SanctuaryMvpAction =
+  "ENTER_PRAYER" | "READ_BIBLE" | "RETURN_HOME_TO_SANCTUARY" | "RETURN_TO_SANCTUARY" | "SIT";
 
 // Describe the one semantic action and stable accessible label available in each state.
 export interface SanctuaryAffordance {
@@ -56,11 +57,16 @@ export function selectSanctuaryAffordance(state: SanctuaryMvpState): SanctuaryAf
   return affordancesByState[state.name];
 }
 
-// Advance only through the owner-approved loop; unsupported actions deliberately leave state unchanged.
+// Let the universal Home escape return from every settled non-entry state without changing the guided forward affordances.
 export function transitionSanctuaryMvp(
   state: SanctuaryMvpState,
   action: SanctuaryMvpAction,
 ): SanctuaryMvpState {
+  if (action === "RETURN_HOME_TO_SANCTUARY" && state.name !== "SANCTUARY") {
+    return initialSanctuaryMvpState;
+  }
+
+  // Advance only through the owner-approved loop; unsupported actions deliberately leave state unchanged.
   switch (state.name) {
     case "SANCTUARY":
       return action === "SIT" ? { name: "SIT" } : state;

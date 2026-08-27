@@ -108,6 +108,51 @@ select {
   white-space: nowrap;
 }
 
+/* Keep the universal return action visually quiet while giving every input method a full 44px semantic target. */
+.sanctuary-home-control {
+  position: fixed;
+  z-index: 3;
+  top: max(0.45rem, env(safe-area-inset-top));
+  left: max(0.45rem, env(safe-area-inset-left));
+  display: grid;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: rgb(247 235 211 / 68%);
+  background: transparent;
+  cursor: pointer;
+  place-items: center;
+}
+
+/* Let the small owned outline remain an icon rather than becoming a standing text or button treatment. */
+.sanctuary-home-control svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+/* Offer only a soft warm acknowledgement to a deliberate pointer hover. */
+.sanctuary-home-control:hover {
+  color: rgb(255 244 221 / 94%);
+  background: radial-gradient(circle, rgb(223 176 104 / 15%), transparent 68%);
+}
+
+/* Preserve an unmistakable keyboard focus cue without converting the resting icon into a pill. */
+.sanctuary-home-control:focus-visible {
+  outline: 2px solid rgb(255 238 199 / 92%);
+  outline-offset: 2px;
+  color: rgb(255 248 232 / 100%);
+  background: radial-gradient(circle, rgb(223 176 104 / 18%), transparent 68%);
+}
+
 /* Add restrained edge shade so text stays legible without covering the place with a large card. */
 .sanctuary-shell::after {
   position: fixed;

@@ -40,6 +40,18 @@ const sanctuaryInteractionModelPath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/sanctuary/model.ts",
 );
+const sanctuarySessionStatePath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/sanctuary/sessionState.ts",
+);
+const sanctuaryHomeControlPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/sanctuary/SanctuaryHomeControl.tsx",
+);
+const sanctuaryHomePolicyPath = resolve(
+  repositoryRoot,
+  "apps/sanctuary/src/sanctuary/sanctuaryHomePolicy.ts",
+);
 const d9EnvironmentalAffordancePath = resolve(
   repositoryRoot,
   "apps/sanctuary/src/rendering/D9EnvironmentalAffordances.tsx",
@@ -257,19 +269,53 @@ function verifyD9InteractionBoundary(
   canvasSource,
   sceneSource,
   modelSource,
+  sessionStateSource,
+  homeControlSource,
+  homePolicySource,
   affordanceSource,
   domTargetSource,
   anchorSource,
 ) {
   for (const requiredFragment of [
-    "useReducer",
-    "transitionSanctuaryMvp",
+    "useSanctuarySessionState",
+    "SanctuaryHomeControl",
     "sanctuary-environmental-control",
   ]) {
     if (!shellSource.includes(requiredFragment)) {
       throw new Error(
         `SanctuaryShell must preserve the D9.0B semantic interaction boundary: ${requiredFragment}.`,
       );
+    }
+  }
+
+  // Keep the reducer lazy initializer and the reviewed session key inside their small semantic continuity boundary.
+  for (const requiredFragment of [
+    "useReducer",
+    "transitionSanctuaryMvp",
+    "sessionStorage",
+    "realm.sanctuary.state.v1",
+  ]) {
+    if (!sessionStateSource.includes(requiredFragment)) {
+      throw new Error(
+        `Sanctuary session continuity must preserve ${requiredFragment} inside its reviewed boundary.`,
+      );
+    }
+  }
+
+  // Retain the project-owned, semantic Home control and its explicit accessible target contract without an icon dependency.
+  for (const requiredFragment of ["Return to sanctuary", "aria-label", "<svg"]) {
+    if (!homeControlSource.includes(requiredFragment)) {
+      throw new Error(`Sanctuary Home control must preserve ${requiredFragment}.`);
+    }
+  }
+
+  for (const requiredFragment of [
+    "shouldShowSanctuaryHome",
+    "sanctuaryHomeControlTargetSizePx",
+    "44",
+  ]) {
+    if (!homePolicySource.includes(requiredFragment)) {
+      throw new Error(`Sanctuary Home policy must preserve ${requiredFragment}.`);
     }
   }
 
@@ -554,6 +600,9 @@ verifyD9InteractionBoundary(
   readRepositoryFile(canvasExperiencePath),
   readRepositoryFile(d9ScenePath),
   readRepositoryFile(sanctuaryInteractionModelPath),
+  readRepositoryFile(sanctuarySessionStatePath),
+  readRepositoryFile(sanctuaryHomeControlPath),
+  readRepositoryFile(sanctuaryHomePolicyPath),
   readRepositoryFile(d9EnvironmentalAffordancePath),
   readRepositoryFile(d9DomInteractionTargetPath),
   readRepositoryFile(d9AffordanceAnchorsPath),
