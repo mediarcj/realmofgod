@@ -28,8 +28,9 @@
     "asset:sanctuary-batched-candidate:verify": "node scripts/verify-batched-sanctuary-candidate.mjs",
     "asset:affordance:verify": "corepack pnpm --filter @realmofgod/sanctuary asset:affordance:verify",
     "asset:candle-motion:verify": "node scripts/verify-d91b-candle-motion.mjs",
+    "asset:candle-fidelity:verify": "node scripts/verify-d91c-candle-fidelity.mjs",
     "production:visual:check": "node scripts/verify-production-visual-boundary.mjs",
-    "verify": "corepack pnpm format:check && corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test && corepack pnpm config:check && corepack pnpm source:check && corepack pnpm security:check && corepack pnpm asset:hf01:verify && corepack pnpm asset:sanctuary-candidate:verify && corepack pnpm asset:sanctuary-batched-candidate:verify && corepack pnpm asset:affordance:verify && corepack pnpm asset:candle-motion:verify && corepack pnpm build && corepack pnpm production:visual:check"
+    "verify": "corepack pnpm format:check && corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test && corepack pnpm config:check && corepack pnpm source:check && corepack pnpm security:check && corepack pnpm asset:hf01:verify && corepack pnpm asset:sanctuary-candidate:verify && corepack pnpm asset:sanctuary-batched-candidate:verify && corepack pnpm asset:affordance:verify && corepack pnpm asset:candle-motion:verify && corepack pnpm asset:candle-fidelity:verify && corepack pnpm build && corepack pnpm production:visual:check"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

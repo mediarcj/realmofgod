@@ -1,6 +1,6 @@
 /**
  * File: scripts/verify-d91b-candle-motion.mjs
- * Description: Verifies the copied approved Blender candle map and the narrow browser integration boundary.
+ * Description: Verifies the copied approved Blender candle map and its narrow browser authority boundary.
  * Purpose: Detects map drift, procedural candle authority, extra candle lights, or runtime reference-media usage before review.
  * Notes: This read-only local script uses Node standard libraries and does not start a browser, Blender, provider, or network request.
  */
@@ -73,7 +73,7 @@ function verifyApprovedMap() {
     throw new Error("The D9.1B left and right candle streams must remain distinct.");
   }
   if (typeof map.web_mapping_intent?.smoke !== "string") {
-    throw new Error("The D9.1B map must retain smoke as a documented future boundary.");
+    throw new Error("The D9.1B map must retain its documented smoke note.");
   }
 }
 
@@ -106,9 +106,6 @@ function verifyBrowserBoundary() {
   }
   if (sceneSource.includes("Higgsfield") || atmosphereSource.includes(".mp4")) {
     throw new Error("The D9.1B normal visitor runtime must not load reference video media.");
-  }
-  if (atmosphereSource.toLowerCase().includes("smoke")) {
-    throw new Error("Smoke is deferred from the D9.1B browser candle integration.");
   }
 }
 

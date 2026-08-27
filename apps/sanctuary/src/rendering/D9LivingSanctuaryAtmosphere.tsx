@@ -29,6 +29,15 @@ import {
   type D91BFlameRuntimeRig,
 } from "./d91bBlenderCandleMotion";
 import {
+  applyD91CCandlePresentation,
+  d91cAuthoredWickNames,
+  d91cMaximumSmokeSprites,
+  d91cPerceptualGain,
+  prepareD91CCandlePresentation,
+  restoreD91CCandlePresentation,
+  type D91CCandlePresentationRig,
+} from "./d91cCandleFidelity";
+import {
   clampD9AtmosphereDeltaSeconds,
   createD9CloudEvent,
   createD9RareEventSchedule,
@@ -89,6 +98,10 @@ export function D9LivingSanctuaryAtmosphere({
   const dustBasePositions = useMemo(() => createD9DustBasePositions(), []);
   const dustPointsRef = useRef<Points>(null);
   const flameRigsRef = useRef<Record<D91BCandleSide, D91BFlameRuntimeRig> | null>(null);
+  const candlePresentationRigsRef = useRef<Record<
+    D91BCandleSide,
+    D91CCandlePresentationRig
+  > | null>(null);
   const runtimeLights = useRef<{
     exterior: DirectionalLight | null;
     left: PointLight | null;
@@ -136,6 +149,21 @@ export function D9LivingSanctuaryAtmosphere({
   }, [scene]);
 
   useEffect(() => {
+    const flameRigs = flameRigsRef.current;
+    if (flameRigs === null) {
+      throw new Error("D9.1C candle presentation requires the approved D9.1B flame pivots.");
+    }
+    // Layer local presentation around the inspected GLB flame and wick meshes without adding a browser flame transform or another light.
+    candlePresentationRigsRef.current = prepareD91CCandlePresentation(scene, flameRigs);
+    return () => {
+      for (const rig of Object.values(candlePresentationRigsRef.current ?? {})) {
+        restoreD91CCandlePresentation(rig);
+      }
+      candlePresentationRigsRef.current = null;
+    };
+  }, [scene]);
+
+  useEffect(() => {
     const canvas = gl.domElement;
     // Publish noninteractive local evidence for browser checks without adding a visitor-facing diagnostics control.
     canvas.setAttribute("data-d9-atmosphere-boundary", "living-sanctuary");
@@ -146,6 +174,13 @@ export function D9LivingSanctuaryAtmosphere({
     canvas.setAttribute("data-d9-atmosphere-bird", "deferred-art");
     canvas.setAttribute("data-d9-candle-source", "blender-approved-v1");
     canvas.setAttribute("data-d9-candle-loop-seconds", String(d91bCandleLoopSeconds));
+    canvas.setAttribute("data-d9-candle-fidelity", "layered-local-v1");
+    canvas.setAttribute("data-d9-candle-wicks", Object.values(d91cAuthoredWickNames).join(","));
+    canvas.setAttribute(
+      "data-d9-candle-smoke",
+      `bounded-deterministic-${String(d91cMaximumSmokeSprites)}-max`,
+    );
+    canvas.setAttribute("data-d9-candle-perceptual-gain", String(d91cPerceptualGain));
 
     return () => {
       for (const attribute of [
@@ -160,6 +195,11 @@ export function D9LivingSanctuaryAtmosphere({
         "data-d9-atmosphere-update-count",
         "data-d9-candle-source",
         "data-d9-candle-loop-seconds",
+        "data-d9-candle-motion-amplitude",
+        "data-d9-candle-fidelity",
+        "data-d9-candle-wicks",
+        "data-d9-candle-smoke",
+        "data-d9-candle-perceptual-gain",
         "data-d9-candle-left-sample",
         "data-d9-candle-right-sample",
       ]) {
@@ -285,17 +325,34 @@ export function D9LivingSanctuaryAtmosphere({
     // Apply only the approved independent Blender streams to their dedicated pivots; no procedural browser candle signal remains.
     // Snap the approved flame pivots to neutral for reduced motion rather than letting the ordinary visual crossfade leave one moving frame.
     const candleMotionAmount = policy.reducedMotion ? 0 : current.current.candleMotionAmount;
+    gl.domElement.setAttribute("data-d9-candle-motion-amplitude", candleMotionAmount.toFixed(4));
     const flameLightMultipliers = (["left", "right"] as const).map((side) => {
       const rig = flameRigsRef.current?.[side];
       const transform =
         rig === undefined
           ? { lightMultiplier: 1 }
-          : applyD91BBlenderCandleMotion(rig, side, localSeconds.current, candleMotionAmount);
+          : applyD91BBlenderCandleMotion(
+              rig,
+              side,
+              localSeconds.current,
+              candleMotionAmount,
+              d91cPerceptualGain,
+            );
       const sample = sampleD91BBlenderCandleMotion(side, localSeconds.current);
       gl.domElement.setAttribute(
         `data-d9-candle-${side}-sample`,
         `main=${sample.lean_main_deg.toFixed(6)};depth=${sample.lean_depth_deg.toFixed(6)};stretch=${sample.stretch.toFixed(6)};light=${sample.light_multiplier.toFixed(6)}`,
       );
+      const presentationRig = candlePresentationRigsRef.current?.[side];
+      if (presentationRig !== undefined) {
+        // The map's existing light multiplier may gently affect visual brightness, but it never adds a new lean, phase, or flame position signal.
+        applyD91CCandlePresentation(
+          presentationRig,
+          localSeconds.current,
+          transform.lightMultiplier,
+          policy.reducedMotion,
+        );
+      }
       return transform.lightMultiplier;
     });
     const candleBaseIntensity = visualCalibration.lighting.warmKey.intensity * 1.2;

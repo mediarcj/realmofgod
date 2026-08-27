@@ -137,13 +137,16 @@ export function sampleD91BBlenderCandleMotion(
 export function mapD91BBlenderSampleToThree(
   sample: D91BMotionSample,
   motionAmount: number,
+  perceptualGain = 1,
 ): D91BFlamePivotTransform {
   const amount = MathUtils.clamp(motionAmount, 0, 1);
+  // Scale only the already-authored spatial response for an explicitly reviewed visual-fidelity pass; timing and light samples remain untouched.
+  const spatialAmount = amount * MathUtils.clamp(perceptualGain, 1, 1.3);
   return {
     lightMultiplier: MathUtils.lerp(1, sample.light_multiplier, amount),
-    rotationX: MathUtils.degToRad(sample.lean_depth_deg) * amount,
-    rotationZ: -MathUtils.degToRad(sample.lean_main_deg) * amount,
-    scaleY: 1 + (sample.stretch - 1) * amount,
+    rotationX: MathUtils.degToRad(sample.lean_depth_deg) * spatialAmount,
+    rotationZ: -MathUtils.degToRad(sample.lean_main_deg) * spatialAmount,
+    scaleY: 1 + (sample.stretch - 1) * spatialAmount,
   };
 }
 
@@ -197,10 +200,12 @@ export function applyD91BBlenderCandleMotion(
   side: D91BCandleSide,
   seconds: number,
   motionAmount: number,
+  perceptualGain = 1,
 ): D91BFlamePivotTransform {
   const transform = mapD91BBlenderSampleToThree(
     sampleD91BBlenderCandleMotion(side, seconds),
     motionAmount,
+    perceptualGain,
   );
   rig.pivot.rotation.set(transform.rotationX, 0, transform.rotationZ);
   rig.pivot.scale.set(1, transform.scaleY, 1);

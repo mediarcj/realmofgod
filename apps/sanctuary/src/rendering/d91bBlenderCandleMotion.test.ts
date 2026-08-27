@@ -98,6 +98,16 @@ describe("D9.1B Blender-to-Three flame conversion", () => {
       scaleY: 1,
     });
   });
+
+  it("can apply only a bounded visual gain to authored lean and stretch without changing the map light sample", () => {
+    const sample = sampleD91BBlenderCandleMotion("left", 2.5);
+    const neutralGain = mapD91BBlenderSampleToThree(sample, 1);
+    const visualGain = mapD91BBlenderSampleToThree(sample, 1, 1.18);
+    expect(Math.abs(visualGain.rotationX)).toBeGreaterThan(Math.abs(neutralGain.rotationX));
+    expect(Math.abs(visualGain.rotationZ)).toBeGreaterThan(Math.abs(neutralGain.rotationZ));
+    expect(visualGain.scaleY).toBeGreaterThan(neutralGain.scaleY);
+    expect(visualGain.lightMultiplier).toBe(neutralGain.lightMultiplier);
+  });
 });
 
 // Prove that the runtime changes only the two named flame roots while preserving their original world placement through base pivots.
