@@ -170,9 +170,9 @@ export function readLocalDiagnosticRoute(): boolean {
     : false;
 }
 
-// Make the exact unfragmented development root use the approved batched candidate and restrained shadow policy.
+// Keep the approved D9 scene present for the ordinary root and the existing reduced-motion proof, while all other local checks stay isolated.
 export function selectD9VisitorSanctuaryConfig(fragment: string): D9VisitorSanctuaryConfig | null {
-  return fragment === "" ? d9VisitorSanctuaryConfig : null;
+  return fragment === "" || fragment === "#verify-reduced-motion" ? d9VisitorSanctuaryConfig : null;
 }
 
 // Keep the unpromoted candidate out of production selection while allowing the normal local root to review it.

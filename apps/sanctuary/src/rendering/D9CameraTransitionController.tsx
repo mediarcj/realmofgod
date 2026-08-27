@@ -1,11 +1,11 @@
 /**
  * File: apps/sanctuary/src/rendering/D9CameraTransitionController.tsx
- * Description: Owns the D9.0C.0 runtime camera transform between immutable sanctuary camera endpoints.
- * Purpose: Provides one calm SANCTUARY-to-SIT presentation move while keeping the reducer and DOM controls authoritative.
- * Notes: This controller does not create visitor actions and returns every non-approved transition to an exact D7.5 snap.
+ * Description: Owns the D9.0C.1 runtime camera transform across the approved guided sanctuary routes.
+ * Purpose: Keeps one renderer-owned camera writer while semantic state and the accessible DOM overlay remain independent.
+ * Notes: Full motion uses bounded routes, while reduced motion and restored sessions settle immediately on exact D7.5 endpoints.
  */
 
-// Import R3F lifecycle hooks and React refs used to mutate the one existing Three.js camera without a per-frame React update.
+// Import R3F lifecycle hooks and React refs used to mutate the one existing Three.js camera without per-frame React state.
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { PerspectiveCamera } from "three";
@@ -13,23 +13,26 @@ import { PerspectiveCamera } from "three";
 import type { SanctuaryMvpState } from "../sanctuary/model";
 import type { D75SanctuaryFramingPolicy } from "./d75SanctuaryCamera";
 import {
+  cloneD9CameraPose,
   createD9CameraEndpoint,
-  d9SanctuaryToSitDurationMs,
-  sampleD9SanctuaryToSitTransition,
+  d9CameraTransitionDurationsMs,
+  sampleD9CameraTransition,
   selectD9CameraTransitionPlan,
   shouldInvalidateD9CameraTransition,
+  type D9CameraMovePlan,
+  type D9CameraPose,
+  type D9CameraTransitionRoute,
 } from "./d9CameraTransition";
 
-// Retain only the visual facts required to resume one in-flight render loop; this is deliberately not application state.
+// Retain only the visual facts needed to continue one in-flight render loop; this is deliberately not application state.
 interface ActiveD9CameraTransition {
+  readonly plan: D9CameraMovePlan;
   readonly startedAtMilliseconds: number | null;
+  readonly startPose: D9CameraPose;
 }
 
-// Apply a complete pose atomically so the visible frame never combines a new location with an old lens or orientation.
-function applyD9CameraPose(
-  camera: PerspectiveCamera,
-  pose: ReturnType<typeof createD9CameraEndpoint>,
-): void {
+// Apply a complete pose atomically so a visible frame never combines a new location with an old lens or orientation.
+function applyD9CameraPose(camera: PerspectiveCamera, pose: D9CameraPose): void {
   camera.far = pose.far;
   camera.fov = pose.fovDegrees;
   camera.near = pose.near;
@@ -40,25 +43,39 @@ function applyD9CameraPose(
   camera.updateMatrixWorld(true);
 }
 
-// Keep nonvisual local evidence useful to browser checks without restoring a visitor-facing diagnostics surface.
+// Capture the actual rendered camera before replacing a route so rapid legal actions remain visually continuous.
+function captureD9CameraPose(camera: PerspectiveCamera): D9CameraPose {
+  return {
+    far: camera.far,
+    fovDegrees: camera.fov,
+    near: camera.near,
+    position: camera.position.clone(),
+    quaternion: camera.quaternion.clone().normalize(),
+    up: camera.up.clone().normalize(),
+  };
+}
+
+// Keep nonvisual evidence useful to browser checks without restoring a visitor-facing diagnostics surface.
 function writeD9CameraTransitionEvidence(
   canvas: HTMLCanvasElement,
-  transition: "sanctuary-to-sit" | "settled",
+  transition: D9CameraTransitionRoute | "settled",
   progress: number,
-  includeRoute = false,
+  plan?: D9CameraMovePlan,
 ): void {
   canvas.setAttribute("data-d9-camera-transition", transition);
   canvas.setAttribute("data-d9-camera-transition-progress", progress.toFixed(4));
-  if (includeRoute) {
-    canvas.setAttribute("data-d9-camera-transition-from", "SANCTUARY");
-    canvas.setAttribute("data-d9-camera-transition-to", "SIT");
+  if (plan === undefined) {
+    canvas.removeAttribute("data-d9-camera-route");
+    canvas.removeAttribute("data-d9-camera-transition-from");
+    canvas.removeAttribute("data-d9-camera-transition-to");
     return;
   }
-  canvas.removeAttribute("data-d9-camera-transition-from");
-  canvas.removeAttribute("data-d9-camera-transition-to");
+  canvas.setAttribute("data-d9-camera-route", plan.kind);
+  canvas.setAttribute("data-d9-camera-transition-from", plan.from);
+  canvas.setAttribute("data-d9-camera-transition-to", plan.target);
 }
 
-// Render the one approved transition path while all other selected states continue to use their exact authored frames.
+// Render the approved transition paths while snapshots and reduced motion retain exact endpoint presentation.
 export function D9CameraTransitionController({
   cameraName,
   framingPolicy,
@@ -76,12 +93,12 @@ export function D9CameraTransitionController({
   const cameraNameRef = useRef(cameraName);
   const aspectRef = useRef(size.width / Math.max(size.height, 1));
 
-  // Store the latest selected semantic endpoint for a later resize without giving the resize effect a second camera-state writer.
+  // Store the latest semantic endpoint for resize handling without allowing resize code to become a competing transition writer.
   useLayoutEffect(() => {
     cameraNameRef.current = cameraName;
   }, [cameraName]);
 
-  // Keep the latest horizontal-frame lens available to an active transition when ordinary browser resizing occurs.
+  // Let a settled endpoint respond to ordinary resize, while active motion recomputes its lens on the next requested controller frame.
   useLayoutEffect(() => {
     aspectRef.current = size.width / Math.max(size.height, 1);
     if (!(camera instanceof PerspectiveCamera)) {
@@ -94,11 +111,10 @@ export function D9CameraTransitionController({
       );
       return;
     }
-    // Let the controller's next requested frame recompute its in-flight FOV rather than allowing a second writer to snap it.
     invalidate();
   }, [camera, framingPolicy, invalidate, size.height, size.width]);
 
-  // Start only SANCTUARY to SIT as a visual move; all later state changes settle immediately and cannot leave a half pose behind.
+  // Turn an owner-approved semantic edge into one renderer-owned route, rebasing from the actual camera if the visitor interrupts it.
   useLayoutEffect(() => {
     if (!(camera instanceof PerspectiveCamera)) {
       return;
@@ -111,10 +127,18 @@ export function D9CameraTransitionController({
     );
     previousCameraName.current = cameraName;
 
-    if (plan.kind === "sanctuary-to-sit") {
-      activeTransition.current = { startedAtMilliseconds: null };
+    if (plan.kind !== "snap") {
+      const startPose =
+        activeTransition.current === null
+          ? createD9CameraEndpoint(plan.from, aspectRef.current, framingPolicy)
+          : captureD9CameraPose(camera);
+      activeTransition.current = {
+        plan,
+        startedAtMilliseconds: null,
+        startPose: cloneD9CameraPose(startPose),
+      };
       onTransitionActiveChange(true);
-      writeD9CameraTransitionEvidence(gl.domElement, "sanctuary-to-sit", 0, true);
+      writeD9CameraTransitionEvidence(gl.domElement, plan.kind, 0, plan);
       invalidate();
       return;
     }
@@ -126,15 +150,16 @@ export function D9CameraTransitionController({
     );
     onTransitionActiveChange(false);
     writeD9CameraTransitionEvidence(gl.domElement, "settled", 1);
-    // A single exact-endpoint frame is sufficient in demand mode; no continuing transition loop is requested here.
+    // A single exact-endpoint frame is enough in demand mode; no continuing idle render loop is requested here.
     invalidate();
   }, [camera, cameraName, framingPolicy, gl, invalidate, onTransitionActiveChange, reducedMotion]);
 
-  // Remove only the local evidence attributes when this development-only visitor renderer unmounts.
+  // Remove only local evidence attributes when this development-only visitor renderer unmounts.
   useEffect(() => {
     const canvas = gl.domElement;
     return () => {
       for (const attribute of [
+        "data-d9-camera-route",
         "data-d9-camera-transition",
         "data-d9-camera-transition-progress",
         "data-d9-camera-transition-from",
@@ -145,6 +170,7 @@ export function D9CameraTransitionController({
     };
   }, [gl]);
 
+  // Sample only an active route and explicitly release demand rendering once its exact destination endpoint is applied.
   useFrame((state) => {
     const transition = activeTransition.current;
     if (transition === null || !(camera instanceof PerspectiveCamera)) {
@@ -154,30 +180,40 @@ export function D9CameraTransitionController({
     const nowMilliseconds = state.clock.getElapsedTime() * 1000;
     const startedAtMilliseconds = transition.startedAtMilliseconds ?? nowMilliseconds;
     if (transition.startedAtMilliseconds === null) {
-      activeTransition.current = { startedAtMilliseconds };
+      activeTransition.current = { ...transition, startedAtMilliseconds };
     }
     const progress = Math.min(
       1,
-      (nowMilliseconds - startedAtMilliseconds) / d9SanctuaryToSitDurationMs,
+      (nowMilliseconds - startedAtMilliseconds) /
+        d9CameraTransitionDurationsMs[transition.plan.kind],
     );
 
     applyD9CameraPose(
       camera,
-      sampleD9SanctuaryToSitTransition(progress, aspectRef.current, framingPolicy),
+      sampleD9CameraTransition(
+        transition.plan,
+        progress,
+        aspectRef.current,
+        framingPolicy,
+        transition.startPose,
+      ),
     );
-    writeD9CameraTransitionEvidence(gl.domElement, "sanctuary-to-sit", progress, true);
+    writeD9CameraTransitionEvidence(gl.domElement, transition.plan.kind, progress, transition.plan);
 
     if (shouldInvalidateD9CameraTransition(progress)) {
-      // Demand mode receives exactly one next frame for every unfinished transition sample and no idle refresh loop.
+      // Demand mode receives one next frame for every unfinished route sample and no idle refresh loop.
       invalidate();
       return;
     }
 
-    // Explicitly restore the immutable SIT pose after interpolation, including its authored lens and normalized orientation.
-    applyD9CameraPose(camera, createD9CameraEndpoint("SIT", aspectRef.current, framingPolicy));
+    // Reapply the immutable target after interpolation so the final lens, clip range, and normalized orientation stay exact.
+    applyD9CameraPose(
+      camera,
+      createD9CameraEndpoint(transition.plan.target, aspectRef.current, framingPolicy),
+    );
     activeTransition.current = null;
     onTransitionActiveChange(false);
-    writeD9CameraTransitionEvidence(gl.domElement, "settled", 1, true);
+    writeD9CameraTransitionEvidence(gl.domElement, "settled", 1);
   });
 
   return null;

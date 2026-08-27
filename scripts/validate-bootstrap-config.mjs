@@ -438,7 +438,7 @@ function verifyD9InteractionBoundary(
   }
 }
 
-// Require the D9.0C.0 controller to remain the one rendering-layer camera writer while keeping all semantic state outside it.
+// Require the D9.0C.1 controller to remain the one rendering-layer camera writer while keeping all semantic state outside it.
 function verifyD9CameraTransitionBoundary(canvasSource, controllerSource, transitionSource) {
   for (const requiredFragment of [
     "D9CameraTransitionController",
@@ -457,7 +457,9 @@ function verifyD9CameraTransitionBoundary(canvasSource, controllerSource, transi
     "invalidate",
     "reducedMotion",
     "data-d9-camera-transition",
+    "captureD9CameraPose",
     "createD9CameraEndpoint",
+    "sampleD9CameraTransition",
   ]) {
     if (!controllerSource.includes(requiredFragment)) {
       throw new Error(`D9CameraTransitionController must preserve ${requiredFragment}.`);
@@ -467,12 +469,27 @@ function verifyD9CameraTransitionBoundary(canvasSource, controllerSource, transi
   for (const requiredFragment of [
     "d75SanctuaryCameras",
     "slerpQuaternions",
+    "d9CameraTransitionDurationsMs",
     "d9SanctuaryToSitDurationMs",
     "selectD9CameraTransitionPlan",
     "shouldInvalidateD9CameraTransition",
   ]) {
     if (!transitionSource.includes(requiredFragment)) {
       throw new Error(`D9 camera transition math must preserve ${requiredFragment}.`);
+    }
+  }
+
+  // Keep each owner-approved guided move explicit; presentation may grow only through a later owner review.
+  for (const requiredRoute of [
+    "sanctuary-to-sit",
+    "sit-to-read",
+    "read-to-pray",
+    "pray-to-sanctuary",
+    "sit-home-to-sanctuary",
+    "read-home-to-sanctuary",
+  ]) {
+    if (!transitionSource.includes(requiredRoute)) {
+      throw new Error(`D9 camera transition math must preserve ${requiredRoute}.`);
     }
   }
 

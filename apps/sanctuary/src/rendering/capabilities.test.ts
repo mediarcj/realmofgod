@@ -89,10 +89,15 @@ describe("D8.5 landscape proof selection", () => {
   });
 });
 
-// Keep the unfragmented D9 visitor root distinct from every explicit local diagnostic route.
+// Keep the D9 visitor root available only for ordinary review and the existing reduced-motion proof, not unrelated diagnostics.
 describe("D9 visitor sanctuary selection", () => {
-  it("uses the batched candidate and restrained shadows at the ordinary development root", () => {
+  it("uses the batched candidate and restrained shadows at the ordinary development root and reduced-motion proof", () => {
     expect(selectD9VisitorSanctuaryConfig("")).toEqual({
+      candidate: "batched",
+      shadowPolicy: "restrained",
+      transformPolicy: "preserve-authored",
+    });
+    expect(selectD9VisitorSanctuaryConfig("#verify-reduced-motion")).toEqual({
       candidate: "batched",
       shadowPolicy: "restrained",
       transformPolicy: "preserve-authored",

@@ -42,9 +42,11 @@ const d9VisitorSceneConfig: StaticSanctuaryProofConfig = {
 
 // Record actual browser render values after the candidate settles without collecting any device identity.
 function D9RuntimeMetrics({
+  cameraTransitionActive,
   quality,
   sanctuaryState,
 }: {
+  readonly cameraTransitionActive: boolean;
   readonly quality: D9RenderQuality;
   readonly sanctuaryState: SanctuaryMvpState["name"];
 }): ReactNode {
@@ -56,7 +58,7 @@ function D9RuntimeMetrics({
 
   useEffect(() => {
     const canvas = gl.domElement;
-    // Restart the local sample for each snapped endpoint so every state has an independent ordinary visitor measure.
+    // Restart the local sample for each semantic endpoint, withholding it while a camera route is active so settled performance evidence stays meaningful.
     settled.current = false;
     pacingIntervals.current = [];
     previousTimestamp.current = null;
@@ -67,6 +69,11 @@ function D9RuntimeMetrics({
     canvas.setAttribute("data-d9-antialias-requested", String(quality.antialias));
     canvas.setAttribute("data-d9-sanctuary-state", sanctuaryState);
     canvas.setAttribute("data-d9-idle-render-loop", "demand");
+
+    if (cameraTransitionActive) {
+      // The controller owns the short active-demand interval; metrics resume only after it explicitly releases the settled endpoint.
+      return undefined;
+    }
 
     const firstFrame = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
@@ -110,7 +117,15 @@ function D9RuntimeMetrics({
         canvas.removeAttribute(attribute);
       }
     };
-  }, [gl, invalidate, quality.antialias, quality.dpr, quality.policy, sanctuaryState]);
+  }, [
+    cameraTransitionActive,
+    gl,
+    invalidate,
+    quality.antialias,
+    quality.dpr,
+    quality.policy,
+    sanctuaryState,
+  ]);
 
   useFrame(() => {
     // Wait for the same settled state as the renderer counters before recording ordinary browser presentation intervals.
@@ -259,7 +274,11 @@ export function D9SanctuaryScene({
           <D9ReadingPageProjection onLayoutChange={onReadingPageLayoutChange} scene={scene} />
         ) : null}
       </group>
-      <D9RuntimeMetrics quality={quality} sanctuaryState={sanctuaryState?.name ?? "SANCTUARY"} />
+      <D9RuntimeMetrics
+        cameraTransitionActive={cameraTransitionActive}
+        quality={quality}
+        sanctuaryState={sanctuaryState?.name ?? "SANCTUARY"}
+      />
     </>
   );
 }

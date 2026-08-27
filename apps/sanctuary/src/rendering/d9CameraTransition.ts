@@ -1,8 +1,8 @@
 /**
  * File: apps/sanctuary/src/rendering/d9CameraTransition.ts
- * Description: Defines the bounded D9.0C.0 camera presentation math between locked sanctuary endpoints.
- * Purpose: Keeps the first guided camera move deterministic without changing sanctuary meaning or authored D7.5 data.
- * Notes: Only SANCTUARY to SIT may move in this proof; every other state change stays an exact endpoint snap.
+ * Description: Defines bounded D9.0C.1 presentation paths between locked sanctuary camera endpoints.
+ * Purpose: Lets rendering choreograph the approved guided journey while the sanctuary reducer keeps semantic state authority.
+ * Notes: Every completed route returns to an exact immutable D7.5 endpoint; reduced motion always selects an immediate endpoint snap.
  */
 
 // Import only stable Three.js math primitives; this module creates no renderer, storage, or browser event listener.
@@ -15,28 +15,118 @@ import {
   type D75SanctuaryFramingPolicy,
 } from "./d75SanctuaryCamera";
 
-// Keep the owner-requested calm duration explicit while leaving a later motion-review pass free to revise it deliberately.
-export const d9SanctuaryToSitDurationMs = 2700;
+// Name the presentation-only routes approved for the guided sanctuary and its universal Home return control.
+export type D9CameraTransitionRoute =
+  | "sanctuary-to-sit"
+  | "sit-to-read"
+  | "read-to-pray"
+  | "pray-to-sanctuary"
+  | "sit-home-to-sanctuary"
+  | "read-home-to-sanctuary";
 
-// Describe the only presentation plans permitted by this narrow proof without putting animation facts in the sanctuary reducer.
+// Keep the duration of each calm route explicit so later artistic review can revise one route without changing state meaning.
+export const d9CameraTransitionDurationsMs: Readonly<Record<D9CameraTransitionRoute, number>> = {
+  "pray-to-sanctuary": 2900,
+  "read-home-to-sanctuary": 2800,
+  "read-to-pray": 3100,
+  "sanctuary-to-sit": 2700,
+  "sit-home-to-sanctuary": 2700,
+  "sit-to-read": 2100,
+};
+
+// Preserve the owner-reviewed first-route duration under its established exported name for focused regression checks.
+export const d9SanctuaryToSitDurationMs = d9CameraTransitionDurationsMs["sanctuary-to-sit"];
+
+// Represent a moving route separately from application state so rendering can safely rebase it without changing the reducer.
+export interface D9CameraMovePlan {
+  readonly from: D75SanctuaryCameraName;
+  readonly kind: D9CameraTransitionRoute;
+  readonly target: D75SanctuaryCameraName;
+}
+
+// Describe either an approved visual route or an exact endpoint application for restored and reduced-motion states.
 export type D9CameraTransitionPlan =
-  | { readonly kind: "snap"; readonly target: D75SanctuaryCameraName }
-  | {
-      readonly from: "SANCTUARY";
-      readonly kind: "sanctuary-to-sit";
-      readonly target: "SIT";
-    };
+  { readonly kind: "snap"; readonly target: D75SanctuaryCameraName } | D9CameraMovePlan;
 
-// Keep the camera near the established center aisle: the controls move forward and gently lower without lateral wandering.
-const sanctuaryToSitControls = {
-  first: [0.015, 5.032, 9.74] as const,
-  second: [0.004, 4.991, 7.62] as const,
-} as const;
+// Keep the authored-style controls inside the open center aisle or the intentional open-rear approach, not through furniture.
+const d9CameraTransitionControls: Readonly<
+  Record<
+    D9CameraTransitionRoute,
+    {
+      readonly first: readonly [number, number, number];
+      readonly second: readonly [number, number, number];
+    }
+  >
+> = {
+  "pray-to-sanctuary": {
+    first: [-0.004, 0.68, 8.9],
+    second: [0.014, 4.78, 10.22],
+  },
+  "read-home-to-sanctuary": {
+    first: [0.3, 4.72, 2.2],
+    second: [0.035, 5.1, 9.3],
+  },
+  "read-to-pray": {
+    first: [0.26, 4.56, 1.22],
+    second: [0.035, 1.36, 6.7],
+  },
+  "sanctuary-to-sit": {
+    first: [0.015, 5.032, 9.74],
+    second: [0.004, 4.991, 7.62],
+  },
+  "sit-home-to-sanctuary": {
+    first: [0.028, 4.94, 7.76],
+    second: [0.038, 5.1, 9.7],
+  },
+  "sit-to-read": {
+    first: [0.008, 4.96, 5.45],
+    second: [0.19, 4.53, 1.45],
+  },
+};
 
-// Publish conservative bounds so focused tests can prevent future edits from sending the visitor through benches, walls, or the open rear.
-export const d9SanctuaryToSitPathBounds = {
-  maximum: [0.022, 5.041, 10.791] as const,
-  minimum: [-0.001, 4.975, 6.702] as const,
+// Publish conservative route envelopes so focused tests detect clipping-prone edits before a browser review.
+export const d9CameraTransitionPathBounds: Readonly<
+  Record<
+    D9CameraTransitionRoute,
+    {
+      readonly maximum: readonly [number, number, number];
+      readonly minimum: readonly [number, number, number];
+    }
+  >
+> = {
+  "pray-to-sanctuary": {
+    maximum: [0.022, 5.041, 10.791],
+    minimum: [-0.006, -0.213, 8.475],
+  },
+  "read-home-to-sanctuary": {
+    maximum: [0.33, 5.101, 10.791],
+    minimum: [0.021, 4.333, 0.155],
+  },
+  "read-to-pray": {
+    maximum: [0.33, 4.561, 8.476],
+    minimum: [-0.006, -0.213, 0.155],
+  },
+  "sanctuary-to-sit": {
+    maximum: [0.022, 5.041, 10.791],
+    minimum: [-0.001, 4.975, 6.702],
+  },
+  "sit-home-to-sanctuary": {
+    maximum: [0.039, 5.101, 10.791],
+    minimum: [-0.001, 4.939, 6.702],
+  },
+  "sit-to-read": {
+    maximum: [0.33, 4.977, 6.703],
+    minimum: [-0.001, 4.333, 0.155],
+  },
+};
+
+// Preserve the initial proof's named path contract for direct regression coverage without duplicating its bounds.
+export const d9SanctuaryToSitPathBounds = d9CameraTransitionPathBounds["sanctuary-to-sit"];
+
+// State the small geometry facts used by tests to keep paths above the table before they move into the open rear approach.
+export const d9CameraTransitionClearanceContracts = {
+  aboveTableY: 2.3,
+  openRearBeginsAtZ: 4.1,
 } as const;
 
 // Name the complete mutable camera pose the controller may apply while leaving endpoint selection with immutable D7.5 data.
@@ -47,6 +137,18 @@ export interface D9CameraPose {
   readonly position: Vector3;
   readonly quaternion: Quaternion;
   readonly up: Vector3;
+}
+
+// Copy a rendered pose before a legal interruption so the next route begins from what the visitor actually saw.
+export function cloneD9CameraPose(pose: D9CameraPose): D9CameraPose {
+  return {
+    far: pose.far,
+    fovDegrees: pose.fovDegrees,
+    near: pose.near,
+    position: pose.position.clone(),
+    quaternion: pose.quaternion.clone(),
+    up: pose.up.clone(),
+  };
 }
 
 // Clamp externally supplied progress before it can influence camera math or a test-only evidence attribute.
@@ -60,16 +162,29 @@ export function easeD9CameraTransition(progress: number): number {
   return bounded * bounded * bounded * (bounded * (bounded * 6 - 15) + 10);
 }
 
-// Select the only non-snap route and make reduced motion an immediate exact endpoint application.
+// Choose the legal presentation route from semantic endpoints; a null source means a restored state and must never replay travel.
 export function selectD9CameraTransitionPlan(
   from: D75SanctuaryCameraName | null,
   target: D75SanctuaryCameraName,
   reducedMotion: boolean,
 ): D9CameraTransitionPlan {
-  if (!reducedMotion && from === "SANCTUARY" && target === "SIT") {
-    return { from: "SANCTUARY", kind: "sanctuary-to-sit", target: "SIT" };
+  if (reducedMotion || from === null) {
+    return { kind: "snap", target };
   }
-  return { kind: "snap", target };
+
+  const routeByEndpointPair: Partial<
+    Record<`${D75SanctuaryCameraName}:${D75SanctuaryCameraName}`, D9CameraTransitionRoute>
+  > = {
+    "PRAY:SANCTUARY": "pray-to-sanctuary",
+    "READ:PRAY": "read-to-pray",
+    "READ:SANCTUARY": "read-home-to-sanctuary",
+    "SANCTUARY:SIT": "sanctuary-to-sit",
+    "SIT:READ": "sit-to-read",
+    "SIT:SANCTUARY": "sit-home-to-sanctuary",
+  };
+  const route = routeByEndpointPair[`${from}:${target}`];
+
+  return route === undefined ? { kind: "snap", target } : { from, kind: route, target };
 }
 
 // Convert an exact D7.5 forward/up contract to a normalized camera orientation without using Euler interpolation.
@@ -100,49 +215,86 @@ export function createD9CameraEndpoint(
   };
 }
 
-// Evaluate the minimum four-point cubic Bézier needed for a gentle central approach rather than a mechanical linear conveyor move.
-function sampleSanctuaryToSitPosition(easedProgress: number): Vector3 {
-  const start = new Vector3(...d75SanctuaryCameras.SANCTUARY.position);
-  const first = new Vector3(...sanctuaryToSitControls.first);
-  const second = new Vector3(...sanctuaryToSitControls.second);
-  const end = new Vector3(...d75SanctuaryCameras.SIT.position);
+// Evaluate one four-point cubic Bézier without creating a motion library or a second rendering system.
+function sampleCubicPosition(
+  start: Vector3,
+  first: Vector3,
+  second: Vector3,
+  end: Vector3,
+  easedProgress: number,
+): Vector3 {
   const inverse = 1 - easedProgress;
-
   return start
+    .clone()
     .multiplyScalar(inverse * inverse * inverse)
     .add(first.multiplyScalar(3 * inverse * inverse * easedProgress))
     .add(second.multiplyScalar(3 * inverse * easedProgress * easedProgress))
-    .add(end.multiplyScalar(easedProgress * easedProgress * easedProgress));
+    .add(end.clone().multiplyScalar(easedProgress * easedProgress * easedProgress));
 }
 
-// Sample the sole moving path, returning exact D7.5 endpoint poses at both limits to prevent accumulated float drift.
+// Shift only the first authored control during a rapid action so an interruption begins at the actual rendered pose without changing the safe corridor near arrival.
+function resolveFirstControl(
+  route: D9CameraTransitionRoute,
+  authoredStart: D9CameraPose,
+  rebasedStart: D9CameraPose | undefined,
+): Vector3 {
+  const authoredFirst = new Vector3(...d9CameraTransitionControls[route].first);
+  return rebasedStart === undefined
+    ? authoredFirst
+    : authoredFirst.add(rebasedStart.position.clone().sub(authoredStart.position));
+}
+
+// Sample an approved route, preserving exact D7.5 endpoints while allowing the controller to rebase from a captured visual pose after interruption.
+export function sampleD9CameraTransition(
+  plan: D9CameraMovePlan,
+  progress: number,
+  viewportAspect: number,
+  framingPolicy: D75SanctuaryFramingPolicy,
+  rebasedStart?: D9CameraPose,
+): D9CameraPose {
+  const bounded = clampD9CameraTransitionProgress(progress);
+  const authoredStart = createD9CameraEndpoint(plan.from, viewportAspect, framingPolicy);
+  const start = rebasedStart === undefined ? authoredStart : cloneD9CameraPose(rebasedStart);
+  const end = createD9CameraEndpoint(plan.target, viewportAspect, framingPolicy);
+
+  if (bounded === 0) {
+    return start;
+  }
+  if (bounded === 1) {
+    return end;
+  }
+
+  const eased = easeD9CameraTransition(bounded);
+  return {
+    far: MathUtils.lerp(start.far, end.far, eased),
+    fovDegrees: MathUtils.lerp(start.fovDegrees, end.fovDegrees, eased),
+    near: MathUtils.lerp(start.near, end.near, eased),
+    position: sampleCubicPosition(
+      start.position,
+      resolveFirstControl(plan.kind, authoredStart, rebasedStart),
+      new Vector3(...d9CameraTransitionControls[plan.kind].second),
+      end.position,
+      eased,
+    ),
+    quaternion: new Quaternion()
+      .slerpQuaternions(start.quaternion, end.quaternion, eased)
+      .normalize(),
+    up: start.up.clone().lerp(end.up, eased).normalize(),
+  };
+}
+
+// Keep the approved first route callable through its former helper while all controller code uses the general transition model.
 export function sampleD9SanctuaryToSitTransition(
   progress: number,
   viewportAspect: number,
   framingPolicy: D75SanctuaryFramingPolicy,
 ): D9CameraPose {
-  const bounded = clampD9CameraTransitionProgress(progress);
-  const sanctuary = createD9CameraEndpoint("SANCTUARY", viewportAspect, framingPolicy);
-  const sit = createD9CameraEndpoint("SIT", viewportAspect, framingPolicy);
-
-  if (bounded === 0) {
-    return sanctuary;
-  }
-  if (bounded === 1) {
-    return sit;
-  }
-
-  const eased = easeD9CameraTransition(bounded);
-  return {
-    far: MathUtils.lerp(sanctuary.far, sit.far, eased),
-    fovDegrees: MathUtils.lerp(sanctuary.fovDegrees, sit.fovDegrees, eased),
-    near: MathUtils.lerp(sanctuary.near, sit.near, eased),
-    position: sampleSanctuaryToSitPosition(eased),
-    quaternion: new Quaternion()
-      .slerpQuaternions(sanctuary.quaternion, sit.quaternion, eased)
-      .normalize(),
-    up: sanctuary.up.clone().lerp(sit.up, eased).normalize(),
-  };
+  return sampleD9CameraTransition(
+    { from: "SANCTUARY", kind: "sanctuary-to-sit", target: "SIT" },
+    progress,
+    viewportAspect,
+    framingPolicy,
+  );
 }
 
 // Keep the controller's next-frame request policy independently testable and strictly bounded to unfinished movement.
