@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
   clampD9AtmosphereDeltaSeconds,
   createD9CloudEvent,
+  createD9DevelopmentCloudSample,
   createD9RareEventSchedule,
   d9CloudSofteningBounds,
   d9MaximumDustParticleCount,
@@ -62,9 +63,13 @@ describe("D9 living sanctuary state policy", () => {
 
     expect(sit.candleWarmthAmount).toBeGreaterThan(sanctuary.candleWarmthAmount);
     expect(read.dustCount).toBeLessThan(sanctuary.dustCount);
+    expect(read.daylightVariation).toBeLessThan(sit.daylightVariation);
     expect(read.allowCloudEvent).toBe(false);
     expect(pray.allowCloudEvent).toBe(false);
     expect(pray.daylightBase).toBeGreaterThan(sanctuary.daylightBase);
+    expect(pray.dustProfile).toBe("pray-upper-light");
+    expect(sit.dustProfile).toBe("sit-table-warmth");
+    expect(read.dustProfile).toBe("read-quiet");
     expect(sanctuary.allowBirdAnimation).toBe(false);
   });
 
@@ -130,11 +135,19 @@ describe("D9 living sanctuary rare cloud scheduler", () => {
     expect(isD9CloudEventComplete(event, 30_000)).toBe(true);
   });
 
-  it("keeps normal daylight modulation deliberately small", () => {
+  it("offers only a deterministic test sample without changing the long normal cooldown", () => {
+    const sample = createD9DevelopmentCloudSample(2_000);
+
+    expect(sample.startsAtMilliseconds).toBe(2_000);
+    expect(sample.intensityReduction).toBeCloseTo(0.085, 8);
+    expect(sampleD9CloudSoftening(sample, 10_000)).toBeGreaterThan(0);
+  });
+
+  it("keeps normal daylight modulation perceptible but bounded below a day-night cycle", () => {
     for (const seconds of [0, 10, 60, 180]) {
-      const modulation = sampleD9DaylightModulation(seconds, 0.018);
-      expect(modulation).toBeGreaterThan(0.98);
-      expect(modulation).toBeLessThan(1.02);
+      const modulation = sampleD9DaylightModulation(seconds, 0.03);
+      expect(modulation).toBeGreaterThan(0.965);
+      expect(modulation).toBeLessThan(1.035);
     }
   });
 });

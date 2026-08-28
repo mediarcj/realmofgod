@@ -48,6 +48,7 @@ import {
   selectD9LivingSanctuaryPolicy,
   shouldD9AtmosphereScheduleFrames,
   type D9CloudEvent,
+  type D9DustProfile,
 } from "./d9LivingSanctuaryPolicy";
 import type { VisualCalibration } from "./visualCalibration";
 
@@ -60,16 +61,38 @@ interface D9AtmosphereCurrentValues {
   dustOpacity: number;
 }
 
-// Build stable tiny particles around the upper table light, retaining substantially more empty air than visible decoration.
-function createD9DustBasePositions(): Float32Array {
+// Build each state-specific dust grouping around real camera-visible light, retaining substantially more empty air than visible decoration.
+function createD9DustBasePositions(profile: D9DustProfile): Float32Array {
   const basePositions = new Float32Array(d9MaximumDustParticleCount * 3);
+
+  // Keep the four quiet READ motes high and away from the Bible so the reading surface remains the visual priority.
+  const profileBounds =
+    profile === "read-quiet"
+      ? { centerX: 0, centerY: 3.22, centerZ: 0.08, spreadX: 1.55, spreadY: 0.58, spreadZ: 1.05 }
+      : profile === "sit-table-warmth"
+        ? { centerX: 0, centerY: 2.48, centerZ: 0.26, spreadX: 2.5, spreadY: 1.55, spreadZ: 1.7 }
+        : profile === "pray-upper-light"
+          ? {
+              centerX: 0,
+              centerY: 3.08,
+              centerZ: -0.12,
+              spreadX: 2.25,
+              spreadY: 2.28,
+              spreadZ: 1.58,
+            }
+          : { centerX: 0, centerY: 2.78, centerZ: 0.1, spreadX: 3.65, spreadY: 2.3, spreadZ: 2.2 };
 
   for (let index = 0; index < d9MaximumDustParticleCount; index += 1) {
     const offset = index * 3;
     // Use deterministic low-discrepancy placement instead of a runtime random history or an obvious particle grid.
-    basePositions[offset] = ((index * 0.618_033_988_75) % 1) * 5.6 - 2.8;
-    basePositions[offset + 1] = 1.45 + ((index * 0.754_877_666_25 + 0.13) % 1) * 2.75;
-    basePositions[offset + 2] = ((index * 0.414_213_562_37 + 0.21) % 1) * 3.4 - 1.7;
+    basePositions[offset] =
+      profileBounds.centerX + (((index * 0.618_033_988_75) % 1) - 0.5) * profileBounds.spreadX;
+    basePositions[offset + 1] =
+      profileBounds.centerY +
+      (((index * 0.754_877_666_25 + 0.13) % 1) - 0.5) * profileBounds.spreadY;
+    basePositions[offset + 2] =
+      profileBounds.centerZ +
+      (((index * 0.414_213_562_37 + 0.21) % 1) - 0.5) * profileBounds.spreadZ;
   }
 
   return basePositions;
@@ -94,8 +117,11 @@ export function D9LivingSanctuaryAtmosphere({
     state: state.name,
     width: size.width,
   });
-  // The array remains immutable from React's perspective; only the GPU attribute copy is updated inside the renderer frame loop.
-  const dustBasePositions = useMemo(() => createD9DustBasePositions(), []);
+  // The profile changes only at a semantic endpoint; within that endpoint the array remains immutable from React's perspective.
+  const dustBasePositions = useMemo(
+    () => createD9DustBasePositions(policy.dustProfile),
+    [policy.dustProfile],
+  );
   const dustPointsRef = useRef<Points>(null);
   const flameRigsRef = useRef<Record<D91BCandleSide, D91BFlameRuntimeRig> | null>(null);
   const candlePresentationRigsRef = useRef<Record<
@@ -169,6 +195,7 @@ export function D9LivingSanctuaryAtmosphere({
     canvas.setAttribute("data-d9-atmosphere-boundary", "living-sanctuary");
     canvas.setAttribute("data-d9-atmosphere-cadence-target", String(policy.cadenceFramesPerSecond));
     canvas.setAttribute("data-d9-atmosphere-dust-budget", String(policy.dustCount));
+    canvas.setAttribute("data-d9-atmosphere-dust-profile", policy.dustProfile);
     canvas.setAttribute("data-d9-atmosphere-reduced-motion", String(policy.reducedMotion));
     canvas.setAttribute("data-d9-atmosphere-state", policy.state);
     canvas.setAttribute("data-d9-atmosphere-bird", "deferred-art");
@@ -187,6 +214,7 @@ export function D9LivingSanctuaryAtmosphere({
         "data-d9-atmosphere-boundary",
         "data-d9-atmosphere-cadence-target",
         "data-d9-atmosphere-dust-budget",
+        "data-d9-atmosphere-dust-profile",
         "data-d9-atmosphere-reduced-motion",
         "data-d9-atmosphere-state",
         "data-d9-atmosphere-bird",
@@ -421,7 +449,7 @@ export function D9LivingSanctuaryAtmosphere({
         color="#d7b28c"
         depthWrite={false}
         opacity={0}
-        size={0.022}
+        size={0.026}
         sizeAttenuation
         transparent
       />

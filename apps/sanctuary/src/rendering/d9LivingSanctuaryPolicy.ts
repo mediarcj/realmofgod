@@ -21,12 +21,17 @@ export interface D9LivingSanctuaryPolicy {
   readonly daylightVariation: number;
   readonly dustCount: number;
   readonly dustOpacity: number;
+  readonly dustProfile: D9DustProfile;
   readonly reducedMotion: boolean;
   readonly state: SanctuaryMvpState["name"];
 }
 
 // Keep the particle count deliberately small before the per-state policy lowers it further.
 export const d9MaximumDustParticleCount = 36;
+
+// Name the few camera-aware dust groupings so the renderer can keep sparse motes in meaningful light instead of filling the room uniformly.
+export type D9DustProfile =
+  "pray-upper-light" | "read-quiet" | "sanctuary-air" | "sit-table-warmth";
 
 // Bound light changes tightly enough that candle and daylight life cannot look like a flashing effect.
 export const d9CandleLightBounds = {
@@ -56,9 +61,10 @@ function selectD9StateAtmospherePolicy(
         candleMotionAmount: 0.88,
         candleWarmthAmount: 1.03,
         daylightBase: 0.985,
-        daylightVariation: 0.014,
-        dustCount: 22,
-        dustOpacity: 0.18,
+        daylightVariation: 0.018,
+        dustCount: 18,
+        dustOpacity: 0.16,
+        dustProfile: "sit-table-warmth",
         state,
       };
     case "READ":
@@ -68,9 +74,10 @@ function selectD9StateAtmospherePolicy(
         candleMotionAmount: 0.48,
         candleWarmthAmount: 0.98,
         daylightBase: 0.975,
-        daylightVariation: 0.004,
-        dustCount: 6,
-        dustOpacity: 0.09,
+        daylightVariation: 0.002,
+        dustCount: 4,
+        dustOpacity: 0.06,
+        dustProfile: "read-quiet",
         state,
       };
     case "PRAY":
@@ -80,9 +87,10 @@ function selectD9StateAtmospherePolicy(
         candleMotionAmount: 0.62,
         candleWarmthAmount: 1.0,
         daylightBase: 1.055,
-        daylightVariation: 0.012,
-        dustCount: 26,
-        dustOpacity: 0.2,
+        daylightVariation: 0.026,
+        dustCount: 24,
+        dustOpacity: 0.18,
+        dustProfile: "pray-upper-light",
         state,
       };
     case "SANCTUARY":
@@ -92,9 +100,10 @@ function selectD9StateAtmospherePolicy(
         candleMotionAmount: 1,
         candleWarmthAmount: 1,
         daylightBase: 1,
-        daylightVariation: 0.018,
-        dustCount: 30,
-        dustOpacity: 0.18,
+        daylightVariation: 0.03,
+        dustCount: 24,
+        dustOpacity: 0.16,
+        dustProfile: "sanctuary-air",
         state,
       };
   }
@@ -191,6 +200,11 @@ export function createD9CloudEvent(nowMilliseconds: number, random: () => number
     recoveryMilliseconds: 10_000,
     startsAtMilliseconds: nowMilliseconds,
   };
+}
+
+// Expose one deterministic sample only to focused tests so rare normal events can be reviewed without adding a visitor control or shortening production cooldowns.
+export function createD9DevelopmentCloudSample(nowMilliseconds: number): D9CloudEvent {
+  return createD9CloudEvent(nowMilliseconds, () => 0.5);
 }
 
 // Sample a cloud event through gradual ramps so it cannot create a light flash or a sharp shadow transition.
