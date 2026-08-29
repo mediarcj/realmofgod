@@ -37,7 +37,6 @@ import {
   readD85LandscapeProofConfig,
   readD9VisitorSanctuaryConfig,
   readD91InspectionConfig,
-  readD92QualityInspectionConfig,
   readLocalVisualCheck,
   readRendererVerificationStage,
 } from "./capabilities";
@@ -49,7 +48,6 @@ import {
 } from "./d75SanctuaryCamera";
 import { D9CameraTransitionController } from "./D9CameraTransitionController";
 import { selectD9VisitorRenderQuality, type D9RenderQuality } from "./d9SanctuaryQuality";
-import { RealmScene } from "./RealmScene";
 import { selectSanctuaryHeroCamera, type VisualCalibration } from "./visualCalibration";
 
 // Keep the local D8.4 comparison module and both candidate assets out of the production module graph.
@@ -61,12 +59,15 @@ const D84StaticSanctuaryProof = import.meta.env.DEV
     )
   : null;
 
-// Keep the normal D9 visitor scene separate from D84's intentionally fixed-DPR diagnostic path.
-const D9SanctuaryScene = import.meta.env.DEV
-  ? lazy(async () =>
-      import("./D9SanctuaryScene").then(({ D9SanctuaryScene: scene }) => ({ default: scene })),
-    )
-  : null;
+// Keep the normal final-art visitor scene separate from D84's intentionally fixed-DPR diagnostic path.
+const D9SanctuaryScene = lazy(async () =>
+  import("./D9SanctuaryScene").then(({ D9SanctuaryScene: scene }) => ({ default: scene })),
+);
+
+// Keep the retired cinematic fallback out of the initial final-art visitor load; it remains available only if a local diagnostic route needs it.
+const RealmScene = lazy(async () =>
+  import("./RealmScene").then(({ RealmScene: scene }) => ({ default: scene })),
+);
 
 // Classify only the renderer boundary needed to verify a safe local recovery path.
 export type RendererFailureReason = "context-lost" | "creation-unavailable";
@@ -288,18 +289,15 @@ export function CanvasExperience({
   visualState,
 }: CanvasExperienceProps): ReactNode {
   const rendererVerificationStage = readRendererVerificationStage();
-  // Make the D9 local visitor root use the approved static candidate before older explicit proof fragments.
-  const d9VisitorConfig = import.meta.env.DEV ? readD9VisitorSanctuaryConfig() : null;
+  // Make every normal visitor use the approved final-art candidate before older explicit proof fragments.
+  const d9VisitorConfig = readD9VisitorSanctuaryConfig();
   const d91InspectionConfig = import.meta.env.DEV ? readD91InspectionConfig() : null;
-  const d92QualityInspectionConfig = import.meta.env.DEV ? readD92QualityInspectionConfig() : null;
   const staticProofConfig = import.meta.env.DEV
     ? (d91InspectionConfig ?? readD85LandscapeProofConfig() ?? readD84StaticProofConfig())
     : null;
   const staticProofActive = staticProofConfig !== null && D84StaticSanctuaryProof !== null;
-  const d9VisitorActive = d9VisitorConfig !== null && D9SanctuaryScene !== null;
-  const d92QualityInspectionActive =
-    d92QualityInspectionConfig !== null && D9SanctuaryScene !== null;
-  const d9QualityRendererActive = d9VisitorActive || d92QualityInspectionActive;
+  const d9VisitorActive = d9VisitorConfig !== null;
+  const d9QualityRendererActive = d9VisitorActive;
   const [d9CameraTransitionActive, setD9CameraTransitionActive] = useState(false);
   // Keep the controller callback referentially stable so renderer-only state does not restart an active visual path.
   const handleD9CameraTransitionActivity = useCallback((active: boolean): void => {
@@ -308,8 +306,7 @@ export function CanvasExperience({
   const d9RenderQuality = useD9RenderQuality(d9QualityRendererActive);
   const useD75SanctuaryCamera =
     d9QualityRendererActive || (d91InspectionConfig !== null && staticProofActive);
-  const d75FramingPolicy =
-    d92QualityInspectionConfig?.framingPolicy ?? d91InspectionConfig?.framingPolicy ?? "horizontal";
+  const d75FramingPolicy = d91InspectionConfig?.framingPolicy ?? "horizontal";
   // Normal D9 interaction selects immutable authored endpoints; D9.0C.0 may only animate the SANCTUARY-to-SIT presentation path.
   const d75CameraName: D75SanctuaryCameraName = d9VisitorActive
     ? (sanctuaryState?.name ?? "SANCTUARY")
@@ -417,14 +414,13 @@ export function CanvasExperience({
         {d9QualityRendererActive ? (
           <Suspense fallback={null}>
             <D9SanctuaryScene
-              config={d92QualityInspectionConfig ?? undefined}
-              cameraTransitionActive={d9VisitorActive && d9CameraTransitionActive}
+              cameraTransitionActive={d9CameraTransitionActive}
               interactionVisualState={interactionVisualState}
-              onInteractionTargetChange={d9VisitorActive ? onInteractionTargetChange : undefined}
-              onReadingPageLayoutChange={d9VisitorActive ? onReadingPageLayoutChange : undefined}
+              onInteractionTargetChange={onInteractionTargetChange}
+              onReadingPageLayoutChange={onReadingPageLayoutChange}
               quality={d9RenderQuality}
               reducedMotion={reducedMotion}
-              sanctuaryState={d9VisitorActive ? sanctuaryState : undefined}
+              sanctuaryState={sanctuaryState}
               visualCalibration={visualCalibration}
             />
           </Suspense>
@@ -436,12 +432,14 @@ export function CanvasExperience({
             />
           </Suspense>
         ) : (
-          <RealmScene
-            reducedMotion={reducedMotion}
-            rendererVerificationStage={rendererVerificationStage}
-            visualCalibration={visualCalibration}
-            visualState={visualState}
-          />
+          <Suspense fallback={null}>
+            <RealmScene
+              reducedMotion={reducedMotion}
+              rendererVerificationStage={rendererVerificationStage}
+              visualCalibration={visualCalibration}
+              visualState={visualState}
+            />
+          </Suspense>
         )}
       </Canvas>
     </div>

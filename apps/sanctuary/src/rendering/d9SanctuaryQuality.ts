@@ -27,9 +27,9 @@ export const d9BenchmarkRenderQuality = {
   policy: "benchmark-dpr-1",
 } as const;
 
-// Name the accepted authored candidate and render constraints without coupling the visitor component to D8.4 proof routes.
+// Name the final authored candidate and render constraints without coupling the visitor component to D8.4 proof routes.
 export const d9VisitorSceneContract = {
-  candidate: "realm-mvp-sanctuary-v1-r2-batched-meshopt.glb",
+  candidate: "realm-mvp-sanctuary-v2-final-art.glb",
   candleLightCount: 2,
   shadowPolicy: "restrained",
   transformPolicy: "preserve-authored",

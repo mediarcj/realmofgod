@@ -40,9 +40,9 @@ describe("D9 visitor renderer quality", () => {
   });
 
   // Keep the direct visitor scene contract narrow and independent from D84's raw/batched benchmark selector.
-  it("loads only the accepted authored batched candidate with two anchored candle lights", () => {
+  it("loads only the final-art candidate with two anchored candle lights", () => {
     expect(d9VisitorSceneContract).toEqual({
-      candidate: "realm-mvp-sanctuary-v1-r2-batched-meshopt.glb",
+      candidate: "realm-mvp-sanctuary-v2-final-art.glb",
       candleLightCount: 2,
       shadowPolicy: "restrained",
       transformPolicy: "preserve-authored",

@@ -1,8 +1,8 @@
 /**
  * File: apps/sanctuary/src/rendering/D9SanctuaryScene.tsx
- * Description: Renders the normal local D9 visitor sanctuary from the accepted authored batched candidate.
- * Purpose: Separates visitor-quality rendering from the fixed DPR-1 diagnostic proof renderer.
- * Notes: This development-only scene uses local assets, preserves authored transforms, and contains no visitor data.
+ * Description: Renders the normal local visitor sanctuary from the approved final-art GLB.
+ * Purpose: Separates production visitor quality from fixed DPR-1 diagnostic proof rendering.
+ * Notes: This scene uses local assets, preserves authored transforms, and contains no visitor data.
  */
 
 // Import only the local R3F, GLB-loading, and measurement primitives needed by the visitor scene.
@@ -13,11 +13,11 @@ import type { GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
-import batchedCandidateUrl from "../assets/candidates/realm-mvp-sanctuary-v1-r2-batched-meshopt.glb?url";
-import rawCandidateUrl from "../../../../tools/hf01/candidates/realm-mvp-sanctuary-v1-raw-r2.glb?url";
+import finalArtUrl from "../assets/production/realm-mvp-sanctuary-v2-final-art.glb?url";
 import type { SanctuaryMvpState } from "../sanctuary/model";
 import type { StaticSanctuaryProofConfig } from "./capabilities";
 import { D9EnvironmentalAffordances } from "./D9EnvironmentalAffordances";
+import { D9FinalArtLightBeams } from "./D9FinalArtLightBeams";
 import { D9LivingSanctuaryAtmosphere } from "./D9LivingSanctuaryAtmosphere";
 import type { D9DomInteractionTarget, D9DomInteractionVisualState } from "./d9DomInteractionTarget";
 import { D9ReadingPageProjection, type D9ReadingPageLayout } from "./D9ReadingPageProjection";
@@ -34,9 +34,9 @@ function configureLoader(loader: GLTFLoader): void {
   loader.setMeshoptDecoder(MeshoptDecoder);
 }
 
-// Keep D9's scene-preparation policy explicit: authored R2 transforms remain its only prop placement authority.
+// Keep the final-art scene-preparation policy explicit: authored transforms remain its only prop placement authority.
 const d9VisitorSceneConfig: StaticSanctuaryProofConfig = {
-  candidate: "batched",
+  candidate: "final-art",
   shadowPolicy: d9VisitorSceneContract.shadowPolicy,
   transformPolicy: d9VisitorSceneContract.transformPolicy,
 };
@@ -184,26 +184,23 @@ function D9Lighting({
         args={[
           visualCalibration.lighting.fill.color,
           "#090605",
-          visualCalibration.lighting.fill.intensity * 1.55,
+          // Lift the carved walls and benches into readable warm shadow without flattening the candle-led composition.
+          visualCalibration.lighting.fill.intensity * 5.2,
         ]}
       />
       <directionalLight
-        castShadow
         color={visualCalibration.lighting.exteriorKey.color}
-        intensity={visualCalibration.lighting.exteriorKey.intensity * 30}
+        // Carry the quiet clerestory daylight across the full room; this is an exterior bounce, not a third visible lamp.
+        intensity={visualCalibration.lighting.exteriorKey.intensity * 82}
         name="D9_Exterior_RuntimeLight"
         position={[4.5, 7.5, 1.5]}
-        shadow-bias={-0.0001}
-        shadow-normalBias={0.012}
-        shadow-mapSize-height={1024}
-        shadow-mapSize-width={1024}
       />
       {/* Keep exactly two non-shadowing lights at the authored flame anchors; a third lamp would change the approved staging. */}
       <pointLight
         color="#ffb15b"
         decay={2}
         distance={2.75}
-        intensity={warmKey.intensity * 1.2}
+        intensity={warmKey.intensity * 1.55}
         name="D9_CandleLeft_RuntimeLight"
         position={[...candleFlamePositions.left]}
       />
@@ -211,7 +208,7 @@ function D9Lighting({
         color="#ffb15b"
         decay={2}
         distance={2.75}
-        intensity={warmKey.intensity * 1.2}
+        intensity={warmKey.intensity * 1.55}
         name="D9_CandleRight_RuntimeLight"
         position={[...candleFlamePositions.right]}
       />
@@ -222,7 +219,6 @@ function D9Lighting({
 // Render the normal D9 visitor scene from the one accepted local candidate, not through a benchmark selector.
 export function D9SanctuaryScene({
   cameraTransitionActive = false,
-  config = d9VisitorSceneConfig,
   interactionVisualState = "idle",
   onInteractionTargetChange,
   onReadingPageLayoutChange,
@@ -232,7 +228,6 @@ export function D9SanctuaryScene({
   visualCalibration,
 }: {
   readonly cameraTransitionActive?: boolean | undefined;
-  readonly config?: StaticSanctuaryProofConfig | undefined;
   readonly interactionVisualState?: D9DomInteractionVisualState | undefined;
   readonly onInteractionTargetChange?:
     ((target: D9DomInteractionTarget | null) => void) | undefined;
@@ -242,12 +237,11 @@ export function D9SanctuaryScene({
   readonly sanctuaryState?: SanctuaryMvpState | undefined;
   readonly visualCalibration: VisualCalibration;
 }): ReactNode {
-  // The D9 visitor uses the accepted batched asset; only the explicit D92 local inspection may request the immutable raw input.
-  const candidateUrl = config.candidate === "raw" ? rawCandidateUrl : batchedCandidateUrl;
-  const gltf = useLoader(GLTFLoader, candidateUrl, configureLoader) as GLTF;
+  // The normal visitor path has one accepted local final-art asset, avoiding a hidden production download of retired proof candidates.
+  const gltf = useLoader(GLTFLoader, finalArtUrl, configureLoader) as GLTF;
   const scene = useMemo(
-    () => prepareStaticSanctuaryScene(gltf.scene, config, visualCalibration),
-    [config, gltf.scene, visualCalibration],
+    () => prepareStaticSanctuaryScene(gltf.scene, d9VisitorSceneConfig, visualCalibration),
+    [gltf.scene, visualCalibration],
   );
   const candleFlamePositions = useMemo(() => resolveAuthoredCandleFlamePositions(scene), [scene]);
 
@@ -264,6 +258,7 @@ export function D9SanctuaryScene({
         scale={visualCalibration.room.scale}
       >
         <primitive object={scene} />
+        <D9FinalArtLightBeams />
         {sanctuaryState !== undefined ? (
           <D9LivingSanctuaryAtmosphere
             reducedMotion={reducedMotion}

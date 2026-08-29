@@ -89,16 +89,16 @@ describe("D8.5 landscape proof selection", () => {
   });
 });
 
-// Keep the D9 visitor root available only for ordinary review and the existing reduced-motion proof, not unrelated diagnostics.
+// Keep the final-art D9 visitor root available only for ordinary review and the existing reduced-motion proof, not unrelated diagnostics.
 describe("D9 visitor sanctuary selection", () => {
-  it("uses the batched candidate and restrained shadows at the ordinary development root and reduced-motion proof", () => {
+  it("uses the final-art candidate and restrained shadows at the ordinary development root and reduced-motion proof", () => {
     expect(selectD9VisitorSanctuaryConfig("")).toEqual({
-      candidate: "batched",
+      candidate: "final-art",
       shadowPolicy: "restrained",
       transformPolicy: "preserve-authored",
     });
     expect(selectD9VisitorSanctuaryConfig("#verify-reduced-motion")).toEqual({
-      candidate: "batched",
+      candidate: "final-art",
       shadowPolicy: "restrained",
       transformPolicy: "preserve-authored",
     });

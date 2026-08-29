@@ -12,7 +12,7 @@ export type ExperienceMode = "canvas" | "fallback";
 export type RendererVerificationStage = "a" | "b" | "c" | "d" | "e" | null;
 
 // Describe the local-only candidate choices without making any candidate available to a production visitor.
-export type StaticSanctuaryCandidate = "baseline" | "batched" | "raw";
+export type StaticSanctuaryCandidate = "baseline" | "batched" | "final-art" | "raw";
 
 // Keep the older proof offsets separate from the D9 authored scene, whose GLB transforms are the source of truth.
 export type StaticSanctuaryTransformPolicy = "legacy-calibrated" | "preserve-authored";
@@ -36,9 +36,9 @@ export interface D85LandscapeProofConfig {
   readonly transformPolicy: "legacy-calibrated";
 }
 
-// Describe the narrow D9 visitor selection: the accepted batched candidate remains local development evidence.
+// Describe the normal visitor selection: final art is the only production sanctuary candidate.
 export interface D9VisitorSanctuaryConfig {
-  readonly candidate: "batched";
+  readonly candidate: "final-art";
   readonly shadowPolicy: "restrained";
   readonly transformPolicy: "preserve-authored";
 }
@@ -94,7 +94,7 @@ export const D85_LONG_FRAME_THRESHOLD_MILLISECONDS = 1000 / 30;
 
 // Hold the D9 root selection as data so tests can distinguish the visitor path from explicit diagnostics.
 const d9VisitorSanctuaryConfig: D9VisitorSanctuaryConfig = {
-  candidate: "batched",
+  candidate: "final-art",
   shadowPolicy: "restrained",
   transformPolicy: "preserve-authored",
 };
@@ -170,18 +170,19 @@ export function readLocalDiagnosticRoute(): boolean {
     : false;
 }
 
-// Keep the approved D9 scene present for the ordinary root and the existing reduced-motion proof, while all other local checks stay isolated.
+// Keep the final-art D9 scene present for the ordinary root and the existing reduced-motion proof, while all other local checks stay isolated.
 export function selectD9VisitorSanctuaryConfig(fragment: string): D9VisitorSanctuaryConfig | null {
   return fragment === "" || fragment === "#verify-reduced-motion" ? d9VisitorSanctuaryConfig : null;
 }
 
-// Keep the unpromoted candidate out of production selection while allowing the normal local root to review it.
+// Production and ordinary local visitors share the approved final-art candidate; only explicit diagnostic routes remain development-only.
 export function readD9VisitorSanctuaryConfig(): D9VisitorSanctuaryConfig | null {
-  if (!import.meta.env.DEV || typeof window === "undefined") {
+  if (typeof window === "undefined") {
     return null;
   }
-
-  return selectD9VisitorSanctuaryConfig(window.location.hash);
+  return import.meta.env.DEV
+    ? selectD9VisitorSanctuaryConfig(window.location.hash)
+    : d9VisitorSanctuaryConfig;
 }
 
 // Reserve explicit forensic paths for the D9.0A.1 comparison; an ordinary visitor never reaches the immutable raw asset.

@@ -1,0 +1,110 @@
+{
+  "schema": "realm-living-sanctuary-final-art-v1",
+  "version": 1,
+  "reference_video": {
+    "filename": "hf_20260829_103020_5120f599-7958-4c90-9ecf-e8c8f9b2bd07.mp4",
+    "sha256": "3f2cbe3c41a5714831abe694c0a1bf796dc771bb820be30922ea4db0164e6fc6",
+    "duration_seconds": 12.041667,
+    "frame_rate": 24,
+    "dimensions": [2206, 946]
+  },
+  "blender_source_sha256": "a0ef5d56b1d1eff2c43c701aad393f0893a97eba6b7b3f33c30968e5eb4e9f70",
+  "candle_contract": {
+    "source": "public/assets/realm/candle-reference-animation-v1.json",
+    "sha256": "b28f082e1d799bc7c3c76c90effbc4b7bb8e11d0e9d4a4dff6a7cc784a1548dc",
+    "semantic_candle_count": 2,
+    "light_count": 2
+  },
+  "daylight": {
+    "cycle_seconds": 75,
+    "key_energy_curve": [
+      [0, 1.05],
+      [18.75, 1.1],
+      [37.5, 0.99],
+      [56.25, 1.07],
+      [75, 1.05]
+    ],
+    "key_color_curve": [
+      [0, [1.0, 0.5, 0.18]],
+      [37.5, [1.0, 0.46, 0.15]],
+      [75, [1.0, 0.5, 0.18]]
+    ],
+    "state_multipliers": {
+      "SANCTUARY": 1.0,
+      "SIT": 0.94,
+      "READ": 0.82,
+      "PRAY": 1.04
+    }
+  },
+  "beams": {
+    "upper_right": {
+      "position": [1.6, 3.55, 6.6],
+      "strength": 1.0,
+      "color": [1.0, 0.46, 0.15]
+    },
+    "left_fill": {
+      "position": [-4.1, 1.2, 5.9],
+      "strength": 0.38,
+      "color": [0.78, 0.24, 0.055]
+    },
+    "reduced_motion_static": true
+  },
+  "dust": {
+    "seed": 20260829,
+    "desktop_budget": 96,
+    "narrow_mobile_budget": 46,
+    "spawn_volumes": [
+      {
+        "center": [1.8, 0.8, 3.7],
+        "size": [4.6, 4.5, 5.2],
+        "weight": 0.65
+      },
+      {
+        "center": [-1.4, 1.1, 3.0],
+        "size": [3.1, 3.2, 3.6],
+        "weight": 0.35
+      }
+    ],
+    "size_range": [0.003, 0.012],
+    "opacity_range": [0.03, 0.22],
+    "velocity_range": [0.003, 0.016],
+    "state_multipliers": {
+      "SANCTUARY": 1.0,
+      "SIT": 0.72,
+      "READ": 0.22,
+      "PRAY": 0.52
+    },
+    "reduced_motion_spatial_budget": 0
+  },
+  "smoke": {
+    "source_curve_prefix": "ROG_CandleSmoke_",
+    "max_sprites_per_candle": 3,
+    "fade_seconds": [2.0, 4.8],
+    "upward_drift": [0.008, 0.021],
+    "reduced_motion_active": false
+  },
+  "presentation": {
+    "exposure": -0.35,
+    "view_transform": "AgX",
+    "look": "AgX - Medium High Contrast",
+    "material_art_version": "final-art-v1",
+    "reduced_motion_static": true
+  },
+  "required_semantic_roots": [
+    "HF01_PrayerTable",
+    "HF01_Bible_Root",
+    "HF01_TableCross_Root",
+    "HF01_Candle_Left",
+    "HF01_Candle_Right",
+    "HF01_DoorStaticWorld__Door_North_Slab",
+    "HF01_Bench_Left",
+    "HF01_Bench_Right"
+  ],
+  "prohibited": [
+    "corpus",
+    "crucifix_figure",
+    "white_volume_cube",
+    "blender_camera",
+    "reference_video"
+  ]
+}
