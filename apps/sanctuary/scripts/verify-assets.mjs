@@ -1,7 +1,7 @@
 // File: apps/sanctuary/scripts/verify-assets.mjs
 // Description: Checks browser derivatives against their measured Blender contracts.
 // Purpose: Detects duplicate or foreign meshes and axis, placement, size, or content drift.
-// Notes: Uses glTF accessor bounds and node matrices, independently of the exporter.
+// Notes: Decodes actual glTF vertices and world matrices, independently of the exporter.
 
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -9,6 +9,9 @@ import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { Box3, Matrix4, Quaternion, Vector3 } from "three";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+
+await MeshoptDecoder.ready;
 
 const base = process.argv[2] ? pathToFileURL(resolve(process.argv[2]) + "/") : new URL("../public/models/sanctuary/", import.meta.url);
 const seen = new Set();
@@ -21,6 +24,15 @@ for (const file of readdirSync(base).filter((name) => name.endsWith(".glb"))) {
   assert.equal(data.readUInt32LE(0), 0x46546c67);
   assert.equal(data.readUInt32LE(8), data.length);
   const gltf = JSON.parse(data.subarray(20, 20 + data.readUInt32LE(12)));
+  const binaryStart = 28 + data.readUInt32LE(12);
+  const views = gltf.bufferViews.map((view) => {
+    const extension = view.extensions?.EXT_meshopt_compression;
+    if (!extension) return data.subarray(binaryStart + (view.byteOffset ?? 0), binaryStart + (view.byteOffset ?? 0) + view.byteLength);
+    const decoded = new Uint8Array(extension.count * extension.byteStride);
+    MeshoptDecoder.decodeGltfBuffer(decoded, extension.count, extension.byteStride,
+      data.subarray(binaryStart + (extension.byteOffset ?? 0), binaryStart + (extension.byteOffset ?? 0) + extension.byteLength), extension.mode, extension.filter);
+    return decoded;
+  });
   const nodes = gltf.nodes.filter((node) => node.mesh !== undefined);
   const worldMatrix = (node) => {
     const local = node.matrix ? new Matrix4().fromArray(node.matrix) : new Matrix4().compose(
@@ -43,7 +55,19 @@ for (const file of readdirSync(base).filter((name) => name.endsWith(".glb"))) {
       const divisor = accessor.normalized ? ({ 5120: 127, 5121: 255, 5122: 32767, 5123: 65535 }[accessor.componentType]) : 1;
       assert(divisor, "Unsupported normalized position component");
       const decode = (values) => values.map((value) => Math.max(accessor.componentType === 5120 || accessor.componentType === 5122 ? -1 : 0, value / divisor));
-      box.union(new Box3(new Vector3(...(accessor.normalized ? decode(accessor.min) : accessor.min)), new Vector3(...(accessor.normalized ? decode(accessor.max) : accessor.max))).applyMatrix4(matrix));
+      assert(!accessor.sparse, "Sparse positions require explicit decoding");
+      const values = views[accessor.bufferView];
+      const view = new DataView(values.buffer, values.byteOffset, values.byteLength);
+      const size = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5126: 4}[accessor.componentType];
+      assert(size, "Unsupported position component");
+      const read = (offset) => ({5120: () => view.getInt8(offset), 5121: () => view.getUint8(offset),
+        5122: () => view.getInt16(offset, true), 5123: () => view.getUint16(offset, true), 5126: () => view.getFloat32(offset, true)})[accessor.componentType]();
+      const stride = gltf.bufferViews[accessor.bufferView].byteStride ?? size * 3;
+      for (let vertex = 0; vertex < accessor.count; vertex++) {
+        const offset = (accessor.byteOffset ?? 0) + vertex * stride;
+        const xyz = [read(offset), read(offset + size), read(offset + 2 * size)];
+        box.expandByPoint(new Vector3(...(accessor.normalized ? decode(xyz) : xyz)).applyMatrix4(matrix));
+      }
       count += gltf.accessors[primitive.indices].count / 3;
     }
     const { min, max } = source.bounds_blender;

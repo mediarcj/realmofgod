@@ -57,7 +57,9 @@ def main():
         mesh = bpy.data.meshes.new_from_object(evaluated, depsgraph=depsgraph)
         mesh.calc_loop_triangles()
         world = original.matrix_world.copy()
-        bounds = [world @ Vector(corner) for corner in evaluated.bound_box]
+        # Curve bounds may include control-handle extents. Measure the evaluated
+        # surface itself, which is also the geometry sent to glTF.
+        bounds = [world @ vertex.co for vertex in mesh.vertices]
         source_triangles = len(mesh.loop_triangles)
         record = {
             "name": name, "category": original.get("rog_category"),

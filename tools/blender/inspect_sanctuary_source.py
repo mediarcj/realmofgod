@@ -82,10 +82,13 @@ def object_record(object_: bpy.types.Object) -> dict[str, Any]:
         mesh = evaluated.to_mesh()
         try:
             mesh.calc_loop_triangles()
+            corners = [object_.matrix_world @ vertex.co for vertex in mesh.vertices]
             detail = {"triangles": len(mesh.loop_triangles), "vertices": len(mesh.vertices),
                       "uv_layers": list(mesh.uv_layers.keys())}
         finally:
             evaluated.to_mesh_clear()
+    elif object_.type == "EMPTY":
+        detail = {"display_type": object_.empty_display_type, "display_size": object_.empty_display_size}
     elif object_.type == "CAMERA":
         detail = {"lens": object_.data.lens, "angle_y": object_.data.angle_y,
                   "sensor_fit": object_.data.sensor_fit, "clip_start": object_.data.clip_start,
