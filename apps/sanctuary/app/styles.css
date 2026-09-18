@@ -60,3 +60,28 @@ p {
   line-height: 1.6;
   margin: 0;
 }
+
+.scene-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #100e0bb8 0%, transparent 24%, transparent 55%, #100e0ba6 100%); }
+.sanctuary-brand { position: absolute; left: max(1.5rem, env(safe-area-inset-left)); top: max(1.25rem, env(safe-area-inset-top)); }
+.sanctuary-brand p { color: #f5e7ca; text-transform: uppercase; letter-spacing: .18em; font-size: .85rem; }
+.sanctuary-brand span { color: #ece5d9; font-size: .8rem; line-height: 1.8; }
+.entry-card { position: absolute; left: 2rem; bottom: 2rem; max-width: 23rem; padding: 1.5rem; background: #15130ee8; border: 1px solid #d3b78238; border-radius: .6rem; box-shadow: 0 1rem 4rem #0004; }
+.entry-card h1 { margin: .7rem 0 1rem; font-size: clamp(2rem, 3.5vw, 2.8rem); line-height: 1.12; color: #f5eee1; }
+.entry-card > p:not(.eyebrow) { font-size: .95rem; }
+.eyebrow { font-size: .7rem; text-transform: uppercase; letter-spacing: .18em; color: #d8bb80; }
+.primary-button { margin-top: 1.5rem; width: 100%; color: #241e13; background: #e2c995; border-color: #e2c995; }
+button:hover { filter: brightness(1.12); }
+button:disabled { cursor: wait; opacity: .65; }
+.entry-card .privacy-note { margin-top: .85rem; font-size: .75rem; color: #c3b9a8; }
+progress { width: 100%; height: .2rem; accent-color: #dfc285; margin-top: .75rem; }
+.sanctuary-toolbar { position: absolute; bottom: max(1.25rem, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: .6rem; padding: .5rem; border: 1px solid #cbb07866; border-radius: .6rem; background: #18150fef; }
+.sanctuary-toolbar button { white-space: nowrap; font-size: .9rem; }
+.visually-hidden { position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 600px) {
+  .entry-card { left: 1rem; right: 1rem; bottom: max(1rem, env(safe-area-inset-bottom)); padding: 1.1rem; max-width: none; }
+  .entry-card h1 { font-size: 1.9rem; }
+  .entry-card h1 br { display: none; }
+  .primary-button { margin-top: 1rem; }
+  .sanctuary-toolbar { width: calc(100% - 2rem); justify-content: center; flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }

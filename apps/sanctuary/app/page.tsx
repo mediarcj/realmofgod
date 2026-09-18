@@ -10,10 +10,6 @@ export default function SanctuaryHome() {
   return (
     <main className="sanctuary-shell">
       <SanctuaryExperience />
-      <section aria-labelledby="sanctuary-title" className="sanctuary-intro">
-        <p className="sanctuary-kicker">Realm of God</p>
-        <h1 id="sanctuary-title">A quiet place to be still</h1>
-      </section>
     </main>
   );
 }

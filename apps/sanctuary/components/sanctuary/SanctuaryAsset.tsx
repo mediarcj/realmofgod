@@ -4,14 +4,14 @@
 // Notes: Unassigned source surfaces use a neutral matte material.
 
 import { useLoader } from "@react-three/fiber";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Mesh, MeshStandardMaterial } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
 const neutral = new MeshStandardMaterial({ color: "#a69b87", roughness: 0.8 });
 
-export function SanctuaryAsset({ unit }: { unit: string }) {
+export function SanctuaryAsset({ unit, onLoaded }: { unit: string; onLoaded?: (unit: string) => void }) {
   const gltf = useLoader(GLTFLoader, `/models/sanctuary/${unit}.glb`, (loader) => loader.setMeshoptDecoder(MeshoptDecoder));
   const scene = useMemo(() => {
     const copy = gltf.scene.clone(true);
@@ -20,5 +20,6 @@ export function SanctuaryAsset({ unit }: { unit: string }) {
     });
     return copy;
   }, [gltf]);
+  useEffect(() => { onLoaded?.(unit); }, [unit, onLoaded]);
   return <primitive object={scene} dispose={null} />;
 }
