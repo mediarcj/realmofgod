@@ -1,0 +1,693 @@
+{
+  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "blender_version": "5.2.2 LTS",
+  "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
+  "asset": "east-window-2.glb",
+  "sha256": "23ac8766090940d8adf300bb47ac4c8454cd78c8d2cd180db62c4195e3288078",
+  "bytes": 97196,
+  "objects": [
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_Casing",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.010000228881836,
+          -1.125,
+          4.619999885559082
+        ],
+        "max": [
+          4.150000095367432,
+          1.125,
+          5.960000038146973
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafL_Glass_R1C1",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          4.190000057220459
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.503000020980835
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          5.034999847412109
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.185999870300293,
+          -0.9550000429153442,
+          4.789999485015869
+        ],
+        "max": [
+          4.194000244140625,
+          -0.05100002884864807,
+          5.28000020980835
+        ]
+      },
+      "materials": [
+        "MAT_GLASS_ARCHITECTURE_CLEAR"
+      ]
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafL_Glass_R2C1",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          4.190000057220459
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.503000020980835
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          5.545000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.185999870300293,
+          -0.9550000429153442,
+          5.299999713897705
+        ],
+        "max": [
+          4.194000244140625,
+          -0.05100002884864807,
+          5.7900004386901855
+        ]
+      },
+      "materials": [
+        "MAT_GLASS_ARCHITECTURE_CLEAR"
+      ]
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafL_GlazingStop_R1C1_REPAIR",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 32,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.195000171661377,
+          -0.9550000429153442,
+          4.789999485015869
+        ],
+        "max": [
+          4.204999923706055,
+          -0.05100002884864807,
+          5.28000020980835
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafL_GlazingStop_R2C1_REPAIR",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 32,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.195000171661377,
+          -0.9550000429153442,
+          5.299999713897705
+        ],
+        "max": [
+          4.204999923706055,
+          -0.05100002884864807,
+          5.7900004386901855
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafL_Muntin_H1",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          4.114999771118164
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.503000020980835
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          5.289999961853027
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.049999713897705,
+          -0.9450000524520874,
+          5.269999980926514
+        ],
+        "max": [
+          4.179999828338623,
+          -0.06100001931190491,
+          5.309999942779541
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafL_Sash",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.054999828338623,
+          -1.0,
+          4.744999885559082
+        ],
+        "max": [
+          4.184999942779541,
+          -0.006000000052154064,
+          5.835000038146973
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafR_Glass_R1C1",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          4.190000057220459
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.503000020980835
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          5.034999847412109
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.185999870300293,
+          0.05100002884864807,
+          4.789999485015869
+        ],
+        "max": [
+          4.194000244140625,
+          0.9550000429153442,
+          5.28000020980835
+        ]
+      },
+      "materials": [
+        "MAT_GLASS_ARCHITECTURE_CLEAR"
+      ]
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafR_Glass_R2C1",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          4.190000057220459
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.503000020980835
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          5.545000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.185999870300293,
+          0.05100002884864807,
+          5.299999713897705
+        ],
+        "max": [
+          4.194000244140625,
+          0.9550000429153442,
+          5.7900004386901855
+        ]
+      },
+      "materials": [
+        "MAT_GLASS_ARCHITECTURE_CLEAR"
+      ]
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafR_GlazingStop_R1C1_REPAIR",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 32,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.195000171661377,
+          0.05100002884864807,
+          4.789999485015869
+        ],
+        "max": [
+          4.204999923706055,
+          0.9550000429153442,
+          5.28000020980835
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafR_GlazingStop_R2C1_REPAIR",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 32,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.195000171661377,
+          0.05100002884864807,
+          5.299999713897705
+        ],
+        "max": [
+          4.204999923706055,
+          0.9550000429153442,
+          5.7900004386901855
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafR_Muntin_H1",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          4.114999771118164
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.503000020980835
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          5.289999961853027
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.049999713897705,
+          0.06100001931190491,
+          5.269999980926514
+        ],
+        "max": [
+          4.179999828338623,
+          0.9450000524520874,
+          5.309999942779541
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_AUTH_LeafR_Sash",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.054999828338623,
+          0.006000000052154064,
+          4.744999885559082
+        ],
+        "max": [
+          4.184999942779541,
+          1.0,
+          5.835000038146973
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_FixedStop_REPAIR",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 32,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.144999980926514,
+          -1.024999976158142,
+          4.71999979019165
+        ],
+        "max": [
+          4.15500020980835,
+          1.024999976158142,
+          5.860000133514404
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_EastClerestory_2_MeetingAstragal_REPAIR",
+      "category": "ARCH_WINDOW",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 12,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          4.195000171661377,
+          -0.006000000052154064,
+          4.744999885559082
+        ],
+        "max": [
+          4.204999923706055,
+          0.008999999612569809,
+          5.835000038146973
+        ]
+      },
+      "materials": []
+    }
+  ]
+}
