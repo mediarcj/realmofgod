@@ -77,7 +77,7 @@ def object_record(object_: bpy.types.Object) -> dict[str, Any]:
     material_slots = [slot.material.name if slot.material else None for slot in object_.material_slots]
     corners = [object_.matrix_world @ Vector(corner) for corner in object_.bound_box]
     detail = {}
-    if object_.type == "MESH":
+    if object_.type in {"MESH", "CURVE"}:
         evaluated = object_.evaluated_get(bpy.context.evaluated_depsgraph_get())
         mesh = evaluated.to_mesh()
         try:

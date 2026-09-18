@@ -1,0 +1,9 @@
+# File: apps/sanctuary/pnpm-workspace.yaml
+# Description: Pins native image processing used by the asset tools.
+# Purpose: Keeps dependency installation reproducible.
+# Notes: Only Sharp is allowed to run its native dependency setup.
+
+allowBuilds:
+  sharp: true
+overrides:
+  sharp: 0.35.2

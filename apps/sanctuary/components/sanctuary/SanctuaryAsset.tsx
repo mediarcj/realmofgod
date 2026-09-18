@@ -7,11 +7,12 @@ import { useLoader } from "@react-three/fiber";
 import { useMemo } from "react";
 import { Mesh, MeshStandardMaterial } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
 const neutral = new MeshStandardMaterial({ color: "#a69b87", roughness: 0.8 });
 
 export function SanctuaryAsset({ unit }: { unit: string }) {
-  const gltf = useLoader(GLTFLoader, `/models/sanctuary/${unit}.glb`);
+  const gltf = useLoader(GLTFLoader, `/models/sanctuary/${unit}.glb`, (loader) => loader.setMeshoptDecoder(MeshoptDecoder));
   const scene = useMemo(() => {
     const copy = gltf.scene.clone(true);
     copy.traverse((object) => {

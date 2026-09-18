@@ -12,6 +12,7 @@ from pathlib import Path
 
 import bpy
 from mathutils import Vector
+from mathutils.bvhtree import BVHTree
 
 ACCEPTED_SHA = "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24"
 
@@ -26,6 +27,7 @@ def main():
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--objects", nargs="+", required=True)
+    parser.add_argument("--max-triangles", type=int, default=0)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     source, output = args.source.resolve(), args.output.resolve()
     if output == source or output.suffix != ".glb":
@@ -38,23 +40,26 @@ def main():
     bpy.context.view_layer.update()
     records = []
     copies = []
+    source_scene = bpy.context.scene
     export_scene = bpy.data.scenes.new("WEB_DERIVATIVE")
     export_scene.unit_settings.scale_length = bpy.context.scene.unit_settings.scale_length
     depsgraph = bpy.context.evaluated_depsgraph_get()
     for name in args.objects:
         original = bpy.data.objects.get(name)
-        if original is None or original.type != "MESH":
-            raise ValueError(f"Expected an exact source mesh: {name}")
+        if original is None or original.type not in {"MESH", "CURVE"}:
+            raise ValueError(f"Expected exact source mesh or curve geometry: {name}")
         if original.get("rog_export_policy") not in {
             "WEB_DERIVATIVE_STATIC", "WEB_DERIVATIVE_RUNTIME_ADDRESSABLE"
         }:
             raise ValueError(f"Source policy does not permit geometry export: {name}")
+        depsgraph = bpy.context.evaluated_depsgraph_get()
         evaluated = original.evaluated_get(depsgraph)
         mesh = bpy.data.meshes.new_from_object(evaluated, depsgraph=depsgraph)
         mesh.calc_loop_triangles()
         world = original.matrix_world.copy()
         bounds = [world @ Vector(corner) for corner in evaluated.bound_box]
-        records.append({
+        source_triangles = len(mesh.loop_triangles)
+        record = {
             "name": name, "category": original.get("rog_category"),
             "export_policy": original.get("rog_export_policy"),
             "triangles": len(mesh.loop_triangles),
@@ -62,7 +67,7 @@ def main():
             "bounds_blender": {"min": [min(v[i] for v in bounds) for i in range(3)],
                                "max": [max(v[i] for v in bounds) for i in range(3)]},
             "materials": [slot.material.name if slot.material else None for slot in original.material_slots],
-        })
+        }
         # The derivative has no parent or modifiers: the evaluated mesh and world matrix
         # preserve their result without pulling authoring parents into the browser asset.
         original.name = name + "__SOURCE_IN_MEMORY"
@@ -71,6 +76,35 @@ def main():
         copy["rog_source_name"] = name
         copy["rog_category"] = original.get("rog_category", "")
         export_scene.collection.objects.link(copy)
+        # Dense source props receive a separate measured web mesh. Sample the source
+        # surface against the result in world metres; fail before shipping visible drift.
+        if args.max_triangles and source_triangles > args.max_triangles:
+            modifier = copy.modifiers.new("Web derivative reduction", "DECIMATE")
+            modifier.ratio = args.max_triangles / source_triangles
+            modifier.use_collapse_triangulate = True
+            bpy.context.window.scene = export_scene
+            bpy.context.view_layer.update()
+            reduced_object = copy.evaluated_get(bpy.context.evaluated_depsgraph_get())
+            reduced = bpy.data.meshes.new_from_object(reduced_object, depsgraph=bpy.context.evaluated_depsgraph_get())
+            reduced.calc_loop_triangles()
+            tree = BVHTree.FromPolygons([world @ v.co for v in reduced.vertices],
+                [tuple(t.vertices) for t in reduced.loop_triangles], all_triangles=True)
+            step = max(1, len(mesh.vertices) // 4096)
+            error = max(tree.find_nearest(world @ v.co)[3] for v in list(mesh.vertices)[::step])
+            if error > 0.003:
+                raise RuntimeError(f"Web surface deviation exceeds 3 mm: {name}: {error}")
+            record["source_triangles"] = source_triangles
+            record["sampled_surface_error_m"] = error
+            record["source_bounds_blender"] = record["bounds_blender"]
+            reduced_bounds = [world @ v.co for v in reduced.vertices]
+            record["bounds_blender"] = {"min": [min(v[i] for v in reduced_bounds) for i in range(3)],
+                                         "max": [max(v[i] for v in reduced_bounds) for i in range(3)]}
+            record["triangles"] = len(reduced.loop_triangles)
+            record["derivative_level"] = "WEB_HIGH"
+            copy.modifiers.clear()
+            copy.data = reduced
+            bpy.context.window.scene = source_scene
+        records.append(record)
         copies.append(copy)
     bpy.context.window.scene = export_scene
     for obj in copies:
