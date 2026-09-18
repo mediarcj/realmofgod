@@ -9,6 +9,7 @@ import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
 import type { SanctuaryView } from "../../lib/sanctuary/camera";
 import { ScripturePanel } from "./ScripturePanel";
+import { PrayerPanel } from "./PrayerPanel";
 
 const SanctuaryCanvas = dynamic(() => import("./SanctuaryCanvas"), {
   ssr: false,
@@ -31,6 +32,7 @@ export function SanctuaryExperience() {
   const [view, setView] = useState<SanctuaryView>("entry");
   const [loaded, setLoaded] = useState(0);
   const bibleButton = useRef<HTMLButtonElement>(null);
+  const prayerButton = useRef<HTMLButtonElement>(null);
   const [reducedMotion, setReducedMotion] = useState(true);
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -40,7 +42,7 @@ export function SanctuaryExperience() {
   }, []);
   const ready = loaded === sanctuaryUnits.length;
   return <>
-    <div className="scene-frame"><RenderBoundary><SanctuaryCanvas view={view} reducedMotion={reducedMotion} onProgress={setLoaded} onBible={view === "room" ? () => { document.body.style.cursor = ""; setView("bible"); } : undefined} /></RenderBoundary></div>
+    <div className="scene-frame"><RenderBoundary><SanctuaryCanvas view={view} reducedMotion={reducedMotion} onProgress={setLoaded} onBible={view === "room" ? () => setView("bible") : undefined} onPrayer={view === "room" ? () => setView("prayer") : undefined} /></RenderBoundary></div>
     <div className="scene-shade" aria-hidden="true" />
     <header className="sanctuary-brand"><p>Realm of God</p><span>A place for quiet reflection</span></header>
     {view === "entry" ? <section className="entry-card" aria-labelledby="sanctuary-title">
@@ -52,9 +54,11 @@ export function SanctuaryExperience() {
       <p className="privacy-note">No account. No tracking.</p>
     </section> : <nav className="sanctuary-toolbar" aria-label="Sanctuary actions">
       <button ref={bibleButton} data-anchor="ROG_INT_Bible" onClick={() => setView("bible")}>Read Scripture</button>
+      <button ref={prayerButton} data-anchor="ROG_INT_PrayerZone" onClick={() => setView("prayer")}>A moment of prayer</button>
       <button onClick={() => setView("entry")}>Return to entry</button>
     </nav>}
     {view === "bible" && <ScripturePanel onClose={() => { setView("room"); requestAnimationFrame(() => bibleButton.current?.focus()); }} />}
+    {view === "prayer" && <PrayerPanel onClose={() => { setView("room"); requestAnimationFrame(() => prayerButton.current?.focus()); }} />}
     <p className="visually-hidden" role="status">{ready ? "The sanctuary is ready." : "The sanctuary is loading."}</p>
   </>;
 }

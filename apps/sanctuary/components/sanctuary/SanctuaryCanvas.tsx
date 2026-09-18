@@ -10,7 +10,7 @@ import { SanctuaryScene } from "./SanctuaryScene";
 import { GuidedCamera } from "./GuidedCamera";
 import type { SanctuaryView } from "../../lib/sanctuary/camera";
 
-export default function SanctuaryCanvas({ view = "entry", reducedMotion = false, onProgress, onBible }: { view?: SanctuaryView; reducedMotion?: boolean; onProgress: (count: number) => void; onBible?: () => void }) {
+export default function SanctuaryCanvas({ view = "entry", reducedMotion = false, onProgress, onBible, onPrayer }: { view?: SanctuaryView; reducedMotion?: boolean; onProgress: (count: number) => void; onBible?: () => void; onPrayer?: () => void }) {
   return (
     <Canvas
       aria-label="Sanctuary interior"
@@ -23,7 +23,7 @@ export default function SanctuaryCanvas({ view = "entry", reducedMotion = false,
       <GuidedCamera view={view} reducedMotion={reducedMotion} />
       <hemisphereLight args={["#fff4df", "#40382c", 2]} />
       <directionalLight position={[2, 6, 3]} intensity={3} color="#fff0d2" />
-      <Suspense fallback={null}><SanctuaryScene onProgress={onProgress} onBible={onBible} /></Suspense>
+      <Suspense fallback={null}><SanctuaryScene onProgress={onProgress} onBible={onBible} onPrayer={onPrayer} /></Suspense>
     </Canvas>
   );
 }
