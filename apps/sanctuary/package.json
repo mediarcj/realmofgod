@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test:assets": "node scripts/verify-assets.mjs"
+    "test:assets": "node scripts/verify-assets.mjs",
+    "test:source": "node scripts/verify-source.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "9.7.0",

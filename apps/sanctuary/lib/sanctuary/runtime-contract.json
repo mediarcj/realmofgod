@@ -1,0 +1,1024 @@
+{
+  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "coordinates": "glTF Y-up, metres",
+  "reference_camera": {
+    "name": "ROG_V2_Cam_LOWER_MATCHED_NORTH",
+    "position": [
+      0,
+      1.7499999999999998,
+      4
+    ]
+  },
+  "anchors": [
+    {
+      "name": "ROG_FX_CandleFlame_LARGE_LEFT",
+      "role": "CANDLE_FLAME_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        -3.761322259902954,
+        3.705289125442505,
+        -3.1334795951843257
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.761322259902954,
+        3.705289125442505,
+        -3.1334795951843257,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05000000074505806,
+        "display_type": "SPHERE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleFlame_LARGE_RIGHT",
+      "role": "CANDLE_FLAME_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        3.7594494819641113,
+        3.71370530128479,
+        -3.1432256698608394
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        3.7594494819641113,
+        3.71370530128479,
+        -3.1432256698608394,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05000000074505806,
+        "display_type": "SPHERE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleFlame_MEDIUM_LEFT",
+      "role": "CANDLE_FLAME_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        -3.420833110809326,
+        4.021178722381592,
+        -3.8131597042083736
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.420833110809326,
+        4.021178722381592,
+        -3.8131597042083736,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05000000074505806,
+        "display_type": "SPHERE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleFlame_MEDIUM_LEFT_ARCH3",
+      "role": "CANDLE_FLAME_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        -1.9297133684158325,
+        4.021178722381592,
+        -3.8131597042083736
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -1.9297133684158325,
+        4.021178722381592,
+        -3.8131597042083736,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05000000074505806,
+        "display_type": "SPHERE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleFlame_MEDIUM_RIGHT",
+      "role": "CANDLE_FLAME_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        3.4256949424743652,
+        4.018325328826904,
+        -3.80671215057373
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        3.4256949424743652,
+        4.018325328826904,
+        -3.80671215057373,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05000000074505806,
+        "display_type": "SPHERE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleFlame_MEDIUM_RIGHT_ARCH3",
+      "role": "CANDLE_FLAME_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        1.929713249206543,
+        4.018325328826904,
+        -3.80671215057373
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1.929713249206543,
+        4.018325328826904,
+        -3.80671215057373,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05000000074505806,
+        "display_type": "SPHERE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleSmoke_LARGE_LEFT",
+      "role": "CANDLE_SMOKE_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        -3.761322259902954,
+        3.7852890491485596,
+        -3.1334795951843257
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.761322259902954,
+        3.7852890491485596,
+        -3.1334795951843257,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05999999865889549,
+        "display_type": "CONE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleSmoke_LARGE_RIGHT",
+      "role": "CANDLE_SMOKE_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        3.7594494819641113,
+        3.7937052249908447,
+        -3.1432256698608394
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        3.7594494819641113,
+        3.7937052249908447,
+        -3.1432256698608394,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05999999865889549,
+        "display_type": "CONE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleSmoke_MEDIUM_LEFT",
+      "role": "CANDLE_SMOKE_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        -3.420833110809326,
+        4.1011786460876465,
+        -3.8131597042083736
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.420833110809326,
+        4.1011786460876465,
+        -3.8131597042083736,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05999999865889549,
+        "display_type": "CONE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleSmoke_MEDIUM_LEFT_ARCH3",
+      "role": "CANDLE_SMOKE_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        -1.9297133684158325,
+        4.1011786460876465,
+        -3.8131597042083736
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -1.9297133684158325,
+        4.1011786460876465,
+        -3.8131597042083736,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05999999865889549,
+        "display_type": "CONE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleSmoke_MEDIUM_RIGHT",
+      "role": "CANDLE_SMOKE_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        3.4256949424743652,
+        4.098325252532959,
+        -3.80671215057373
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        3.4256949424743652,
+        4.098325252532959,
+        -3.80671215057373,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05999999865889549,
+        "display_type": "CONE"
+      }
+    },
+    {
+      "name": "ROG_FX_CandleSmoke_MEDIUM_RIGHT_ARCH3",
+      "role": "CANDLE_SMOKE_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        1.929713249206543,
+        4.098325252532959,
+        -3.80671215057373
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1.929713249206543,
+        4.098325252532959,
+        -3.80671215057373,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.05999999865889549,
+        "display_type": "CONE"
+      }
+    },
+    {
+      "name": "ROG_FX_DustVolume_Main",
+      "role": "DUST_VOLUME",
+      "host": null,
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        0,
+        3.56000018119812,
+        -0.0450000762939451
+      ],
+      "matrix": [
+        4.289999961853027,
+        0,
+        0,
+        0,
+        0,
+        3.640000104904175,
+        -7.378497957589874e-17,
+        0,
+        0,
+        -7.378497957589874e-17,
+        4.845000267028809,
+        0,
+        0,
+        3.56000018119812,
+        -0.0450000762939451,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 1,
+        "display_type": "CUBE"
+      }
+    },
+    {
+      "name": "ROG_FX_SunRay_East",
+      "role": "SUNRAY_SOURCE_BANK",
+      "host": null,
+      "bank": "EAST",
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        4.163999080657959,
+        5.289999485015869,
+        -0.00009991328261061776
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        4.163999080657959,
+        5.289999485015869,
+        -0.00009991328261061776,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.3499999940395355,
+        "display_type": "ARROWS"
+      }
+    },
+    {
+      "name": "ROG_FX_SunRay_North",
+      "role": "SUNRAY_SOURCE_BANK",
+      "host": null,
+      "bank": "NORTH",
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        0.00004283814269001596,
+        5.29000186920166,
+        -4.772565841674805
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.00004283814269001596,
+        5.29000186920166,
+        -4.772565841674805,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.3499999940395355,
+        "display_type": "ARROWS"
+      }
+    },
+    {
+      "name": "ROG_FX_SunRay_West",
+      "role": "SUNRAY_SOURCE_BANK",
+      "host": null,
+      "bank": "WEST",
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        -4.163999557495117,
+        5.289999485015869,
+        -0.00009991328261061776
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -4.163999557495117,
+        5.289999485015869,
+        -0.00009991328261061776,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.3499999940395355,
+        "display_type": "ARROWS"
+      }
+    },
+    {
+      "name": "ROG_INT_Bible",
+      "role": "BIBLE_HOVER_CLICK_FOCUS",
+      "host": "ROG_BIBLE_HYPER3D_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        0.012919425964355469,
+        2.0063648223876953,
+        -0.4406667947769164
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.012919425964355469,
+        2.0063648223876953,
+        -0.4406667947769164,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.2800000011920929,
+        "display_type": "CUBE"
+      }
+    },
+    {
+      "name": "ROG_INT_PrayerZone",
+      "role": "PRAYER_ZONE",
+      "host": "ROG_KNEE_REST_HYPER3D_MASTER",
+      "bank": null,
+      "policy": "EXPORT_AS_GLTF_EMPTY",
+      "position": [
+        0.009919017553329468,
+        0.31953388452529896,
+        1.5862926244735718
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.009919017553329468,
+        0.31953388452529896,
+        1.5862926244735718,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "display_size": 0.550000011920929,
+        "display_type": "CUBE"
+      }
+    },
+    {
+      "name": "ROG_LGT_Candle_LARGE_LEFT",
+      "role": "CANDLE_LIGHT_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER",
+      "bank": null,
+      "policy": "RUNTIME_RECREATE_IN_R3F",
+      "position": [
+        -3.761322259902954,
+        3.7352890968322754,
+        -3.1334795951843257
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.761322259902954,
+        3.7352890968322754,
+        -3.1334795951843257,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "color": [
+          1,
+          0.41999998688697815,
+          0.11999999731779099
+        ],
+        "energy": 45,
+        "type": "POINT"
+      }
+    },
+    {
+      "name": "ROG_LGT_Candle_LARGE_RIGHT",
+      "role": "CANDLE_LIGHT_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER",
+      "bank": null,
+      "policy": "RUNTIME_RECREATE_IN_R3F",
+      "position": [
+        3.7594494819641113,
+        3.7437052726745605,
+        -3.1432256698608394
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        3.7594494819641113,
+        3.7437052726745605,
+        -3.1432256698608394,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "color": [
+          1,
+          0.41999998688697815,
+          0.11999999731779099
+        ],
+        "energy": 45,
+        "type": "POINT"
+      }
+    },
+    {
+      "name": "ROG_LGT_Candle_MEDIUM_LEFT",
+      "role": "CANDLE_LIGHT_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER",
+      "bank": null,
+      "policy": "RUNTIME_RECREATE_IN_R3F",
+      "position": [
+        -3.420833110809326,
+        4.051178932189941,
+        -3.8131597042083736
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.420833110809326,
+        4.051178932189941,
+        -3.8131597042083736,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "color": [
+          1,
+          0.41999998688697815,
+          0.11999999731779099
+        ],
+        "energy": 45,
+        "type": "POINT"
+      }
+    },
+    {
+      "name": "ROG_LGT_Candle_MEDIUM_LEFT_ARCH3",
+      "role": "CANDLE_LIGHT_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER",
+      "bank": null,
+      "policy": "RUNTIME_RECREATE_IN_R3F",
+      "position": [
+        -1.9297133684158325,
+        4.051178932189941,
+        -3.8131597042083736
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -1.9297133684158325,
+        4.051178932189941,
+        -3.8131597042083736,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "color": [
+          1,
+          0.41999998688697815,
+          0.11999999731779099
+        ],
+        "energy": 45,
+        "type": "POINT"
+      }
+    },
+    {
+      "name": "ROG_LGT_Candle_MEDIUM_RIGHT",
+      "role": "CANDLE_LIGHT_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER",
+      "bank": null,
+      "policy": "RUNTIME_RECREATE_IN_R3F",
+      "position": [
+        3.4256949424743652,
+        4.048325538635254,
+        -3.80671215057373
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        3.4256949424743652,
+        4.048325538635254,
+        -3.80671215057373,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "color": [
+          1,
+          0.41999998688697815,
+          0.11999999731779099
+        ],
+        "energy": 45,
+        "type": "POINT"
+      }
+    },
+    {
+      "name": "ROG_LGT_Candle_MEDIUM_RIGHT_ARCH3",
+      "role": "CANDLE_LIGHT_ANCHOR",
+      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER",
+      "bank": null,
+      "policy": "RUNTIME_RECREATE_IN_R3F",
+      "position": [
+        1.929713249206543,
+        4.048325538635254,
+        -3.80671215057373
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1.929713249206543,
+        4.048325538635254,
+        -3.80671215057373,
+        1
+      ],
+      "direction": [
+        0,
+        -1,
+        -6.123233995736766e-17
+      ],
+      "detail": {
+        "color": [
+          1,
+          0.41999998688697815,
+          0.11999999731779099
+        ],
+        "energy": 45,
+        "type": "POINT"
+      }
+    },
+    {
+      "name": "ROG_LGT_Sun_Primary",
+      "role": "SUNLIGHT_PRIMARY",
+      "host": null,
+      "bank": null,
+      "policy": "RUNTIME_RECREATE_IN_R3F",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "matrix": [
+        0.7431448101997375,
+        -4.097243380427736e-17,
+        0.6691306233406067,
+        0,
+        -0.41195794939994806,
+        0.7880107760429382,
+        0.4575256407260895,
+        0,
+        -0.5272821187973022,
+        -0.6156615018844604,
+        0.5856060981750488,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "direction": [
+        0.41195793968692285,
+        -0.7880107574634483,
+        -0.4575256299386824
+      ],
+      "detail": {
+        "color": [
+          1,
+          0.800000011920929,
+          0.5799999833106995
+        ],
+        "energy": 2,
+        "type": "SUN"
+      }
+    }
+  ]
+}
