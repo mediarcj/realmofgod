@@ -14,6 +14,7 @@ node_modules/
 *.tsbuildinfo
 dist/
 coverage/
+__pycache__/
 *.log
 
 # Keep operating-system metadata out of the repository.

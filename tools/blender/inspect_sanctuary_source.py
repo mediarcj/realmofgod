@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import bpy
+from mathutils import Vector
 
 
 # The inventory needs JSON-safe values even when Blender custom properties use ID types.
@@ -65,15 +66,33 @@ def transform(object_: bpy.types.Object) -> dict[str, list[float]]:
         "location": [float(value) for value in object_.location],
         "rotation_euler": [float(value) for value in object_.rotation_euler],
         "scale": [float(value) for value in object_.scale],
+        "matrix_world": [list(row) for row in object_.matrix_world],
+        "rotation_mode": object_.rotation_mode,
     }
 
 
 def object_record(object_: bpy.types.Object) -> dict[str, Any]:
     """Record one object without exporting or mutating its geometry."""
 
-    material_slots = []
-    if getattr(object_.data, "materials", None):
-        material_slots = [material.name for material in object_.data.materials if material]
+    material_slots = [slot.material.name if slot.material else None for slot in object_.material_slots]
+    corners = [object_.matrix_world @ Vector(corner) for corner in object_.bound_box]
+    detail = {}
+    if object_.type == "MESH":
+        evaluated = object_.evaluated_get(bpy.context.evaluated_depsgraph_get())
+        mesh = evaluated.to_mesh()
+        try:
+            mesh.calc_loop_triangles()
+            detail = {"triangles": len(mesh.loop_triangles), "vertices": len(mesh.vertices),
+                      "uv_layers": list(mesh.uv_layers.keys())}
+        finally:
+            evaluated.to_mesh_clear()
+    elif object_.type == "CAMERA":
+        detail = {"lens": object_.data.lens, "angle_y": object_.data.angle_y,
+                  "sensor_fit": object_.data.sensor_fit, "clip_start": object_.data.clip_start,
+                  "clip_end": object_.data.clip_end}
+    elif object_.type == "LIGHT":
+        detail = {"type": object_.data.type, "color": list(object_.data.color),
+                  "energy": object_.data.energy}
 
     return {
         "name": object_.name,
@@ -82,6 +101,11 @@ def object_record(object_: bpy.types.Object) -> dict[str, Any]:
         "collections": sorted(collection.name for collection in object_.users_collection),
         "transform": transform(object_),
         "materials": material_slots,
+        "bounds_world": {"min": [min(c[i] for c in corners) for i in range(3)],
+                         "max": [max(c[i] for c in corners) for i in range(3)]},
+        "dimensions": list(object_.dimensions),
+        "hide_render": object_.hide_render,
+        "detail": detail,
         "rog_metadata": rog_metadata(object_),
         "data_rog_metadata": rog_metadata(object_.data) if object_.data else {},
     }
@@ -103,6 +127,8 @@ def main() -> None:
 
     args = parse_arguments()
     source_path = args.source.resolve()
+    if args.output.resolve() == source_path or args.output.suffix.lower() != ".json":
+        raise RuntimeError("Inventory output must be a separate JSON file.")
     if not source_path.is_file():
         raise RuntimeError("The requested source file does not exist; inspection cannot continue.")
 
@@ -145,7 +171,7 @@ def main() -> None:
         for object_ in objects
         if object_["name"].startswith("ROG_INT_")
         or object_["name"].startswith("ROG_FX_")
-        or object_["rog_metadata"]
+        or object_["rog_metadata"].get("rog_runtime_addressable") is True
     ]
     export_policy_objects = [
         object_["name"]
@@ -154,13 +180,16 @@ def main() -> None:
     ]
 
     inventory = {
-        "schema_version": 1,
+        "schema_version": 2,
         "source": {
             "filename": source_path.name,
             "sha256": actual_sha256,
             "blender_version": bpy.app.version_string,
         },
         "collections": collections,
+        "scene": {"unit_scale": bpy.context.scene.unit_settings.scale_length,
+                  "camera": bpy.context.scene.camera.name if bpy.context.scene.camera else None,
+                  "rog_metadata": rog_metadata(bpy.context.scene)},
         "materials": materials,
         "objects": objects,
         "runtime_addressable_anchors": anchors,
@@ -168,6 +197,8 @@ def main() -> None:
     }
 
     # The generated inventory is a separate derivative and never a Blender save operation.
+    if sha256_file(source_path) != actual_sha256:
+        raise RuntimeError("Source changed during inspection.")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(inventory, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"Wrote inventory: {args.output}")
