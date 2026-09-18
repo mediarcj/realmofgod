@@ -1,0 +1,137 @@
+{
+  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "blender_version": "5.2.2 LTS",
+  "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
+  "asset": "altar-cross-sides.glb",
+  "sha256": "0dff9803ff0344a61057f014d68fd545eabc427e1d275d146bb8a12a14e926a8",
+  "bytes": 1452572,
+  "objects": [
+    {
+      "name": "ALTAR_ACC_HYPER3D_CROSS_LEFT_MASTER",
+      "category": "ALTAR_CROSS",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 29998,
+      "matrix_world_blender": [
+        [
+          2.415436029434204,
+          0,
+          0,
+          -1.8641531467437744
+        ],
+        [
+          0,
+          3.4660096168518066,
+          0,
+          3.876176118850708
+        ],
+        [
+          0,
+          0,
+          2.437788724899292,
+          3.6305246353149414
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -2.9497475624084473,
+          3.6018381118774414,
+          2.727221727371216
+        ],
+        "max": [
+          -2.380652666091919,
+          4.138484477996826,
+          4.003798484802246
+        ]
+      },
+      "materials": [
+        "MAT_STONE_ALTAR_WARM_IVORY"
+      ],
+      "source_triangles": 109658,
+      "sampled_surface_error_m": 0.0010728073539212346,
+      "source_bounds_blender": {
+        "min": [
+          -2.9496283531188965,
+          3.601900577545166,
+          2.7272703647613525
+        ],
+        "max": [
+          -2.380722999572754,
+          4.138442039489746,
+          4.003779411315918
+        ]
+      },
+      "derivative_level": "WEB_HIGH"
+    },
+    {
+      "name": "ALTAR_ACC_HYPER3D_CROSS_RIGHT_MASTER",
+      "category": "ALTAR_CROSS",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 30000,
+      "matrix_world_blender": [
+        [
+          2.415436029434204,
+          0,
+          0,
+          1.8641531467437744
+        ],
+        [
+          0,
+          3.4660096168518066,
+          0,
+          3.876176118850708
+        ],
+        [
+          0,
+          0,
+          2.437788724899292,
+          3.6305246353149414
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          2.3774666786193848,
+          3.6040608882904053,
+          2.72709584236145
+        ],
+        "max": [
+          2.9448370933532715,
+          4.139279842376709,
+          4.005854606628418
+        ]
+      },
+      "materials": [
+        "MAT_STONE_ALTAR_WARM_IVORY"
+      ],
+      "source_triangles": 109456,
+      "sampled_surface_error_m": 0.0006995334988459945,
+      "source_bounds_blender": {
+        "min": [
+          2.37737774848938,
+          3.6040353775024414,
+          2.727180004119873
+        ],
+        "max": [
+          2.9447274208068848,
+          4.139298439025879,
+          4.0059003829956055
+        ]
+      },
+      "derivative_level": "WEB_HIGH"
+    }
+  ],
+  "uncompressed_bytes": 7202080,
+  "uncompressed_sha256": "2f6a9df7339890ac79f6aafc70a0ecb87c5c4cbc652b4b33905966c4bdd5fe82",
+  "optimization": "glTF Transform 4.4.2; 1024px textures, WebP q90, Meshopt medium, position 16 bits; no joining"
+}
