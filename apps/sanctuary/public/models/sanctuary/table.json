@@ -1,0 +1,75 @@
+{
+  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "blender_version": "5.2.2 LTS",
+  "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
+  "asset": "table.glb",
+  "sha256": "a8238781a6b09b4e69dc6ed8bc0e29417688a6cad42b23987a5f32b9b6f36187",
+  "bytes": 2316228,
+  "objects": [
+    {
+      "name": "ROG_TABLE_HYPER3D_MASTER",
+      "category": "DEVOTIONAL_TABLE",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 99999,
+      "matrix_world_blender": [
+        [
+          1.8600000143051147,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1.7515512240606768e-7,
+          -1.7400000095367432,
+          0.4506089687347412
+        ],
+        [
+          0,
+          2.319999933242798,
+          1.3136634890997811e-7,
+          0.9519512057304382
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.7672641277313232,
+          -0.46676093339920044,
+          0.0006368527538143098
+        ],
+        "max": [
+          1.7669473886489868,
+          1.3681946992874146,
+          1.903627634048462
+        ]
+      },
+      "materials": [
+        "MAT_WOOD_TABLE_DARK_WALNUT"
+      ],
+      "source_triangles": 1000102,
+      "sampled_surface_error_m": 0.0016937043983489275,
+      "source_bounds_blender": {
+        "min": [
+          -1.7669999599456787,
+          -0.46668243408203125,
+          -4.483235613861325e-7
+        ],
+        "max": [
+          1.7669999599456787,
+          1.3679004907608032,
+          1.9039028882980347
+        ]
+      },
+      "derivative_level": "WEB_HIGH"
+    }
+  ],
+  "uncompressed_bytes": 11997168,
+  "uncompressed_sha256": "d1c87343060d27ab9e6cfdcdeb092e2b85ec4b3a94d98178617bd005fc9261bd",
+  "optimization": "glTF Transform 4.4.2; 1024px textures, WebP q90, Meshopt medium, position 16 bits; no joining"
+}
