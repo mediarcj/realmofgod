@@ -24,14 +24,16 @@ body {
 
 /* Center the temporary, honest entry state without introducing a simulated room. */
 .sanctuary-shell {
-  display: grid;
+  position: relative;
   min-height: 100vh;
-  place-items: center;
-  padding: 2rem;
 }
 
 .sanctuary-intro {
-  max-width: 36rem;
+  position: absolute;
+  top: 1.5rem;
+  left: 1rem;
+  right: 1rem;
+  pointer-events: none;
   text-align: center;
 }
 
@@ -42,10 +44,15 @@ body {
 }
 
 h1 {
-  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-size: clamp(1.25rem, 3vw, 2rem);
   font-weight: 500;
   margin: 0.25rem 0 1rem;
 }
+
+.scene-frame { height: 100svh; min-height: 22rem; width: 100%; }
+.scene-message { position: absolute; top: 45%; width: 100%; padding: 1.5rem; text-align: center; }
+button { padding: .75rem 1.25rem; font: inherit; cursor: pointer; color: #f4ebd9; background: #302a20; border: 1px solid #bfa87d; border-radius: .3rem; }
+button:focus-visible { outline: 3px solid #f4d691; outline-offset: 4px; }
 
 p {
   color: #ded5c6;

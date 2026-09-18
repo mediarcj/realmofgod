@@ -8,6 +8,7 @@ import type { NextConfig } from "next";
 // Keep the first framework configuration intentionally small and easy to audit.
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  agentRules: false,
 };
 
 export default nextConfig;
