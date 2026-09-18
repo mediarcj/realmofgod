@@ -10,6 +10,8 @@
 
 # Keep dependency, build, test, and diagnostic output local.
 node_modules/
+.next/
+*.tsbuildinfo
 dist/
 coverage/
 *.log
