@@ -77,11 +77,20 @@ progress { width: 100%; height: .2rem; accent-color: #dfc285; margin-top: .75rem
 .sanctuary-toolbar { position: absolute; bottom: max(1.25rem, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: .6rem; padding: .5rem; border: 1px solid #cbb07866; border-radius: .6rem; background: #18150fef; }
 .sanctuary-toolbar button { white-space: nowrap; font-size: .9rem; }
 .visually-hidden { position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.reflection-panel { position: fixed; inset: 50% 1.5rem auto auto; transform: translateY(-50%); margin: 0; width: min(25rem, 40vw); max-height: 80svh; overflow-y: auto; padding: 2rem; color: #f2e8d7; background: #181510f5; border: 1px solid #cdb07888; border-radius: .6rem; box-shadow: 0 2rem 5rem #0005; }
+.reflection-panel::backdrop { background: #09070428; }
+.reflection-panel h2 { font-size: 2rem; font-weight: normal; margin: 1rem 0; }
+.reflection-panel p { font-size: 1rem; }
+.panel-close { float: right; margin: -.8rem -.8rem 1rem 1rem; padding: .65rem .8rem; font-size: .85rem; }
+.reflection-panel .panel-note { margin-top: 1rem; color: #c3b9a8; }
+.scripture-text { white-space: pre-line; }
+.reflection-panel footer { font-size: .75rem; line-height: 1.5; color: #cabda7; margin-top: 1.5rem; }
 @media (max-width: 600px) {
   .entry-card { left: 1rem; right: 1rem; bottom: max(1rem, env(safe-area-inset-bottom)); padding: 1.1rem; max-width: none; }
   .entry-card h1 { font-size: 1.9rem; }
   .entry-card h1 br { display: none; }
   .primary-button { margin-top: 1rem; }
   .sanctuary-toolbar { width: calc(100% - 2rem); justify-content: center; flex-wrap: wrap; }
+  .reflection-panel { inset: auto 1rem max(1rem, env(safe-area-inset-bottom)) 1rem; transform: none; width: auto; max-height: 43svh; padding: 1.3rem; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }

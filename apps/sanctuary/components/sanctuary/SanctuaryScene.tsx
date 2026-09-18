@@ -8,7 +8,7 @@ import { SanctuaryAsset } from "./SanctuaryAsset";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
 const devotionalUnits = new Set(["table", "bible", "kneeling-rest"]);
-export function SanctuaryScene({ onProgress }: { onProgress: (count: number) => void }) {
+export function SanctuaryScene({ onProgress, onBible }: { onProgress: (count: number) => void; onBible?: () => void }) {
   const [loaded, setLoaded] = useState<Set<string>>(() => new Set());
   const onLoaded = useCallback((unit: string) => {
     setLoaded((previous) => previous.has(unit) ? previous : new Set([...previous, unit]));
@@ -17,5 +17,5 @@ export function SanctuaryScene({ onProgress }: { onProgress: (count: number) => 
   useEffect(() => { onProgress(loaded.size); }, [loaded, onProgress]);
   const roomReady = sanctuaryUnits.filter((unit) => !devotionalUnits.has(unit)).every((unit) => loaded.has(unit));
   const visible = sanctuaryUnits.filter((unit) => unit === "floor" || (loaded.has("floor") && (!devotionalUnits.has(unit) || roomReady)));
-  return <>{visible.map((unit) => <Suspense key={unit} fallback={null}><SanctuaryAsset unit={unit} onLoaded={onLoaded} /></Suspense>)}</>;
+  return <>{visible.map((unit) => <Suspense key={unit} fallback={null}><SanctuaryAsset unit={unit} onLoaded={onLoaded} onBible={unit === "bible" ? onBible : undefined} /></Suspense>)}</>;
 }
