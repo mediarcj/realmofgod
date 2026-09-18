@@ -1,0 +1,1090 @@
+{
+  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "blender_version": "5.2.2 LTS",
+  "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
+  "asset": "ceiling-coffers.glb",
+  "sha256": "ec27c9a5d2b0e5109732b4ad9e864d4d134ac80e95367607b2629424a4cc79a3",
+  "bytes": 442808,
+  "objects": [
+    {
+      "name": "ROG_V2_CofferFrame_R1_C1_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.6500000953674316,
+          -4.070000171661377,
+          7.039999961853027
+        ],
+        "max": [
+          -1.7599999904632568,
+          -2.630000114440918,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R1_C2_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.2000000476837158,
+          -4.070000171661377,
+          7.039999961853027
+        ],
+        "max": [
+          1.2000000476837158,
+          -2.630000114440918,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R1_C3_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.7599999904632568,
+          -4.070000171661377,
+          7.039999961853027
+        ],
+        "max": [
+          3.6500000953674316,
+          -2.630000114440918,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R2_C1_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.6500000953674316,
+          -2.069999933242798,
+          7.039999961853027
+        ],
+        "max": [
+          -1.7599999904632568,
+          -0.23000000417232513,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R2_C2_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.2000000476837158,
+          -2.069999933242798,
+          7.039999961853027
+        ],
+        "max": [
+          1.2000000476837158,
+          -0.23000000417232513,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R2_C3_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.7599999904632568,
+          -2.069999933242798,
+          7.039999961853027
+        ],
+        "max": [
+          3.6500000953674316,
+          -0.23000000417232513,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R3_C1_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.6500000953674316,
+          0.32499998807907104,
+          7.039999961853027
+        ],
+        "max": [
+          -1.7599999904632568,
+          2.4749999046325684,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R3_C2_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.2000000476837158,
+          0.32499998807907104,
+          7.039999961853027
+        ],
+        "max": [
+          1.2000000476837158,
+          2.4749999046325684,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R3_C3_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.7599999904632568,
+          0.32499998807907104,
+          7.039999961853027
+        ],
+        "max": [
+          3.6500000953674316,
+          2.4749999046325684,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R4_C1_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.6500000953674316,
+          3.130000114440918,
+          7.039999961853027
+        ],
+        "max": [
+          -1.7599999904632568,
+          4.070000171661377,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R4_C2_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.2000000476837158,
+          3.130000114440918,
+          7.039999961853027
+        ],
+        "max": [
+          1.2000000476837158,
+          4.070000171661377,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferFrame_R4_C3_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.7599999904632568,
+          3.130000114440918,
+          7.039999961853027
+        ],
+        "max": [
+          3.6500000953674316,
+          4.070000171661377,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R1_C1_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.765000104904175,
+          -4.184999942779541,
+          6.860000133514404
+        ],
+        "max": [
+          -1.6449999809265137,
+          -2.515000104904175,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R1_C2_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.315000057220459,
+          -4.184999942779541,
+          6.860000133514404
+        ],
+        "max": [
+          1.315000057220459,
+          -2.515000104904175,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R1_C3_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.6449999809265137,
+          -4.184999942779541,
+          6.860000133514404
+        ],
+        "max": [
+          3.765000104904175,
+          -2.515000104904175,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R2_C1_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.765000104904175,
+          -2.184999942779541,
+          6.860000133514404
+        ],
+        "max": [
+          -1.6449999809265137,
+          -0.11500000208616257,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R2_C2_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.315000057220459,
+          -2.184999942779541,
+          6.860000133514404
+        ],
+        "max": [
+          1.315000057220459,
+          -0.11500000208616257,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R2_C3_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.6449999809265137,
+          -2.184999942779541,
+          6.860000133514404
+        ],
+        "max": [
+          3.765000104904175,
+          -0.11500000208616257,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R3_C1_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.765000104904175,
+          0.20999999344348907,
+          6.860000133514404
+        ],
+        "max": [
+          -1.6449999809265137,
+          2.5899999141693115,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R3_C2_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.315000057220459,
+          0.20999999344348907,
+          6.860000133514404
+        ],
+        "max": [
+          1.315000057220459,
+          2.5899999141693115,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R3_C3_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.6449999809265137,
+          0.20999999344348907,
+          6.860000133514404
+        ],
+        "max": [
+          3.765000104904175,
+          2.5899999141693115,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R4_C1_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.765000104904175,
+          3.015000104904175,
+          6.860000133514404
+        ],
+        "max": [
+          -1.6449999809265137,
+          4.184999942779541,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R4_C2_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.315000057220459,
+          3.015000104904175,
+          6.860000133514404
+        ],
+        "max": [
+          1.315000057220459,
+          4.184999942779541,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CofferProfile_R4_C3_AUTH",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 464,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.6449999809265137,
+          3.015000104904175,
+          6.860000133514404
+        ],
+        "max": [
+          3.765000104904175,
+          4.184999942779541,
+          7.039999961853027
+        ]
+      },
+      "materials": []
+    }
+  ]
+}
