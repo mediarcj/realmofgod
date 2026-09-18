@@ -1,0 +1,640 @@
+{
+  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "blender_version": "5.2.2 LTS",
+  "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
+  "asset": "ceiling-structure.glb",
+  "sha256": "f33cb7cc7bc2b00693522f2430eb22ef3b1cc6a458c47602fd7e8798f5a80094",
+  "bytes": 140208,
+  "objects": [
+    {
+      "name": "ROG_V2_CeilingCross_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 572,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -0.5999999642372131,
+          0.5099999904632568,
+          6.989999771118164
+        ],
+        "max": [
+          0.5999999642372131,
+          2.2899999618530273,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_CeilingPerimeter_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 224,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -4.119999885559082,
+          -4.71999979019165,
+          6.730000019073486
+        ],
+        "max": [
+          4.119999885559082,
+          4.71999979019165,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_BackPlane_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          7.170000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -4.110000133514404,
+          -4.710000038146973,
+          7.139999866485596
+        ],
+        "max": [
+          4.110000133514404,
+          4.710000038146973,
+          7.200000286102295
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_LongitudinalBeam_1_Seg_1_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -1.4800000190734863
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -3.440000057220459
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.6299999952316284,
+          -4.380000114440918,
+          6.730000019073486
+        ],
+        "max": [
+          -1.3300000429153442,
+          -2.5,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_LongitudinalBeam_1_Seg_2_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -1.4800000190734863
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -1.149999976158142
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.6299999952316284,
+          -2.1999998092651367,
+          6.730000019073486
+        ],
+        "max": [
+          -1.3300000429153442,
+          -0.10000002384185791,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_LongitudinalBeam_1_Seg_3_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -1.4800000190734863
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          1.399999976158142
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.6299999952316284,
+          0.19999992847442627,
+          6.730000019073486
+        ],
+        "max": [
+          -1.3300000429153442,
+          2.5999999046325684,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_LongitudinalBeam_1_Seg_4_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -1.4800000190734863
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          3.640000104904175
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.6299999952316284,
+          2.9000000953674316,
+          6.730000019073486
+        ],
+        "max": [
+          -1.3300000429153442,
+          4.380000114440918,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_LongitudinalBeam_2_Seg_1_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.4800000190734863
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -3.440000057220459
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.3300000429153442,
+          -4.380000114440918,
+          6.730000019073486
+        ],
+        "max": [
+          1.6299999952316284,
+          -2.5,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_LongitudinalBeam_2_Seg_2_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.4800000190734863
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -1.149999976158142
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.3300000429153442,
+          -2.1999998092651367,
+          6.730000019073486
+        ],
+        "max": [
+          1.6299999952316284,
+          -0.10000002384185791,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_LongitudinalBeam_2_Seg_3_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.4800000190734863
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          1.399999976158142
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.3300000429153442,
+          0.19999992847442627,
+          6.730000019073486
+        ],
+        "max": [
+          1.6299999952316284,
+          2.5999999046325684,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_LongitudinalBeam_2_Seg_4_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.4800000190734863
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          3.640000104904175
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.3300000429153442,
+          2.9000000953674316,
+          6.730000019073486
+        ],
+        "max": [
+          1.6299999952316284,
+          4.380000114440918,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_TransverseBeam_1_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -2.3499999046325684
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.7799999713897705,
+          -2.5,
+          6.730000019073486
+        ],
+        "max": [
+          3.7799999713897705,
+          -2.1999998092651367,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_TransverseBeam_2_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.05000000074505806
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.7799999713897705,
+          -0.10000000894069672,
+          6.730000019073486
+        ],
+        "max": [
+          3.7799999713897705,
+          0.20000000298023224,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    },
+    {
+      "name": "ROG_V2_Ceiling_TransverseBeam_3_CLEAN",
+      "category": "ARCH_TRIM",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 108,
+      "matrix_world_blender": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          2.75
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          6.934999942779541
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.7799999713897705,
+          2.5999999046325684,
+          6.730000019073486
+        ],
+        "max": [
+          3.7799999713897705,
+          2.9000000953674316,
+          7.139999866485596
+        ]
+      },
+      "materials": []
+    }
+  ]
+}
