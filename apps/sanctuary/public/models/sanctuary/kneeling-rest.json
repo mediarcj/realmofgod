@@ -1,0 +1,75 @@
+{
+  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "blender_version": "5.2.2 LTS",
+  "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
+  "asset": "kneeling-rest.glb",
+  "sha256": "53a9b48d84fda75467936c9874dd75e91b72750c22c42c690dc8297238d662c3",
+  "bytes": 2270788,
+  "objects": [
+    {
+      "name": "ROG_KNEE_REST_HYPER3D_MASTER",
+      "category": "DEVOTIONAL_KNEE_REST",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 100000,
+      "matrix_world_blender": [
+        [
+          1.7515789270401,
+          0,
+          0,
+          0.009919032454490662
+        ],
+        [
+          0,
+          9.751149576686657e-8,
+          -1.3715789318084717,
+          -1.3062926530838013
+        ],
+        [
+          0,
+          1.2915788888931274,
+          1.0355132928907551e-7,
+          0.3195338845252991
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -1.6540584564208984,
+          -1.738863468170166,
+          0.000015434367014677264
+        ],
+        "max": [
+          1.6739684343338013,
+          -0.8737854361534119,
+          0.6390525698661804
+        ]
+      },
+      "materials": [
+        "MAT_WOOD_KNEE_REST_DARK_WALNUT"
+      ],
+      "source_triangles": 1000000,
+      "sampled_surface_error_m": 0.000342006009304896,
+      "source_bounds_blender": {
+        "min": [
+          -1.654080867767334,
+          -1.7388063669204712,
+          -1.2247689085143065e-7
+        ],
+        "max": [
+          1.6739189624786377,
+          -0.8737789392471313,
+          0.6390679478645325
+        ]
+      },
+      "derivative_level": "WEB_HIGH"
+    }
+  ],
+  "uncompressed_bytes": 11996088,
+  "uncompressed_sha256": "13b08cc696c44d727059925e2a9e20112e64353e7cf14287363f4a5f8264843b",
+  "optimization": "glTF Transform 4.4.2; 1024px textures, WebP q90, Meshopt medium, position 16 bits; no joining"
+}
