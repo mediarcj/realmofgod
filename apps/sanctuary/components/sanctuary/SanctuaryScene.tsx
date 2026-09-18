@@ -3,6 +3,9 @@
 // Purpose: Keeps scene geometry traceable to the Blender master.
 // Notes: The floor is the first physical unit.
 
+import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
+import { SanctuaryAsset } from "./SanctuaryAsset";
+
 export function SanctuaryScene() {
-  return null;
+  return <>{sanctuaryUnits.map((unit) => <SanctuaryAsset key={unit} unit={unit} />)}</>;
 }
