@@ -14,8 +14,8 @@ export default function SanctuaryCanvas() {
       aria-label="Sanctuary interior"
       frameloop="demand"
       dpr={[1, 1.5]}
-      camera={{ position: [0, 2, 4], fov: 55, near: 0.05, far: 60 }}
-      onCreated={({ camera }) => camera.lookAt(0, 0, -1)}
+      camera={{ position: [0, 1.75, 4], fov: 55, near: 0.05, far: 60 }}
+      onCreated={({ camera }) => camera.lookAt(0, 2.3, -4)}
       fallback={<p className="scene-message">The sanctuary view needs WebGL support.</p>}
     >
       <color attach="background" args={["#181612"]} />
