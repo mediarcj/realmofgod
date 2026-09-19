@@ -88,3 +88,9 @@ test("lookdev defaults stay bounded and local-profile support remains production
   const ignore = readFileSync(new URL("../../../.gitignore", import.meta.url), "utf8");
   assert.match(ignore, /apps\/sanctuary\/\.lookdev-calibration\.local\.json/);
 });
+
+test("runtime candle flames stay disabled until the v27 source regions are visually verified", () => {
+  const atmosphere = readFileSync(new URL("../components/sanctuary/SanctuaryAtmosphere.tsx", import.meta.url), "utf8");
+  assert.match(atmosphere, /const runtimeFlamesEnabled = false/);
+  assert.match(atmosphere, /runtimeFlamesEnabled && <CandleFlames/);
+});

@@ -10,6 +10,8 @@ import { anchorByRole, point, runtimeAnchors, sourceObjectCenter } from "../../l
 import type { LookdevProfile } from "../../lib/sanctuary/lookdev";
 
 const byRole = (role: string) => runtimeAnchors.filter((anchor) => anchor.role === role);
+// Disabled until v27 visual material inspection establishes whether source flame geometry exists.
+const runtimeFlamesEnabled = false;
 
 function particleGeometry(points: readonly number[][], spread: [number, number, number], count: number, seed: number) {
   const values = new Float32Array(points.length * count * 3);
@@ -123,7 +125,7 @@ export function SanctuaryAtmosphere({ reducedMotion, lookdev }: { reducedMotion:
     <CeilingCrossLight intensity={lookdev.crossLight} />
     {sunBanks.map((anchor) => <WindowDaylight key={anchor.name} position={point(anchor.position)} intensity={lookdev.windowDaylight} />)}
     <CandleLights reducedMotion={reducedMotion} intensity={lookdev.candleLight} />
-    <CandleFlames reducedMotion={reducedMotion} />
+    {runtimeFlamesEnabled && <CandleFlames reducedMotion={reducedMotion} />}
     <ParticleField points={smoke} spread={[.035, .24, .035]} count={12} color="#cfc0ac" size={.045} opacity={.12} reducedMotion={reducedMotion} seed={2} />
     <ParticleField points={[dust.position]} spread={[2.05, 1.75, 2.25]} count={88} color="#f7ddb1" size={.026} opacity={.15} reducedMotion={reducedMotion} seed={7} />
   </>;
