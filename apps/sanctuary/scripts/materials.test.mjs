@@ -21,6 +21,11 @@ test("accepted source material labels retain plaster zone distinctions", () => {
   assert.equal(resolveSanctuaryMaterial("altar-reredos", "ARCH_CENTER", "MAT_PLASTER_RECESS_IVORY").family, "plasterRecess");
 });
 
+test("altar cross assemblies resolve as aged metal without changing their source geometry", () => {
+  assert.equal(resolveSanctuaryMaterial("altar-cross-center", "mesh_0.008", "MAT_STONE_ALTAR_WARM_IVORY").family, "agedMetal");
+  assert.equal(resolveSanctuaryMaterial("altar-cross-sides", "mesh_0.010", "MAT_STONE_ALTAR_WARM_IVORY").family, "agedMetal");
+});
+
 test("window semantics distinguish glazing from accepted joinery names", () => {
   assert.equal(resolveSanctuaryMaterial("north-window-1", "ROG_V2_NorthClerestory_1_AUTH_LeafL_GlazingStop_R1C1_REPAIR_Mesh.001").family, "windowWood");
   assert.equal(resolveSanctuaryMaterial("north-window-1", "ROG_V2_NorthClerestory_1_AUTH_Casing_Mesh.002").family, "windowWood");
@@ -37,6 +42,8 @@ test("wood families use distinct cached PBR sources and UV-less wood uses projec
   assert.equal(materialTextureSet("wallWood"), "fine");
   assert.equal(materialTextureSet("ceilingWood"), "walnut");
   assert.equal(materialProjectionMode("tableWood", false), "triplanar");
+  assert.equal(materialTextureSet("bibleLeather"), "leather");
+  assert.equal(materialTextureSet("plasterBody"), "plaster");
   assert.equal(materialProjectionMode("wallWood", true), "authored-uv");
-  assert.equal(materialProjectionMode("plasterBody", false), "none");
+  assert.equal(materialProjectionMode("plasterBody", false), "triplanar");
 });

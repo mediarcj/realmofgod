@@ -15,6 +15,7 @@ export type SanctuaryMaterialFamily =
   | "plasterMolding"
   | "plasterRecess"
   | "altarStone"
+  | "agedMetal"
   | "tableWood"
   | "bibleLeather"
   | "kneelingWood"
@@ -28,16 +29,18 @@ export type MaterialResolution = { family: SanctuaryMaterialFamily; source: stri
 const ceilingCrossMesh = "ROG_V2_CeilingCross_CLEAN_Mesh.001";
 const windowWoodTerms = ["casing", "sash", "stop", "astragal", "mullion", "frame"];
 const woodFamilies = new Set<SanctuaryMaterialFamily>(["ceilingWood", "wallWood", "trimWood", "floorWood", "tableWood", "kneelingWood", "windowWood"]);
-type TextureSet = "floor" | "fine" | "walnut";
+type TextureSet = "floor" | "fine" | "walnut" | "leather" | "plaster";
 type PbrTextures = { albedo: Texture; normal: Texture; roughness: Texture };
 const texturePaths: Record<TextureSet, { albedo: string; normal: string; roughness: string; repeat: number }> = {
   floor: { albedo: "/textures/polyhaven/wood_floor/wood_floor_diff_1k.jpg", normal: "/textures/polyhaven/wood_floor/wood_floor_nor_gl_1k.jpg", roughness: "/textures/polyhaven/wood_floor/wood_floor_arm_1k.jpg", repeat: 2.8 },
   fine: { albedo: "/textures/polyhaven/fine_grained_wood/fine_grained_wood_col_2k.jpg", normal: "/textures/polyhaven/fine_grained_wood/fine_grained_wood_nor_gl_2k.jpg", roughness: "/textures/polyhaven/fine_grained_wood/fine_grained_wood_rough_2k.jpg", repeat: 2.15 },
   walnut: { albedo: "/textures/polyhaven/walnut_veneer/walnut_veneer_diff_2k.jpg", normal: "/textures/polyhaven/walnut_veneer/walnut_veneer_nor_gl_2k.jpg", roughness: "/textures/polyhaven/walnut_veneer/walnut_veneer_rough_2k.jpg", repeat: 1.45 },
+  leather: { albedo: "/textures/polyhaven/fabric_leather_02/fabric_leather_02_diff_2k.jpg", normal: "/textures/polyhaven/fabric_leather_02/fabric_leather_02_nor_gl_2k.jpg", roughness: "/textures/polyhaven/fabric_leather_02/fabric_leather_02_rough_2k.jpg", repeat: 3.2 },
+  plaster: { albedo: "/textures/polyhaven/white_plaster_02/white_plaster_02_diff_2k.jpg", normal: "/textures/polyhaven/white_plaster_02/white_plaster_02_nor_gl_2k.jpg", roughness: "/textures/polyhaven/white_plaster_02/white_plaster_02_rough_2k.jpg", repeat: 3.6 },
 };
 const textureSetForFamily: Record<SanctuaryMaterialFamily, TextureSet | null> = {
   wallWood: "fine", ceilingWood: "walnut", trimWood: "fine", floorWood: "floor", tableWood: "walnut", kneelingWood: "fine", windowWood: "walnut",
-  ceilingCross: "walnut", plasterBody: null, plasterMolding: null, plasterRecess: null, altarStone: null, bibleLeather: null, windowGlass: null, candleWax: null, fallback: null,
+  ceilingCross: "walnut", plasterBody: "plaster", plasterMolding: "plaster", plasterRecess: "plaster", altarStone: "plaster", agedMetal: null, bibleLeather: "leather", windowGlass: null, candleWax: null, fallback: null,
 };
 let pbrTextures: Partial<Record<TextureSet, PbrTextures>> = {};
 function getPbrTextures(textureSet: TextureSet): PbrTextures {
@@ -114,8 +117,8 @@ const byUnit: Partial<Record<string, SanctuaryMaterialFamily>> = {
   "altar-pilasters": "plasterBody",
   "altar-cornice": "plasterMolding",
   "altar-corbels": "plasterMolding",
-  "altar-cross-center": "altarStone",
-  "altar-cross-sides": "altarStone",
+  "altar-cross-center": "agedMetal",
+  "altar-cross-sides": "agedMetal",
   "altar-candles-large": "candleWax",
   "altar-candles-medium": "candleWax",
   table: "tableWood",
@@ -128,6 +131,7 @@ export function resolveSanctuaryMaterial(unit: string, meshName: string, sourceM
   const mesh = meshName.toLowerCase();
   const source = sourceMaterialName.toLowerCase();
   if (meshName === ceilingCrossMesh) return { family: "ceilingCross", source: "ceiling-cross mesh" };
+  if (unit === "altar-cross-center" || unit === "altar-cross-sides") return { family: "agedMetal", source: "altar cross assembly" };
   if (unit.includes("window")) {
     if (windowWoodTerms.some((term) => mesh.includes(term))) return { family: "windowWood", source: "window joinery" };
     if (source.includes("glass")) return { family: "windowGlass", source: sourceMaterialName };
@@ -151,12 +155,13 @@ const recipes: Record<SanctuaryMaterialFamily, MaterialRecipe> = {
   wallWood: { color: "#4d2b1d", roughness: .64, envMapIntensity: .28, projectionScale: .78 },
   trimWood: { color: "#70462d", roughness: .46, envMapIntensity: .42, projectionScale: 1.8 },
   floorWood: { color: "#552f1e", roughness: .5, envMapIntensity: .36, projectionScale: 1.05 },
-  plasterBody: { color: "#cbb995", roughness: .72, envMapIntensity: .14 },
-  plasterMolding: { color: "#e1d1ae", roughness: .63, envMapIntensity: .18 },
-  plasterRecess: { color: "#a89170", roughness: .8, envMapIntensity: .08 },
-  altarStone: { color: "#d8c49f", roughness: .48, envMapIntensity: .24 },
+  plasterBody: { color: "#cbb995", roughness: .72, envMapIntensity: .14, projectionScale: 1.3 },
+  plasterMolding: { color: "#e1d1ae", roughness: .63, envMapIntensity: .18, projectionScale: 2.2 },
+  plasterRecess: { color: "#a89170", roughness: .8, envMapIntensity: .08, projectionScale: 1.75 },
+  altarStone: { color: "#d8c49f", roughness: .48, envMapIntensity: .24, projectionScale: 1.8 },
+  agedMetal: { color: "#6b4e31", roughness: .43, metalness: .78, envMapIntensity: .62 },
   tableWood: { color: "#4a2919", roughness: .36, envMapIntensity: .55, projectionScale: 1.25 },
-  bibleLeather: { color: "#5e3420", roughness: .5, envMapIntensity: .3 },
+  bibleLeather: { color: "#68402a", roughness: .53, envMapIntensity: .3, projectionScale: 3.4 },
   kneelingWood: { color: "#382016", roughness: .43, envMapIntensity: .44, projectionScale: 1.45 },
   windowGlass: { color: "#d7e1df", roughness: .13, metalness: .02, transparent: true, opacity: .32, envMapIntensity: .85 },
   windowWood: { color: "#633b25", roughness: .5, envMapIntensity: .38, projectionScale: 2.1 },
@@ -167,7 +172,7 @@ const recipes: Record<SanctuaryMaterialFamily, MaterialRecipe> = {
 /** Creates a new material so one mesh's runtime changes cannot leak into another accepted unit. */
 export function materialTextureSet(family: SanctuaryMaterialFamily) { return textureSetForFamily[family]; }
 export function materialProjectionMode(family: SanctuaryMaterialFamily, hasAuthoredUv: boolean) {
-  return woodFamilies.has(family) ? hasAuthoredUv ? "authored-uv" : "triplanar" : "none";
+  return textureSetForFamily[family] ? hasAuthoredUv ? "authored-uv" : "triplanar" : "none";
 }
 
 /** Creates runtime material instances without changing accepted mesh data. */
@@ -178,6 +183,12 @@ export function createSanctuaryMaterial(resolution: MaterialResolution, hasAutho
     glass.name = `runtime:${resolution.family}:${resolution.source}`;
     glass.envMapIntensity = recipe.envMapIntensity ?? 1;
     return glass;
+  }
+  if (resolution.family === "candleWax") {
+    const wax = new MeshPhysicalMaterial({ color: new Color(recipe.color), roughness: .62, metalness: 0, transmission: .08, thickness: .035, ior: 1.38 });
+    wax.name = `runtime:${resolution.family}:${resolution.source}`;
+    wax.envMapIntensity = recipe.envMapIntensity ?? 1;
+    return wax;
   }
   const material = new MeshStandardMaterial({
     color: new Color(recipe.color),
@@ -197,7 +208,7 @@ export function createSanctuaryMaterial(resolution: MaterialResolution, hasAutho
     material.roughnessMap = textures.roughness;
     material.roughness = 1;
     material.normalScale.set(.45, .45);
-  } else if (textureSet && woodFamilies.has(resolution.family)) {
+  } else if (textureSet) {
     addProjectedPbr(material, getPbrTextures(textureSet), meshName, recipe.projectionScale ?? 1);
   }
   return material;
