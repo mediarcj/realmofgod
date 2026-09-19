@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { cameraPose, transitionEase } from "../lib/sanctuary/camera.ts";
 test("guided views stay finite on phone, tablet and desktop", () => {
-  for (const aspect of [.45, .75, 1, 1.78, 2.4]) for (const view of ["entry", "room", "bible", "prayer"]) {
+  for (const aspect of [.45, .75, 1, 1.78, 2.4]) for (const view of ["entry", "kneel", "bible", "prayer"]) {
     const pose = cameraPose(view, aspect, [0,1.75,4], [0,2,-.44], [0,.32,1.59]);
     assert([...pose.position, ...pose.target, pose.fov, ...pose.offset].every(Number.isFinite));
     assert(pose.fov >= 50 && pose.fov <= 90);

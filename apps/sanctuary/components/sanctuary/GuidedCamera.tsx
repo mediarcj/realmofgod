@@ -9,7 +9,7 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { cameraPose, transitionEase, type SanctuaryView } from "../../lib/sanctuary/camera";
 import { anchorByRole, point, referenceCamera } from "../../lib/sanctuary/runtime";
 
-export function GuidedCamera({ view, reducedMotion }: { view: SanctuaryView; reducedMotion: boolean }) {
+export function GuidedCamera({ view, reducedMotion, revision, onSettled }: { view: SanctuaryView; reducedMotion: boolean; revision: number; onSettled: (revision: number) => void }) {
   const { camera, size, invalidate } = useThree();
   const currentTarget = useRef(new Vector3(0, 1.8, -2.8));
   const currentOffset = useRef([0, 0]);
@@ -21,7 +21,7 @@ export function GuidedCamera({ view, reducedMotion }: { view: SanctuaryView; red
     motion.current = { elapsed: first.current || reducedMotion ? 1.6 : 0, start: camera.position.clone(), target: currentTarget.current.clone(), position: new Vector3(...pose.position), look: new Vector3(...pose.target), fov: pose.fov, startFov: camera.fov, offset: pose.offset, startOffset: [...currentOffset.current] };
     first.current = false;
     invalidate();
-  }, [camera, size.width, size.height, view, reducedMotion, invalidate]);
+  }, [camera, size.width, size.height, view, reducedMotion, revision, invalidate]);
   useFrame((_, delta) => {
     const movement = motion.current;
     if (!movement || !(camera instanceof PerspectiveCamera)) return;
@@ -34,7 +34,7 @@ export function GuidedCamera({ view, reducedMotion }: { view: SanctuaryView; red
     currentOffset.current = movement.offset.map((value, axis) => movement.startOffset[axis] + (value - movement.startOffset[axis]) * progress);
     camera.setViewOffset(size.width, size.height, size.width * currentOffset.current[0], size.height * currentOffset.current[1], size.width, size.height);
     camera.updateProjectionMatrix();
-    if (progress < 1) invalidate(); else motion.current = null;
+    if (progress < 1) invalidate(); else { motion.current = null; onSettled(revision); }
   });
   return null;
 }

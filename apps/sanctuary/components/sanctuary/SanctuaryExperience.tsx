@@ -5,9 +5,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useEffect, useState, type ReactNode } from "react";
+import { Component, useCallback, useEffect, useReducer, useState, type ReactNode } from "react";
 import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
-import type { SanctuaryView } from "../../lib/sanctuary/camera";
+import { initialJourney, journeyTransition } from "../../lib/sanctuary/journey";
 
 const SanctuaryCanvas = dynamic(() => import("./SanctuaryCanvas"), {
   ssr: false,
@@ -27,7 +27,9 @@ class RenderBoundary extends Component<{ children: ReactNode }, { failed: boolea
 }
 
 export function SanctuaryExperience() {
-  const [view] = useState<SanctuaryView>("entry");
+  const [journey, dispatch] = useReducer(journeyTransition, initialJourney);
+  const onActivate = useCallback((object: string) => dispatch({ type: "activate", object }), []);
+  const onSettled = useCallback((revision: number) => dispatch({ type: "settled", revision }), []);
   const [loaded, setLoaded] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(true);
   useEffect(() => {
@@ -38,7 +40,7 @@ export function SanctuaryExperience() {
   }, []);
   const ready = loaded === sanctuaryUnits.length;
   return <>
-    <div className="scene-frame"><RenderBoundary><SanctuaryCanvas view={view} reducedMotion={reducedMotion} onProgress={setLoaded} /></RenderBoundary></div>
+    <div className="scene-frame" data-view={journey.view} data-moving={journey.moving}><RenderBoundary><SanctuaryCanvas view={journey.view} reducedMotion={reducedMotion} onProgress={setLoaded} revision={journey.revision} onSettled={onSettled} interactive={ready && !journey.moving} onActivate={onActivate} /></RenderBoundary></div>
     {!ready && <div className="loading-mark" role="progressbar" aria-label="Loading sanctuary" aria-valuemin={0} aria-valuemax={sanctuaryUnits.length} aria-valuenow={loaded}><span style={{ transform: `scaleX(${loaded / sanctuaryUnits.length})` }} /></div>}
     <p className="visually-hidden" role="status">{ready ? "The sanctuary is ready." : "The sanctuary is loading."}</p>
   </>;

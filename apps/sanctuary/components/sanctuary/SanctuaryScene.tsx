@@ -6,9 +6,11 @@
 import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
 import { SanctuaryAsset } from "./SanctuaryAsset";
 import { Suspense, useCallback, useEffect, useState } from "react";
+import { devotionalObjects, eligibleObjects } from "../../lib/sanctuary/journey";
+import type { SanctuaryView } from "../../lib/sanctuary/camera";
 
 const devotionalUnits = new Set(["table", "bible", "kneeling-rest"]);
-export function SanctuaryScene({ onProgress, onBible, onPrayer }: { onProgress: (count: number) => void; onBible?: () => void; onPrayer?: () => void }) {
+export function SanctuaryScene({ onProgress, view, interactive, onActivate }: { onProgress: (count: number) => void; view: SanctuaryView; interactive: boolean; onActivate: (name: string) => void }) {
   const [loaded, setLoaded] = useState<Set<string>>(() => new Set());
   const onLoaded = useCallback((unit: string) => {
     setLoaded((previous) => previous.has(unit) ? previous : new Set([...previous, unit]));
@@ -17,5 +19,9 @@ export function SanctuaryScene({ onProgress, onBible, onPrayer }: { onProgress: 
   useEffect(() => { onProgress(loaded.size); }, [loaded, onProgress]);
   const roomReady = sanctuaryUnits.filter((unit) => !devotionalUnits.has(unit)).every((unit) => loaded.has(unit));
   const visible = sanctuaryUnits.filter((unit) => unit === "floor" || (loaded.has("floor") && (!devotionalUnits.has(unit) || roomReady)));
-  return <>{visible.map((unit) => <Suspense key={unit} fallback={null}><SanctuaryAsset unit={unit} onLoaded={onLoaded} onBible={unit === "bible" ? onBible : undefined} onPrayer={unit === "kneeling-rest" ? onPrayer : undefined} /></Suspense>)}</>;
+  return <>{visible.map((unit) => {
+    const name = devotionalObjects[unit as keyof typeof devotionalObjects];
+    const interactiveName = interactive && eligibleObjects(view).includes(name) ? name : undefined;
+    return <Suspense key={unit} fallback={null}><SanctuaryAsset unit={unit} onLoaded={onLoaded} interactiveName={interactiveName} onActivate={onActivate} /></Suspense>;
+  })}</>;
 }
