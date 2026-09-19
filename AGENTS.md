@@ -23,6 +23,12 @@ Notes: The contract applies to every Sanctuary V2 change.
 - Inspect the Blender scene with reusable `bpy` tooling. Export inventories must retain discovered object names, hierarchy, transforms, materials, `rog_*` metadata, anchors, and export policy.
 - Keep source/master derivatives distinct from optimized web derivatives. Measure before optimization and protect defining silhouettes, proportions, contact points, altar detail, and Bible detail.
 
+## Runtime rendering ownership
+
+- Blender owns canonical geometry, transforms, semantic material zones and names, authored UV layout, normals, baked source information, and anchors.
+- Browser Three.js / React Three Fiber owns final runtime PBR material implementation, texture sampling, roughness and normal response, environmental reflections, final lighting, runtime shadows, candle illumination, atmosphere, tone mapping, and restrained post-processing.
+- Do not treat Blender's simple viewport materials as the final browser appearance.
+
 ## Sanctuary construction
 
 - Build incrementally: web foundation, floor, walls and openings, windows, clerestory and structural detail, trim, altar, devotional objects, anchors, runtime effects, responsive behavior, performance, accessibility, and polish.
@@ -36,4 +42,5 @@ Notes: The contract applies to every Sanctuary V2 change.
 - Do not claim a deployment is published without verification. If no deployment pipeline is configured, continue repository work and record deployment as unresolved.
 - Preserve history. Work from `main` on `build/sanctuary-v2-mvp`; never rewrite history, force-push, or squash the incremental construction journey.
 - Make each independently useful implementation step a small, understandable commit. Run the relevant checks, push each successful commit immediately, and verify the remote branch update.
+- Write future commit subjects as short, natural developer history. Do not use process, attribution, approval, or workflow meta-language unless the literal product concept requires the term.
 - Do not add private records, credentials, local evidence, or non-product construction material to repository history.
