@@ -75,4 +75,6 @@ test("lookdev defaults stay bounded and local-profile support remains production
   const route = readFileSync(new URL("../app/api/lookdev-calibration/route.ts", import.meta.url), "utf8");
   assert.match(experience, /calibrationAvailable && calibrationEnabled && <LookdevControls/);
   assert.match(route, /NODE_ENV !== "production"/);
+  const ignore = readFileSync(new URL("../../../.gitignore", import.meta.url), "utf8");
+  assert.match(ignore, /apps\/sanctuary\/\.lookdev-calibration\.local\.json/);
 });

@@ -4,8 +4,8 @@
 // Notes: Every emitter originates from an exported Blender runtime anchor.
 
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, PointLight, Points } from "three";
+import { useEffect, useMemo, useRef } from "react";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, PointLight, Points, RectAreaLight } from "three";
 import { anchorByRole, point, runtimeAnchors, sourceObjectCenter } from "../../lib/sanctuary/runtime";
 import type { LookdevProfile } from "../../lib/sanctuary/lookdev";
 
@@ -68,7 +68,20 @@ function Sunlight() {
 
 function CeilingCrossLight({ intensity }: { intensity: number }) {
   const [x, y, z] = sourceObjectCenter("ROG_V2_CeilingCross_CLEAN");
-  return <pointLight position={[x, y - .26, z]} color="#f6ce82" intensity={intensity} distance={2.7} decay={2} />;
+  return <>
+    <pointLight position={[x, y - .26, z]} color="#f6ce82" intensity={intensity * .68} distance={2.7} decay={2} />
+    <pointLight position={[x - .34, y - .2, z]} color="#c98543" intensity={intensity * .18} distance={1.7} decay={2} />
+    <pointLight position={[x + .34, y - .2, z]} color="#c98543" intensity={intensity * .18} distance={1.7} decay={2} />
+  </>;
+}
+
+function WindowDaylight({ position, intensity }: { position: [number, number, number]; intensity: number }) {
+  const light = useRef<RectAreaLight>(null);
+  useEffect(() => {
+    if (!light.current) return;
+    light.current.lookAt(0, 2.55, -1.7);
+  }, []);
+  return <rectAreaLight ref={light} position={position} color="#fff4df" intensity={intensity * 2.1} width={2.9} height={1.35} />;
 }
 
 export function SanctuaryAtmosphere({ reducedMotion, lookdev }: { reducedMotion: boolean; lookdev: LookdevProfile }) {
@@ -79,7 +92,7 @@ export function SanctuaryAtmosphere({ reducedMotion, lookdev }: { reducedMotion:
     <hemisphereLight args={["#e7edf2", "#5b4031", .58]} />
     <Sunlight />
     <CeilingCrossLight intensity={lookdev.crossLight} />
-    {sunBanks.map((anchor) => <spotLight key={anchor.name} position={point(anchor.position)} color="#f2f1e6" intensity={lookdev.windowDaylight} angle={.58} penumbra={1} distance={14} decay={1.25} />)}
+    {sunBanks.map((anchor) => <WindowDaylight key={anchor.name} position={point(anchor.position)} intensity={lookdev.windowDaylight} />)}
     <CandleLights reducedMotion={reducedMotion} intensity={lookdev.candleLight} />
     <ParticleField points={smoke} spread={[.035, .24, .035]} count={12} color="#cfc0ac" size={.045} opacity={.12} reducedMotion={reducedMotion} seed={2} />
     <ParticleField points={[dust.position]} spread={[2.05, 1.75, 2.25]} count={88} color="#f7ddb1" size={.026} opacity={.15} reducedMotion={reducedMotion} seed={7} />
