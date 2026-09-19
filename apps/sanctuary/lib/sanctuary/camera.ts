@@ -9,16 +9,18 @@ export function cameraPose(view: SanctuaryView, aspect: number, entry: Point, bi
   const portrait = aspect < .85;
   const fov = portrait ? 78 : 64;
   if (view === "kneel") return {
-    position: [prayer[0], prayer[1] + 1.05, prayer[2] - .1] as Point,
+    // The source table rises above the kneeling-rest anchor. Keep the viewer
+    // modestly lower than entry, but above its measured top surface.
+    position: [prayer[0], bible[1] + .24, prayer[2] + .75] as Point,
     target: centralCross, fov, offset: [0, 0],
   };
   if (view === "bible") return {
-    position: [bible[0], bible[1] - .72, bible[2] + (portrait ? 1.05 : 1.35)] as Point,
+    position: [bible[0], bible[1] + .16, bible[2] + (portrait ? 1.4 : 1.8)] as Point,
     target: [bible[0], bible[1] - .08, bible[2]] as Point,
-    fov: portrait ? 62 : 44, offset: portrait ? [0, .08] : [-.15, 0],
+    fov: portrait ? 62 : 48, offset: portrait ? [0, .08] : [-.15, 0],
   };
   if (view === "prayer") return {
-    position: [prayer[0], prayer[1] + 1.15, prayer[2] + .05] as Point,
+    position: [prayer[0], bible[1] + .28, prayer[2] + .75] as Point,
     target: [centralCross[0], centralCross[1] + 1.35, centralCross[2]] as Point,
     fov: portrait ? 74 : 58, offset: [0, 0],
   };
