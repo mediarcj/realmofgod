@@ -7,7 +7,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useLayoutEffect, useRef } from "react";
 import { PerspectiveCamera, Vector3 } from "three";
 import { cameraPose, transitionEase, type SanctuaryView } from "../../lib/sanctuary/camera";
-import { anchorByRole, point, referenceCamera } from "../../lib/sanctuary/runtime";
+import { anchorByRole, point, referenceCamera, sourceObjectCenter } from "../../lib/sanctuary/runtime";
 
 export function GuidedCamera({ view, reducedMotion, revision, onSettled }: { view: SanctuaryView; reducedMotion: boolean; revision: number; onSettled: (revision: number) => void }) {
   const { camera, size, invalidate } = useThree();
@@ -17,7 +17,7 @@ export function GuidedCamera({ view, reducedMotion, revision, onSettled }: { vie
   const first = useRef(true);
   useLayoutEffect(() => {
     if (!(camera instanceof PerspectiveCamera)) return;
-    const pose = cameraPose(view, size.width / size.height, point(referenceCamera.position), point(anchorByRole("BIBLE_HOVER_CLICK_FOCUS").position), point(anchorByRole("PRAYER_ZONE").position));
+    const pose = cameraPose(view, size.width / size.height, point(referenceCamera.position), point(anchorByRole("BIBLE_HOVER_CLICK_FOCUS").position), point(anchorByRole("PRAYER_ZONE").position), sourceObjectCenter("ALTAR_ACC_HYPER3D_CROSS_CENTER_MASTER"));
     motion.current = { elapsed: first.current || reducedMotion ? 1.6 : 0, start: camera.position.clone(), target: currentTarget.current.clone(), position: new Vector3(...pose.position), look: new Vector3(...pose.target), fov: pose.fov, startFov: camera.fov, offset: pose.offset, startOffset: [...currentOffset.current] };
     first.current = false;
     invalidate();
