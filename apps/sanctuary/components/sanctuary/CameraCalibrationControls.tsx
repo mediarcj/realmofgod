@@ -86,7 +86,7 @@ export function CameraCalibrationControls({ command, mode, transformDragging, on
     const orbit = controls.current;
     if (command.type === "load-coded") {
       const pose = cameraPose(sanctuaryViewForCalibration(command.view), size.width / size.height);
-      orbit.target.copy(applyCameraCalibrationPose(camera, { ...pose, aspect: size.width / size.height, near: camera.near, far: camera.far, viewOffset: null }));
+      orbit.target.copy(applyCameraCalibrationPose(camera, { ...pose, aspect: size.width / size.height, viewOffset: null }));
     } else if (command.type === "load-saved") {
       orbit.target.copy(applyCameraCalibrationPose(camera, command.record));
     } else {

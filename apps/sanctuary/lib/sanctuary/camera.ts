@@ -6,7 +6,7 @@
 export type SanctuaryView = "entry" | "kneel" | "bible" | "prayer";
 export function cameraDuration(reducedMotion: boolean) { return reducedMotion ? 0 : 1.6; }
 type Point3 = [number, number, number];
-export type CameraPose = { position: Point3; target: Point3; up: Point3; fov: number; offset: [number, number] };
+export type CameraPose = { position: Point3; target: Point3; up: Point3; fov: number; near: number; far: number; offset: [number, number] };
 
 // OWNER CAMERA DESKTOP LOCK: Angle 1 / Entry, promoted verbatim from the
 // Git-ignored local calibration record. Do not derive or refit this endpoint.
@@ -15,6 +15,8 @@ const OWNER_ENTRY_DESKTOP: CameraPose = {
   target: [0.05896333736516662, 2.1607696616746113, -3.3778820839605586],
   up: [0, 1, 0],
   fov: 43.1,
+  near: 0.05,
+  far: 60,
   offset: [0, 0],
 };
 
@@ -25,6 +27,8 @@ const OWNER_DEVOTIONAL_DESKTOP: CameraPose = {
   target: [-0.05345574122261582, 2.91259250941797, -3.1695882549225813],
   up: [0, 1, 0],
   fov: 49.2,
+  near: 0.05,
+  far: 60,
   offset: [0, 0],
 };
 
@@ -35,6 +39,8 @@ const OWNER_BIBLE_DESKTOP: CameraPose = {
   target: [0.0005360429555142286, 1.0832682689439963, -0.41188717984421014],
   up: [0, 1, 0],
   fov: 49.2,
+  near: 0.05,
+  far: 60,
   offset: [0, 0],
 };
 
@@ -45,6 +51,8 @@ const OWNER_PRAYER_DESKTOP: CameraPose = {
   target: [0.005757616056300196, 4.068051109055716, -0.12509942565052734],
   up: [0, 1, 0],
   fov: 49.2,
+  near: 0.05,
+  far: 60,
   offset: [0, 0],
 };
 

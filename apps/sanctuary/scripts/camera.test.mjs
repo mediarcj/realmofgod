@@ -19,6 +19,8 @@ test("owner entry camera lock is exact", () => {
   assert.deepEqual(pose.target, [0.05896333736516662, 2.1607696616746113, -3.3778820839605586]);
   assert.deepEqual(pose.up, [0, 1, 0]);
   assert.equal(pose.fov, 43.1);
+  assert.equal(pose.near, 0.05);
+  assert.equal(pose.far, 60);
 });
 test("owner devotional camera lock is exact", () => {
   const pose = cameraPose("kneel", 1.78);
@@ -26,6 +28,8 @@ test("owner devotional camera lock is exact", () => {
   assert.deepEqual(pose.target, [-0.05345574122261582, 2.91259250941797, -3.1695882549225813]);
   assert.deepEqual(pose.up, [0, 1, 0]);
   assert.equal(pose.fov, 49.2);
+  assert.equal(pose.near, 0.05);
+  assert.equal(pose.far, 60);
   assert(pose.position[2] < cameraPose("entry", 1.78).position[2]);
 });
 test("owner Bible camera lock is exact", () => {
@@ -34,6 +38,8 @@ test("owner Bible camera lock is exact", () => {
   assert.deepEqual(pose.target, [0.0005360429555142286, 1.0832682689439963, -0.41188717984421014]);
   assert.deepEqual(pose.up, [0, 1, 0]);
   assert.equal(pose.fov, 49.2);
+  assert.equal(pose.near, 0.05);
+  assert.equal(pose.far, 60);
 });
 test("owner prayer camera lock is exact", () => {
   const pose = cameraPose("prayer", 1.78);
@@ -41,6 +47,8 @@ test("owner prayer camera lock is exact", () => {
   assert.deepEqual(pose.target, [0.005757616056300196, 4.068051109055716, -0.12509942565052734]);
   assert.deepEqual(pose.up, [0, 1, 0]);
   assert.equal(pose.fov, 49.2);
+  assert.equal(pose.near, 0.05);
+  assert.equal(pose.far, 60);
 });
 test("transition easing is bounded and monotonic", () => {
   assert.equal(transitionEase(-1), 0);

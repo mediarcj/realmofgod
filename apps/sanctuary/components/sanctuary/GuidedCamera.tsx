@@ -13,13 +13,13 @@ export function GuidedCamera({ view, reducedMotion, revision, onSettled }: { vie
   const currentTarget = useRef(new Vector3());
   const currentUp = useRef(new Vector3(0, 1, 0));
   const currentOffset = useRef([0, 0]);
-  const motion = useRef<null | { elapsed: number; start: Vector3; target: Vector3; startUp: Vector3; up: Vector3; position: Vector3; look: Vector3; fov: number; startFov: number; offset: number[]; startOffset: number[] }>(null);
+  const motion = useRef<null | { elapsed: number; start: Vector3; target: Vector3; startUp: Vector3; up: Vector3; position: Vector3; look: Vector3; fov: number; startFov: number; near: number; startNear: number; far: number; startFar: number; offset: number[]; startOffset: number[] }>(null);
   const first = useRef(true);
   useLayoutEffect(() => {
     if (!(camera instanceof PerspectiveCamera)) return;
     const pose = cameraPose(view, size.width / size.height);
     const duration = cameraDuration(reducedMotion);
-    motion.current = { elapsed: first.current || reducedMotion ? duration : 0, start: camera.position.clone(), target: currentTarget.current.clone(), startUp: currentUp.current.clone(), up: new Vector3(...pose.up), position: new Vector3(...pose.position), look: new Vector3(...pose.target), fov: pose.fov, startFov: camera.fov, offset: pose.offset, startOffset: [...currentOffset.current] };
+    motion.current = { elapsed: first.current || reducedMotion ? duration : 0, start: camera.position.clone(), target: currentTarget.current.clone(), startUp: currentUp.current.clone(), up: new Vector3(...pose.up), position: new Vector3(...pose.position), look: new Vector3(...pose.target), fov: pose.fov, startFov: camera.fov, near: pose.near, startNear: camera.near, far: pose.far, startFar: camera.far, offset: pose.offset, startOffset: [...currentOffset.current] };
     first.current = false;
     invalidate();
   }, [camera, size.width, size.height, view, reducedMotion, revision, invalidate]);
@@ -35,6 +35,8 @@ export function GuidedCamera({ view, reducedMotion, revision, onSettled }: { vie
     camera.lookAt(currentTarget.current);
     camera.userData.sanctuaryTarget = currentTarget.current.toArray();
     camera.fov = movement.startFov + (movement.fov - movement.startFov) * progress;
+    camera.near = movement.startNear + (movement.near - movement.startNear) * progress;
+    camera.far = movement.startFar + (movement.far - movement.startFar) * progress;
     currentOffset.current = movement.offset.map((value, axis) => movement.startOffset[axis] + (value - movement.startOffset[axis]) * progress);
     camera.setViewOffset(size.width, size.height, size.width * currentOffset.current[0], size.height * currentOffset.current[1], size.width, size.height);
     camera.updateProjectionMatrix();
