@@ -41,6 +41,16 @@ export type CalibrationRecord = CalibrationPose & {
   capturedAt: string;
 };
 
+export type CalibrationCommand =
+  | { id: number; type: "load-coded"; view: CalibrationView }
+  | { id: number; type: "load-saved"; record: CalibrationRecord }
+  | { id: number; type: "patch"; patch: Partial<Pick<CalibrationPose, "position" | "target" | "fov">> };
+
+export type CalibrationCommandDraft =
+  | { type: "load-coded"; view: CalibrationView }
+  | { type: "load-saved"; record: CalibrationRecord }
+  | { type: "patch"; patch: Partial<Pick<CalibrationPose, "position" | "target" | "fov">> };
+
 export type CalibrationFile = {
   version: 1;
   updatedAt: string | null;

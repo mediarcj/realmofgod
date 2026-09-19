@@ -33,6 +33,7 @@ export function GuidedCamera({ view, reducedMotion, revision, onSettled }: { vie
     currentUp.current.lerpVectors(movement.startUp, movement.up, progress).normalize();
     camera.up.copy(currentUp.current);
     camera.lookAt(currentTarget.current);
+    camera.userData.sanctuaryTarget = currentTarget.current.toArray();
     camera.fov = movement.startFov + (movement.fov - movement.startFov) * progress;
     currentOffset.current = movement.offset.map((value, axis) => movement.startOffset[axis] + (value - movement.startOffset[axis]) * progress);
     camera.setViewOffset(size.width, size.height, size.width * currentOffset.current[0], size.height * currentOffset.current[1], size.width, size.height);
