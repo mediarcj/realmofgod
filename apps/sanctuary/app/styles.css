@@ -50,6 +50,8 @@ h1 {
 }
 
 .scene-frame { height: 100svh; min-height: 22rem; width: 100%; }
+.loading-mark { position: absolute; left: calc(50% - 2.5rem); bottom: 2rem; width: 5rem; height: 2px; background: #17130f80; overflow: hidden; }
+.loading-mark span { display: block; height: 100%; background: #e2c995; transform-origin: left; }
 .scene-message { position: absolute; top: 45%; width: 100%; padding: 1.5rem; text-align: center; }
 button { padding: .75rem 1.25rem; font: inherit; cursor: pointer; color: #f4ebd9; background: #302a20; border: 1px solid #bfa87d; border-radius: .3rem; }
 button:focus-visible { outline: 3px solid #f4d691; outline-offset: 4px; }

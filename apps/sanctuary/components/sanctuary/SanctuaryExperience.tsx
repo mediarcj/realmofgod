@@ -5,15 +5,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useEffect, useRef, useState, type ReactNode } from "react";
+import { Component, useEffect, useState, type ReactNode } from "react";
 import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
 import type { SanctuaryView } from "../../lib/sanctuary/camera";
-import { ScripturePanel } from "./ScripturePanel";
-import { PrayerPanel } from "./PrayerPanel";
 
 const SanctuaryCanvas = dynamic(() => import("./SanctuaryCanvas"), {
   ssr: false,
-  loading: () => <p className="scene-message" role="status">Preparing the sanctuary…</p>,
+  loading: () => null,
 });
 
 class RenderBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -29,10 +27,8 @@ class RenderBoundary extends Component<{ children: ReactNode }, { failed: boolea
 }
 
 export function SanctuaryExperience() {
-  const [view, setView] = useState<SanctuaryView>("entry");
+  const [view] = useState<SanctuaryView>("entry");
   const [loaded, setLoaded] = useState(0);
-  const bibleButton = useRef<HTMLButtonElement>(null);
-  const prayerButton = useRef<HTMLButtonElement>(null);
   const [reducedMotion, setReducedMotion] = useState(true);
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -42,23 +38,8 @@ export function SanctuaryExperience() {
   }, []);
   const ready = loaded === sanctuaryUnits.length;
   return <>
-    <div className="scene-frame"><RenderBoundary><SanctuaryCanvas view={view} reducedMotion={reducedMotion} onProgress={setLoaded} onBible={view === "room" ? () => setView("bible") : undefined} onPrayer={view === "room" ? () => setView("prayer") : undefined} /></RenderBoundary></div>
-    <div className="scene-shade" aria-hidden="true" />
-    <header className="sanctuary-brand"><p>Realm of God</p><span>A place for quiet reflection</span></header>
-    {view === "entry" ? <section className="entry-card" aria-labelledby="sanctuary-title">
-      <p className="eyebrow">A moment apart</p>
-      <h1 id="sanctuary-title">A quiet place<br />to be still.</h1>
-      <p>Come as you are. Stay as long as you wish.</p>
-      <button className="primary-button" disabled={!ready} onClick={() => setView("room")}>{ready ? "Enter the sanctuary" : "Preparing the sanctuary…"}</button>
-      {!ready && <progress aria-label="Sanctuary loading" max={sanctuaryUnits.length} value={loaded} />}
-      <p className="privacy-note">No account. No tracking.</p>
-    </section> : <nav className="sanctuary-toolbar" aria-label="Sanctuary actions">
-      <button ref={bibleButton} data-anchor="ROG_INT_Bible" onClick={() => setView("bible")}>Read Scripture</button>
-      <button ref={prayerButton} data-anchor="ROG_INT_PrayerZone" onClick={() => setView("prayer")}>A moment of prayer</button>
-      <button onClick={() => setView("entry")}>Return to entry</button>
-    </nav>}
-    {view === "bible" && <ScripturePanel onClose={() => { setView("room"); requestAnimationFrame(() => bibleButton.current?.focus()); }} />}
-    {view === "prayer" && <PrayerPanel onClose={() => { setView("room"); requestAnimationFrame(() => prayerButton.current?.focus()); }} />}
+    <div className="scene-frame"><RenderBoundary><SanctuaryCanvas view={view} reducedMotion={reducedMotion} onProgress={setLoaded} /></RenderBoundary></div>
+    {!ready && <div className="loading-mark" role="progressbar" aria-label="Loading sanctuary" aria-valuemin={0} aria-valuemax={sanctuaryUnits.length} aria-valuenow={loaded}><span style={{ transform: `scaleX(${loaded / sanctuaryUnits.length})` }} /></div>}
     <p className="visually-hidden" role="status">{ready ? "The sanctuary is ready." : "The sanctuary is loading."}</p>
   </>;
 }
