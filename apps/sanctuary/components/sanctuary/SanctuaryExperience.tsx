@@ -8,6 +8,8 @@ import dynamic from "next/dynamic";
 import { Component, useCallback, useEffect, useReducer, useState, type ReactNode } from "react";
 import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
 import { initialJourney, journeyTransition } from "../../lib/sanctuary/journey";
+import { ScripturePanel } from "./ScripturePanel";
+import { PrayerPanel } from "./PrayerPanel";
 
 const SanctuaryCanvas = dynamic(() => import("./SanctuaryCanvas"), {
   ssr: false,
@@ -30,6 +32,7 @@ export function SanctuaryExperience() {
   const [journey, dispatch] = useReducer(journeyTransition, initialJourney);
   const onActivate = useCallback((object: string) => dispatch({ type: "activate", object }), []);
   const onSettled = useCallback((revision: number) => dispatch({ type: "settled", revision }), []);
+  const onPray = useCallback(() => dispatch({ type: "pray" }), []);
   const [loaded, setLoaded] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(true);
   useEffect(() => {
@@ -42,6 +45,8 @@ export function SanctuaryExperience() {
   return <>
     <div className="scene-frame" data-view={journey.view} data-moving={journey.moving}><RenderBoundary><SanctuaryCanvas view={journey.view} reducedMotion={reducedMotion} onProgress={setLoaded} revision={journey.revision} onSettled={onSettled} interactive={ready && !journey.moving} onActivate={onActivate} /></RenderBoundary></div>
     {!ready && <div className="loading-mark" role="progressbar" aria-label="Loading sanctuary" aria-valuemin={0} aria-valuemax={sanctuaryUnits.length} aria-valuenow={loaded}><span style={{ transform: `scaleX(${loaded / sanctuaryUnits.length})` }} /></div>}
+    {journey.view === "bible" && !journey.moving && <ScripturePanel onPray={onPray} />}
+    {journey.view === "prayer" && !journey.moving && <PrayerPanel />}
     <p className="visually-hidden" role="status">{ready ? "The sanctuary is ready." : "The sanctuary is loading."}</p>
   </>;
 }

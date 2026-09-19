@@ -9,3 +9,16 @@ export const scriptureSource: ScriptureSource = { async read() { return null; } 
 export function isCompleteReading(reading: ScriptureReading) {
   return [reading.reference, reading.text, reading.translation, reading.attribution].every((value) => typeof value === "string" && value.trim().length > 0);
 }
+
+// Reused from the approved historical sanctuary journey. It deliberately names
+// the reading without inventing a translation or verse wording.
+export const historicalScripture = {
+  reference: "Psalm 46:10",
+  status: "translation-and-licensing-pending",
+} as const;
+
+export const historicalPrayerReflections = [
+  "Nothing else is asked of you right now.",
+  "You may stay as long as you like.",
+  "Pray quietly, reflect, or simply be still.",
+] as const;

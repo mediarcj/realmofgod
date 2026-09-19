@@ -1,18 +1,16 @@
 // File: apps/sanctuary/components/sanctuary/PrayerPanel.tsx
-// Description: Offers a quiet, private moment at the prayer anchor.
-// Purpose: Supports prayer without collecting text or prescribing a response.
-// Notes: Escape and the return button always leave this view.
+// Description: Offers historical sanctuary reflections in the raised prayer view.
+// Purpose: Supports a private moment without collecting or prescribing prayer.
+// Notes: The small panel never becomes a text entry or submission surface.
 
 import { useEffect, useRef } from "react";
+import { historicalPrayerReflections } from "../../lib/sanctuary/content";
 
-export function PrayerPanel({ onClose }: { onClose: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => { const element = dialog.current; element?.showModal(); return () => element?.close(); }, []);
-  return <dialog ref={dialog} className="reflection-panel prayer-panel" aria-labelledby="prayer-title" onCancel={(event) => { event.preventDefault(); onClose(); }}>
-    <p className="eyebrow">A quiet moment</p>
-    <h2 id="prayer-title">Be still.</h2>
-    <p>Take the time you need.</p>
-    <p className="panel-note">Nothing to type. Nothing to submit.</p>
-    <button className="primary-button" onClick={onClose}>Return to the sanctuary</button>
-  </dialog>;
+export function PrayerPanel() {
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { heading.current?.focus(); }, []);
+  return <aside className="prayer-reading" aria-labelledby="prayer-title">
+    <h2 id="prayer-title" ref={heading} tabIndex={-1}>Be still.</h2>
+    {historicalPrayerReflections.map((reflection) => <p key={reflection}>{reflection}</p>)}
+  </aside>;
 }
