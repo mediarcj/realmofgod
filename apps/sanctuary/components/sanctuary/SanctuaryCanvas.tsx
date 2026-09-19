@@ -8,6 +8,7 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { SanctuaryScene } from "./SanctuaryScene";
 import { GuidedCamera } from "./GuidedCamera";
+import { SanctuaryAtmosphere } from "./SanctuaryAtmosphere";
 import type { SanctuaryView } from "../../lib/sanctuary/camera";
 
 export default function SanctuaryCanvas({ view, reducedMotion, onProgress, revision, onSettled, interactive, onActivate }: { view: SanctuaryView; reducedMotion: boolean; onProgress: (count: number) => void; revision: number; onSettled: (revision: number) => void; interactive: boolean; onActivate: (name: string) => void }) {
@@ -21,8 +22,7 @@ export default function SanctuaryCanvas({ view, reducedMotion, onProgress, revis
     >
       <color attach="background" args={["#181612"]} />
       <GuidedCamera view={view} reducedMotion={reducedMotion} revision={revision} onSettled={onSettled} />
-      <hemisphereLight args={["#fff4df", "#40382c", 2]} />
-      <directionalLight position={[2, 6, 3]} intensity={3} color="#fff0d2" />
+      <SanctuaryAtmosphere reducedMotion={reducedMotion} />
       <Suspense fallback={null}><SanctuaryScene onProgress={onProgress} view={view} interactive={interactive} onActivate={onActivate} /></Suspense>
     </Canvas>
   );
