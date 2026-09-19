@@ -8,55 +8,12 @@ import { useEffect, useRef } from "react";
 import { PerspectiveCamera, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { cameraPose } from "../../lib/sanctuary/camera";
+import { applyCameraCalibrationPose, captureCameraCalibrationPose } from "../../lib/sanctuary/camera-calibration-runtime";
 import {
   sanctuaryViewForCalibration,
   type CalibrationCommand,
   type CalibrationPose,
-  type CalibrationVector,
 } from "../../lib/sanctuary/camera-calibration";
-
-function vector(value: Vector3): CalibrationVector { return [value.x, value.y, value.z]; }
-function degrees(value: number): number { return value * 180 / Math.PI; }
-
-function capturePose(camera: PerspectiveCamera, target: Vector3, viewport: [number, number]): CalibrationPose {
-  const view = camera.view?.enabled ? {
-    fullWidth: camera.view.fullWidth,
-    fullHeight: camera.view.fullHeight,
-    offsetX: camera.view.offsetX,
-    offsetY: camera.view.offsetY,
-    width: camera.view.width,
-    height: camera.view.height,
-  } : null;
-  return {
-    position: vector(camera.position),
-    target: vector(target),
-    up: vector(camera.up),
-    rotationRadians: [camera.rotation.x, camera.rotation.y, camera.rotation.z],
-    rotationDegrees: [degrees(camera.rotation.x), degrees(camera.rotation.y), degrees(camera.rotation.z)],
-    quaternion: [camera.quaternion.x, camera.quaternion.y, camera.quaternion.z, camera.quaternion.w],
-    fov: camera.fov,
-    near: camera.near,
-    far: camera.far,
-    aspect: camera.aspect,
-    viewport,
-    cameraType: camera.type,
-    viewOffset: view,
-  };
-}
-
-function applyPose(camera: PerspectiveCamera, controls: OrbitControls, pose: Pick<CalibrationPose, "position" | "target" | "up" | "fov" | "near" | "far" | "viewOffset">) {
-  camera.position.set(...pose.position);
-  camera.up.set(...pose.up);
-  camera.fov = pose.fov;
-  camera.near = pose.near;
-  camera.far = pose.far;
-  if (pose.viewOffset) {
-    camera.setViewOffset(pose.viewOffset.fullWidth, pose.viewOffset.fullHeight, pose.viewOffset.offsetX, pose.viewOffset.offsetY, pose.viewOffset.width, pose.viewOffset.height);
-  } else camera.clearViewOffset();
-  camera.updateProjectionMatrix();
-  controls.target.set(...pose.target);
-  controls.update();
-}
 
 function savedTarget(camera: PerspectiveCamera): Vector3 {
   const candidate = camera.userData.sanctuaryTarget;
@@ -79,7 +36,7 @@ export function CameraCalibrationControls({ command, onCameraState }: { command:
     controls.current = orbit;
     const emit = () => {
       camera.userData.sanctuaryTarget = orbit.target.toArray();
-      onCameraState(capturePose(camera, orbit.target, [size.width, size.height]));
+      onCameraState(captureCameraCalibrationPose(camera, orbit.target, [size.width, size.height]));
       invalidate();
     };
     orbit.addEventListener("change", emit);
@@ -97,17 +54,18 @@ export function CameraCalibrationControls({ command, onCameraState }: { command:
     const orbit = controls.current;
     if (command.type === "load-coded") {
       const pose = cameraPose(sanctuaryViewForCalibration(command.view), size.width / size.height);
-      applyPose(camera, orbit, { ...pose, near: camera.near, far: camera.far, viewOffset: null });
+      orbit.target.copy(applyCameraCalibrationPose(camera, { ...pose, aspect: size.width / size.height, near: camera.near, far: camera.far, viewOffset: null }));
     } else if (command.type === "load-saved") {
-      applyPose(camera, orbit, command.record);
+      orbit.target.copy(applyCameraCalibrationPose(camera, command.record));
     } else {
-      applyPose(camera, orbit, {
-        position: command.patch.position ?? vector(camera.position),
-        target: command.patch.target ?? vector(orbit.target),
-        up: vector(camera.up),
+      orbit.target.copy(applyCameraCalibrationPose(camera, {
+        position: command.patch.position ?? camera.position.toArray(),
+        target: command.patch.target ?? orbit.target.toArray(),
+        up: camera.up.toArray(),
         fov: command.patch.fov ?? camera.fov,
         near: camera.near,
         far: camera.far,
+        aspect: camera.aspect,
         viewOffset: camera.view?.enabled ? {
           fullWidth: camera.view.fullWidth,
           fullHeight: camera.view.fullHeight,
@@ -116,10 +74,11 @@ export function CameraCalibrationControls({ command, onCameraState }: { command:
           width: camera.view.width,
           height: camera.view.height,
         } : null,
-      });
+      }));
     }
+    orbit.update();
     camera.userData.sanctuaryTarget = orbit.target.toArray();
-    onCameraState(capturePose(camera, orbit.target, [size.width, size.height]));
+    onCameraState(captureCameraCalibrationPose(camera, orbit.target, [size.width, size.height]));
     invalidate();
   }, [camera, command, invalidate, onCameraState, size.height, size.width]);
 
