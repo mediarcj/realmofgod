@@ -22,11 +22,12 @@ test("owner entry camera lock is exact", () => {
   assert.deepEqual(pose.up, [0, 1, 0]);
   assert.equal(pose.fov, 43.1);
 });
-test("owner devotional calibration frames the altar over the tabletop", () => {
+test("owner devotional camera lock is exact", () => {
   const pose = cameraPose("kneel", 1.78);
-  assert.deepEqual(pose.position, [0, 2.4, 3.5]);
-  assert.deepEqual(pose.target, [0, 3.4, -3.88]);
-  assert.equal(pose.fov, 36);
+  assert.deepEqual(pose.position, [-0.09284529296935504, 3.0203792982467257, 3.1079608535465595]);
+  assert.deepEqual(pose.target, [-0.05345574122261582, 2.91259250941797, -3.1695882549225813]);
+  assert.deepEqual(pose.up, [0, 1, 0]);
+  assert.equal(pose.fov, 49.2);
   assert(pose.position[2] < cameraPose("entry", 1.78).position[2]);
 });
 test("owner Bible calibration is page-facing and centered", () => {

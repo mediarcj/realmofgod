@@ -19,10 +19,10 @@ const OWNER_ENTRY_DESKTOP: CameraPose = {
 };
 
 const OWNER_DEVOTIONAL_DESKTOP: CameraPose = {
-  position: [0, 2.4, 3.5],
-  target: [0, 3.4, -3.88],
+  position: [-0.09284529296935504, 3.0203792982467257, 3.1079608535465595],
+  target: [-0.05345574122261582, 2.91259250941797, -3.1695882549225813],
   up: [0, 1, 0],
-  fov: 36,
+  fov: 49.2,
   offset: [0, 0],
 };
 
