@@ -9,9 +9,10 @@ import { Mesh, Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { createSanctuaryMaterial, materialProjectionMode, materialTextureSet, resolveSanctuaryMaterial, sourceMaterialName } from "../../lib/sanctuary/materials";
+import type { MaterialDebugInfo } from "./MaterialDebugReadout";
 
 
-export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, calibrationKey, calibrationSourceName, onCalibrationObject }: { unit: string; onLoaded?: (unit: string) => void; interactiveName?: string; onActivate: (name: string) => void; calibrationKey?: string; calibrationSourceName?: string; onCalibrationObject?: (key: string, object: Object3D | null) => void }) {
+export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, calibrationKey, calibrationSourceName, onCalibrationObject, onMaterialDebug }: { unit: string; onLoaded?: (unit: string) => void; interactiveName?: string; onActivate: (name: string) => void; calibrationKey?: string; calibrationSourceName?: string; onCalibrationObject?: (key: string, object: Object3D | null) => void; onMaterialDebug?: (info: MaterialDebugInfo) => void }) {
   const gltf = useLoader(GLTFLoader, `/models/sanctuary/${unit}.glb`, (loader) => loader.setMeshoptDecoder(MeshoptDecoder));
   const scene = useMemo(() => {
     const copy = gltf.scene.clone(true);
@@ -39,7 +40,9 @@ export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, ca
     onClick={interactiveName ? (event: import("@react-three/fiber").ThreeEvent<MouseEvent>) => {
       if (event.object.name === interactiveName) { event.stopPropagation(); document.body.style.cursor = ""; onActivate(interactiveName); }
     } : undefined}
-    onPointerOver={interactiveName ? (event: import("@react-three/fiber").ThreeEvent<PointerEvent>) => {
+    onPointerOver={interactiveName || onMaterialDebug ? (event: import("@react-three/fiber").ThreeEvent<PointerEvent>) => {
+      const info = event.object.userData.sanctuaryMaterial as Omit<MaterialDebugInfo, "mesh"> | undefined;
+      if (info) onMaterialDebug?.({ ...info, mesh: event.object.name });
       if (event.object.name === interactiveName) document.body.style.cursor = "pointer";
     } : undefined}
     onPointerOut={interactiveName ? () => { document.body.style.cursor = ""; } : undefined} />;

@@ -16,11 +16,14 @@ import type { CalibrationCommand, CalibrationPose } from "../../lib/sanctuary/ca
 import type { DevotionalCalibrationKey } from "../../lib/sanctuary/camera-calibration";
 import { DevotionalObjectControls, type ObjectCalibrationCommand, type ObjectCalibrationState } from "./DevotionalObjectControls";
 import { SanctuaryEnvironment } from "./SanctuaryEnvironment";
+import { MaterialDebugReadout, type MaterialDebugInfo } from "./MaterialDebugReadout";
 
 export default function SanctuaryCanvas({ view, reducedMotion, onProgress, revision, onSettled, interactive, onActivate, calibrationEnabled, calibrationMode, calibrationCommand, onCameraState, selectedObject, objectCommand, onObjectState }: { view: SanctuaryView; reducedMotion: boolean; onProgress: (count: number) => void; revision: number; onSettled: (revision: number) => void; interactive: boolean; onActivate: (name: string) => void; calibrationEnabled: boolean; calibrationMode: CameraCalibrationMode; calibrationCommand: CalibrationCommand | null; onCameraState: (state: CalibrationPose) => void; selectedObject: DevotionalCalibrationKey; objectCommand: ObjectCalibrationCommand | null; onObjectState: (key: DevotionalCalibrationKey, state: ObjectCalibrationState) => void }) {
   const [objects, setObjects] = useState<Partial<Record<DevotionalCalibrationKey, Object3D>>>({}); const [dragging, setDragging] = useState(false);
+  const [materialDebug, setMaterialDebug] = useState<MaterialDebugInfo | null>(null);
   const register = useCallback((key: string, object: Object3D | null) => setObjects((current) => ({ ...current, [key as DevotionalCalibrationKey]: object ?? undefined })), []);
   return (
+    <>
     <Canvas
       aria-label="Sanctuary interior"
       frameloop="demand"
@@ -35,7 +38,9 @@ export default function SanctuaryCanvas({ view, reducedMotion, onProgress, revis
       {calibrationEnabled ? <><CameraCalibrationControls command={calibrationCommand} mode={calibrationMode} transformDragging={dragging} onCameraState={onCameraState} /><DevotionalObjectControls objects={objects} selected={selectedObject} mode={calibrationMode} command={objectCommand} onState={onObjectState} onDragging={setDragging} /></> : <GuidedCamera view={view} reducedMotion={reducedMotion} revision={revision} onSettled={onSettled} />}
       <SanctuaryAtmosphere reducedMotion={reducedMotion} />
       <SanctuaryEnvironment />
-      <Suspense fallback={null}><SanctuaryScene onProgress={onProgress} view={view} interactive={interactive} onActivate={onActivate} onCalibrationObject={register} /></Suspense>
+      <Suspense fallback={null}><SanctuaryScene onProgress={onProgress} view={view} interactive={interactive} onActivate={onActivate} onCalibrationObject={register} onMaterialDebug={calibrationEnabled ? setMaterialDebug : undefined} /></Suspense>
     </Canvas>
+    {calibrationEnabled && <MaterialDebugReadout info={materialDebug} />}
+    </>
   );
 }

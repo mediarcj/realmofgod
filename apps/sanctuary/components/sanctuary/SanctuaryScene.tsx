@@ -9,10 +9,11 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import type { Object3D } from "three";
 import { devotionalObjects, eligibleObjects } from "../../lib/sanctuary/journey";
 import type { SanctuaryView } from "../../lib/sanctuary/camera";
+import type { MaterialDebugInfo } from "./MaterialDebugReadout";
 
 const devotionalUnits = new Set(["table", "bible", "kneeling-rest"]);
 const calibrationKeys: Record<string, string> = { table: "table", bible: "bible", "kneeling-rest": "kneelingRest" };
-export function SanctuaryScene({ onProgress, view, interactive, onActivate, onCalibrationObject }: { onProgress: (count: number) => void; view: SanctuaryView; interactive: boolean; onActivate: (name: string) => void; onCalibrationObject?: (key: string, object: Object3D | null) => void }) {
+export function SanctuaryScene({ onProgress, view, interactive, onActivate, onCalibrationObject, onMaterialDebug }: { onProgress: (count: number) => void; view: SanctuaryView; interactive: boolean; onActivate: (name: string) => void; onCalibrationObject?: (key: string, object: Object3D | null) => void; onMaterialDebug?: (info: MaterialDebugInfo) => void }) {
   const [loaded, setLoaded] = useState<Set<string>>(() => new Set());
   const onLoaded = useCallback((unit: string) => {
     setLoaded((previous) => previous.has(unit) ? previous : new Set([...previous, unit]));
@@ -24,6 +25,6 @@ export function SanctuaryScene({ onProgress, view, interactive, onActivate, onCa
   return <>{visible.map((unit) => {
     const name = devotionalObjects[unit as keyof typeof devotionalObjects];
     const interactiveName = interactive && eligibleObjects(view).includes(name) ? name : undefined;
-    return <Suspense key={unit} fallback={null}><SanctuaryAsset unit={unit} onLoaded={onLoaded} interactiveName={interactiveName} onActivate={onActivate} calibrationKey={calibrationKeys[unit]} calibrationSourceName={name} onCalibrationObject={onCalibrationObject} /></Suspense>;
+    return <Suspense key={unit} fallback={null}><SanctuaryAsset unit={unit} onLoaded={onLoaded} interactiveName={interactiveName} onActivate={onActivate} calibrationKey={calibrationKeys[unit]} calibrationSourceName={name} onCalibrationObject={onCalibrationObject} onMaterialDebug={onMaterialDebug} /></Suspense>;
   })}</>;
 }

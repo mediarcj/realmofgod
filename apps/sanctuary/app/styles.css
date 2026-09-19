@@ -80,6 +80,7 @@ button:hover { filter: brightness(1.12); }
 .camera-calibration[data-mode="move"] .calibration-editable, .camera-calibration[data-mode="scale"] .calibration-editable { display: none; }.camera-calibration[data-mode="navigate"] .calibration-lens { display: none; }
 .calibration-readout div { display: grid; grid-template-columns: 5.8rem 1fr; gap: .45rem; }
 .calibration-readout dt { color: #d5cab7; }.calibration-readout dd { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.material-debug { position: fixed; z-index: 6; left: max(1rem, env(safe-area-inset-left)); top: max(1rem, env(safe-area-inset-top)); display: grid; gap: .18rem; max-width: min(23rem, calc(100vw - 2rem)); padding: .65rem .75rem; color: #ede1ce; background: #16120ce6; border: 1px solid #d3b78288; border-radius: .3rem; font: .7rem/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; pointer-events: none; }
 @media (max-width: 600px) {
   .bible-reading, .prayer-reading { left: max(1rem, env(safe-area-inset-left)); right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: auto; }
   .camera-calibration { top: auto; bottom: max(1rem, env(safe-area-inset-bottom)); max-height: min(70svh, 36rem); }

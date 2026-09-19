@@ -5,6 +5,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
 import { materialProjectionMode, materialTextureSet, resolveSanctuaryMaterial } from "../lib/sanctuary/materials.ts";
 
 test("major construction units resolve to distinct intentional material families", () => {
@@ -46,4 +47,16 @@ test("wood families use distinct cached PBR sources and UV-less wood uses projec
   assert.equal(materialTextureSet("plasterBody"), "plaster");
   assert.equal(materialProjectionMode("wallWood", true), "authored-uv");
   assert.equal(materialProjectionMode("plasterBody", false), "triplanar");
+});
+
+test("referenced material texture assets exist and material debug remains calibration-gated", () => {
+  for (const file of [
+    "../public/textures/polyhaven/wood_floor/wood_floor_diff_1k.jpg",
+    "../public/textures/polyhaven/fine_grained_wood/fine_grained_wood_col_2k.jpg",
+    "../public/textures/polyhaven/walnut_veneer/walnut_veneer_diff_2k.jpg",
+    "../public/textures/polyhaven/fabric_leather_02/fabric_leather_02_diff_2k.jpg",
+    "../public/textures/polyhaven/white_plaster_02/white_plaster_02_diff_2k.jpg",
+  ]) assert(existsSync(new URL(file, import.meta.url)));
+  const canvas = readFileSync(new URL("../components/sanctuary/SanctuaryCanvas.tsx", import.meta.url), "utf8");
+  assert.match(canvas, /calibrationEnabled && <MaterialDebugReadout/);
 });
