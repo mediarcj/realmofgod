@@ -18,6 +18,14 @@ const OWNER_ENTRY_DESKTOP: CameraPose = {
   offset: [0, 0],
 };
 
+const OWNER_DEVOTIONAL_DESKTOP: CameraPose = {
+  position: [0, 2.4, 3.5],
+  target: [0, 3.4, -3.88],
+  up: [0, 1, 0],
+  fov: 36,
+  offset: [0, 0],
+};
+
 function architecturalFov(aspect: number) { return aspect < .75 ? 64 : 68; }
 function bibleFov(aspect: number) { return aspect < .6 ? 76 : aspect < 1 ? 60 : 46; }
 function fitBibleDistance(aspect: number, fov: number) {
@@ -34,8 +42,7 @@ export function cameraPose(view: SanctuaryView, aspect: number): CameraPose {
   const cross = geometry.center(geometry.centralCross);
   const bible = geometry.center(geometry.bible);
   const adultPosition: Point3 = [0, geometry.adultEyeY, geometry.devotionalZ];
-  const devotionalTarget: Point3 = [cross[0], geometry.centralCross.min[1] + geometry.size(geometry.centralCross)[1] * .72, cross[2]];
-  if (view === "kneel") return { position: adultPosition, target: devotionalTarget, up: [0, 1, 0], fov: architecturalFov(aspect), offset: [0, 0] };
+  if (view === "kneel") return OWNER_DEVOTIONAL_DESKTOP;
   if (view === "bible") {
     const fov = bibleFov(aspect);
     return { position: [bible[0], bible[1] + fitBibleDistance(aspect, fov), bible[2]], target: bible, up: [0, 0, -1], fov, offset: [0, 0] };
