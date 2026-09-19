@@ -17,5 +17,8 @@ coverage/
 __pycache__/
 *.log
 
+# Owner camera calibration is intentionally local development data.
+apps/sanctuary/.camera-calibration.local.json
+
 # Keep operating-system metadata out of the repository.
 .DS_Store
