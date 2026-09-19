@@ -42,6 +42,10 @@ export type CalibrationRecord = CalibrationPose & {
   view: CalibrationView;
   capturedAt: string;
 };
+export const devotionalCalibrationKeys = ["table", "bible", "kneelingRest"] as const;
+export type DevotionalCalibrationKey = (typeof devotionalCalibrationKeys)[number];
+export const devotionalCalibrationSources: Record<DevotionalCalibrationKey, string> = { table: "ROG_TABLE_HYPER3D_MASTER", bible: "ROG_BIBLE_HYPER3D_MASTER", kneelingRest: "ROG_KNEE_REST_HYPER3D_MASTER" };
+export type DevotionalObjectRecord = { sourceName: string; position: CalibrationVector; scale: CalibrationVector; savedAt: string };
 
 export type CalibrationCommand =
   | { id: number; type: "load-coded"; view: CalibrationView }
@@ -57,6 +61,7 @@ export type CalibrationFile = {
   version: 1;
   updatedAt: string | null;
   slots: Partial<Record<CalibrationSlot, CalibrationRecord>>;
+  objects?: Partial<Record<DevotionalCalibrationKey, DevotionalObjectRecord>>;
 };
 
 export const emptyCalibrationFile = (): CalibrationFile => ({ version: 1, updatedAt: null, slots: {} });
@@ -111,5 +116,6 @@ export function isCalibrationFile(value: unknown): value is CalibrationFile {
   if (!value || typeof value !== "object") return false;
   const file = value as Record<string, unknown>;
   if (file.version !== 1 || !(file.updatedAt === null || typeof file.updatedAt === "string") || !file.slots || typeof file.slots !== "object") return false;
-  return Object.entries(file.slots as Record<string, unknown>).every(([slot, record]) => calibrationSlots.includes(slot as CalibrationSlot) && isCalibrationRecord(record));
+  const validObjects = file.objects === undefined || (typeof file.objects === "object" && file.objects !== null && Object.entries(file.objects as Record<string, unknown>).every(([key, record]) => devotionalCalibrationKeys.includes(key as DevotionalCalibrationKey) && !!record && typeof record === "object" && (record as Record<string, unknown>).sourceName === devotionalCalibrationSources[key as DevotionalCalibrationKey] && isVector((record as Record<string, unknown>).position, 3) && isVector((record as Record<string, unknown>).scale, 3) && typeof (record as Record<string, unknown>).savedAt === "string"));
+  return validObjects && Object.entries(file.slots as Record<string, unknown>).every(([slot, record]) => calibrationSlots.includes(slot as CalibrationSlot) && isCalibrationRecord(record));
 }

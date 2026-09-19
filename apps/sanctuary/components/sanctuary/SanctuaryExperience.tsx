@@ -16,12 +16,15 @@ import {
   type CalibrationFile,
   type CalibrationPose,
   type CalibrationSlot,
+  devotionalCalibrationSources,
+  type DevotionalCalibrationKey,
 } from "../../lib/sanctuary/camera-calibration";
 import { ScripturePanel } from "./ScripturePanel";
 import { PrayerPanel } from "./PrayerPanel";
 import { HomeControl } from "./HomeControl";
 import { CameraCalibrationPanel } from "./CameraCalibrationPanel";
 import type { CameraCalibrationMode } from "./CameraCalibrationControls";
+import type { ObjectCalibrationCommand, ObjectCalibrationState } from "./DevotionalObjectControls";
 
 const SanctuaryCanvas = dynamic(() => import("./SanctuaryCanvas"), {
   ssr: false,
@@ -45,6 +48,10 @@ export function SanctuaryExperience() {
   const [calibrationAvailable, setCalibrationAvailable] = useState(false);
   const [calibrationEnabled, setCalibrationEnabled] = useState(false);
   const [calibrationMode, setCalibrationMode] = useState<CameraCalibrationMode>("navigate");
+  const [calibrationCollapsed, setCalibrationCollapsed] = useState(false);
+  const [selectedObject, setSelectedObject] = useState<DevotionalCalibrationKey>("table");
+  const [objectStates, setObjectStates] = useState<Partial<Record<DevotionalCalibrationKey, ObjectCalibrationState>>>({});
+  const [objectCommand, setObjectCommand] = useState<ObjectCalibrationCommand | null>(null);
   const [calibrationFile, setCalibrationFile] = useState<CalibrationFile>(emptyCalibrationFile);
   const [cameraPose, setCameraPose] = useState<CalibrationPose | null>(null);
   const [calibrationCommand, setCalibrationCommand] = useState<CalibrationCommand | null>(null);
@@ -121,8 +128,11 @@ export function SanctuaryExperience() {
       issueCommand({ type: "patch", patch: { [field]: next } });
     }
   }, [cameraPose, issueCommand]);
+  const issueObject = useCallback((command: Omit<ObjectCalibrationCommand, "id">) => setObjectCommand({ ...command, id: Date.now() }), []);
+  const patchObject = useCallback((field: "position" | "scale", axis: number | null, value: number) => { const current = objectStates[selectedObject]; if (!current) return; if (field === "scale" && axis === null) issueObject({ type: "patch", key: selectedObject, position: current.position, scale: current.originalScale.map((base) => base * value) as [number, number, number] }); else { const next = [...current.position] as [number, number, number]; if (axis !== null) next[axis] = value; issueObject({ type: "patch", key: selectedObject, position: next, scale: current.scale }); } }, [issueObject, objectStates, selectedObject]);
+  const saveObject = useCallback(() => { const state = objectStates[selectedObject]; if (!state) return; const now = new Date().toISOString(); void persistCalibration({ ...calibrationFile, updatedAt: now, objects: { ...calibrationFile.objects, [selectedObject]: { sourceName: devotionalCalibrationSources[selectedObject], position: state.position, scale: state.scale, savedAt: now } } }); }, [calibrationFile, objectStates, persistCalibration, selectedObject]);
   return <>
-    <div className="scene-frame" data-view={journey.view} data-moving={journey.moving}><RenderBoundary><SanctuaryCanvas view={journey.view} reducedMotion={reducedMotion} onProgress={setLoaded} revision={journey.revision} onSettled={onSettled} interactive={ready && !journey.moving && !calibrationEnabled} onActivate={onActivate} calibrationEnabled={calibrationEnabled} calibrationMode={calibrationMode} calibrationCommand={calibrationCommand} onCameraState={setCameraPose} /></RenderBoundary></div>
+    <div className="scene-frame" data-view={journey.view} data-moving={journey.moving}><RenderBoundary><SanctuaryCanvas view={journey.view} reducedMotion={reducedMotion} onProgress={setLoaded} revision={journey.revision} onSettled={onSettled} interactive={ready && !journey.moving && !calibrationEnabled} onActivate={onActivate} calibrationEnabled={calibrationEnabled} calibrationMode={calibrationMode} calibrationCommand={calibrationCommand} onCameraState={setCameraPose} selectedObject={selectedObject} objectCommand={objectCommand} onObjectState={(key, state) => setObjectStates((current) => ({ ...current, [key]: state }))} /></RenderBoundary></div>
     <HomeControl onReturn={onReturn} />
     {!calibrationEnabled && !journey.moving && <nav className="visually-hidden" aria-label="Devotional interactions">
       {eligibleObjects(journey.view).map((object) => <button key={object} type="button" onClick={() => onActivate(object)}>{devotionalLabels[object]}</button>)}
@@ -130,7 +140,7 @@ export function SanctuaryExperience() {
     {!ready && <div className="loading-mark" role="progressbar" aria-label="Loading sanctuary" aria-valuemin={0} aria-valuemax={sanctuaryUnits.length} aria-valuenow={loaded}><span style={{ transform: `scaleX(${loaded / sanctuaryUnits.length})` }} /></div>}
     {!calibrationEnabled && journey.view === "bible" && !journey.moving && <ScripturePanel onPray={onPray} />}
     {!calibrationEnabled && journey.view === "prayer" && !journey.moving && <PrayerPanel />}
-    {calibrationAvailable && <CameraCalibrationPanel enabled={calibrationEnabled} mode={calibrationMode} file={calibrationFile} pose={cameraPose} selectedSlot={selectedSlot} status={calibrationStatus} storageMode={storageMode} onToggle={() => setCalibrationEnabled((current) => !current)} onMode={setCalibrationMode} onSlot={setSelectedSlot} onLoadCoded={() => issueCommand({ type: "load-coded", view: calibrationViewForSlot[selectedSlot] })} onCapture={() => setCalibrationStatus("Pose captured. Save this slot when ready.")} onCopyPose={() => { if (cameraPose) void copy({ ...cameraPose, slot: selectedSlot, view: calibrationViewForSlot[selectedSlot] }, "Current pose copied."); }} onCopyAll={() => void copy(calibrationFile, "All calibration slots copied.")} onSave={saveCalibration} onLoadSaved={() => { const record = calibrationFile.slots[selectedSlot]; if (record) issueCommand({ type: "load-saved", record }); }} onPatch={patchCamera} />}
+    {calibrationAvailable && <CameraCalibrationPanel collapsed={calibrationCollapsed} onCollapse={() => setCalibrationCollapsed((value) => !value)} enabled={calibrationEnabled} mode={calibrationMode} file={calibrationFile} pose={cameraPose} selectedSlot={selectedSlot} selectedObject={selectedObject} objectState={objectStates[selectedObject] ?? null} status={calibrationStatus} storageMode={storageMode} onToggle={() => setCalibrationEnabled((current) => !current)} onMode={setCalibrationMode} onSlot={setSelectedSlot} onObject={setSelectedObject} onLoadCoded={() => issueCommand({ type: "load-coded", view: calibrationViewForSlot[selectedSlot] })} onCapture={() => setCalibrationStatus("Pose captured. Save this slot when ready.")} onCopyPose={() => { if (cameraPose) void copy({ ...cameraPose, slot: selectedSlot, view: calibrationViewForSlot[selectedSlot] }, "Current pose copied."); }} onCopyAll={() => void copy(calibrationFile, "All calibration slots copied.")} onSave={saveCalibration} onLoadSaved={() => { const record = calibrationFile.slots[selectedSlot]; if (record) issueCommand({ type: "load-saved", record }); }} onPatch={patchCamera} onObjectPatch={patchObject} onObjectSave={saveObject} onObjectLoad={() => { const value = calibrationFile.objects?.[selectedObject]; if (value) issueObject({ type: "load", key: selectedObject, position: value.position, scale: value.scale }); }} onObjectReset={() => issueObject({ type: "reset", key: selectedObject })} onObjectsLoad={() => issueObject({ type: "load-all", values: calibrationFile.objects })} onObjectsReset={() => issueObject({ type: "reset-all" })} />}
     <p className="visually-hidden" role="status">{ready ? "The sanctuary is ready." : "The sanctuary is loading."}</p>
   </>;
 }

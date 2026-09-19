@@ -5,14 +5,14 @@
 
 import { useLoader } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
-import { DoubleSide, Mesh, MeshStandardMaterial } from "three";
+import { DoubleSide, Mesh, MeshStandardMaterial, Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
 const neutral = new MeshStandardMaterial({ color: "#a69b87", roughness: 0.8 });
 const ceilingCrossMesh = "ROG_V2_CeilingCross_CLEAN_Mesh.001";
 
-export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate }: { unit: string; onLoaded?: (unit: string) => void; interactiveName?: string; onActivate: (name: string) => void }) {
+export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, calibrationKey, calibrationSourceName, onCalibrationObject }: { unit: string; onLoaded?: (unit: string) => void; interactiveName?: string; onActivate: (name: string) => void; calibrationKey?: string; calibrationSourceName?: string; onCalibrationObject?: (key: string, object: Object3D | null) => void }) {
   const gltf = useLoader(GLTFLoader, `/models/sanctuary/${unit}.glb`, (loader) => loader.setMeshoptDecoder(MeshoptDecoder));
   const scene = useMemo(() => {
     const copy = gltf.scene.clone(true);
@@ -27,6 +27,12 @@ export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate }: 
     return copy;
   }, [gltf]);
   useEffect(() => { onLoaded?.(unit); }, [unit, onLoaded]);
+  useEffect(() => {
+    if (!calibrationKey || !onCalibrationObject) return;
+    const object = scene.getObjectByName(calibrationSourceName ?? "");
+    if (object) onCalibrationObject(calibrationKey, object);
+    return () => onCalibrationObject(calibrationKey, null);
+  }, [calibrationKey, onCalibrationObject, calibrationSourceName, scene]);
   useEffect(() => { return () => { document.body.style.cursor = ""; }; }, [interactiveName]);
   return <primitive object={scene} dispose={null}
     onClick={interactiveName ? (event: import("@react-three/fiber").ThreeEvent<MouseEvent>) => {

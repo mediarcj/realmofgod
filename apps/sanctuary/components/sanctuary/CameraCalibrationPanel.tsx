@@ -8,11 +8,14 @@
 import {
   calibrationSlotLabels,
   calibrationSlots,
+  devotionalCalibrationKeys, devotionalCalibrationSources,
+  type DevotionalCalibrationKey,
   type CalibrationFile,
   type CalibrationPose,
   type CalibrationSlot,
 } from "../../lib/sanctuary/camera-calibration";
 import type { CameraCalibrationMode } from "./CameraCalibrationControls";
+import type { ObjectCalibrationState } from "./DevotionalObjectControls";
 
 type VectorField = "position" | "target";
 
@@ -30,7 +33,8 @@ function VectorInputs({ label, value, onCommit }: { label: string; value: number
   return <div className="calibration-vector"><span>{label}</span><div>{["X", "Y", "Z"].map((axis, index) => <NumberInput key={axis} label={axis} value={value?.[index]} onCommit={(next) => onCommit(index, next)} />)}</div></div>;
 }
 
-export function CameraCalibrationPanel({ enabled, mode, file, pose, selectedSlot, status, storageMode, onToggle, onMode, onSlot, onLoadCoded, onCapture, onCopyPose, onCopyAll, onSave, onLoadSaved, onPatch }: {
+export function CameraCalibrationPanel({ collapsed, onCollapse, enabled, mode, file, pose, selectedSlot, status, storageMode, selectedObject, objectState, onToggle, onMode, onSlot, onObject, onLoadCoded, onCapture, onCopyPose, onCopyAll, onSave, onLoadSaved, onPatch, onObjectPatch, onObjectSave, onObjectLoad, onObjectReset, onObjectsLoad, onObjectsReset }: {
+  collapsed: boolean; onCollapse: () => void;
   enabled: boolean;
   mode: CameraCalibrationMode;
   file: CalibrationFile;
@@ -38,9 +42,11 @@ export function CameraCalibrationPanel({ enabled, mode, file, pose, selectedSlot
   selectedSlot: CalibrationSlot;
   status: string;
   storageMode: "project" | "browser" | null;
+  selectedObject: DevotionalCalibrationKey; objectState: ObjectCalibrationState | null;
   onToggle: () => void;
   onMode: (mode: CameraCalibrationMode) => void;
   onSlot: (slot: CalibrationSlot) => void;
+  onObject: (key: DevotionalCalibrationKey) => void;
   onLoadCoded: () => void;
   onCapture: () => void;
   onCopyPose: () => void;
@@ -48,12 +54,14 @@ export function CameraCalibrationPanel({ enabled, mode, file, pose, selectedSlot
   onSave: () => void;
   onLoadSaved: () => void;
   onPatch: (field: VectorField | "fov", axis: number | null, value: number) => void;
+  onObjectPatch: (field: "position" | "scale", axis: number | null, value: number) => void; onObjectSave: () => void; onObjectLoad: () => void; onObjectReset: () => void; onObjectsLoad: () => void; onObjectsReset: () => void;
 }) {
   const saved = file.slots[selectedSlot];
+  if (collapsed) return <button type="button" className="calibration-handle" aria-label="Expand camera calibration" onClick={onCollapse}>‹</button>;
   return <aside className="camera-calibration" aria-label="Camera calibration">
-    <div className="calibration-heading"><strong>Camera Calibration</strong><button type="button" className={enabled ? "calibration-toggle is-on" : "calibration-toggle"} role="switch" aria-checked={enabled} onClick={onToggle}>{enabled ? "ON" : "OFF"}</button></div>
+    <div className="calibration-heading"><strong>Camera Calibration</strong><span><button type="button" className={enabled ? "calibration-toggle is-on" : "calibration-toggle"} role="switch" aria-checked={enabled} onClick={onToggle}>{enabled ? "ON" : "OFF"}</button><button type="button" className="calibration-collapse" aria-label="Collapse camera calibration" onClick={onCollapse}>›</button></span></div>
     <p className="calibration-note">Development only. Calibration suspends the guided camera and uses the active Three.js camera directly.</p>
-    <fieldset className="calibration-modes" disabled={!enabled}><legend>Tool mode</legend>{(["navigate", "lens"] as const).map((choice) => <button key={choice} type="button" className={mode === choice ? "is-active" : ""} onClick={() => onMode(choice)}>{choice === "navigate" ? "Navigate" : "Lens / Perspective"}</button>)}</fieldset>
+    <fieldset className="calibration-modes" disabled={!enabled}><legend>Tool mode</legend>{(["navigate", "lens", "move", "scale"] as const).map((choice) => <button key={choice} type="button" className={mode === choice ? "is-active" : ""} onClick={() => onMode(choice)}>{choice === "navigate" ? "Navigate" : choice === "lens" ? "Lens / Perspective" : choice === "move" ? "Move Object" : "Scale Object"}</button>)}</fieldset>
     <label className="calibration-slot"><span>Destination slot</span><select value={selectedSlot} onChange={(event) => onSlot(event.target.value as CalibrationSlot)}>{calibrationSlots.map((slot) => <option key={slot} value={slot}>{calibrationSlotLabels[slot]}</option>)}</select></label>
     <div className="calibration-actions">
       <button type="button" disabled={!enabled} onClick={onLoadCoded}>Load Current Coded View</button>
@@ -80,6 +88,7 @@ export function CameraCalibrationPanel({ enabled, mode, file, pose, selectedSlot
       <div><dt>Camera</dt><dd>{pose?.cameraType ?? "—"}</dd></div>
       <div><dt>View offset</dt><dd>{pose?.viewOffset ? `${number(pose.viewOffset.offsetX)}, ${number(pose.viewOffset.offsetY)} / ${number(pose.viewOffset.width)} × ${number(pose.viewOffset.height)}` : "none"}</dd></div>
     </dl>
+    <section className="calibration-object"><h2>Devotional Object</h2><label className="calibration-slot"><span>Selected object</span><select value={selectedObject} onChange={(event) => onObject(event.target.value as DevotionalCalibrationKey)}>{devotionalCalibrationKeys.map((key) => <option key={key} value={key}>{key === "kneelingRest" ? "Kneeling Rest" : key[0].toUpperCase() + key.slice(1)}</option>)}</select></label><p className="calibration-note">{devotionalCalibrationSources[selectedObject]}</p><VectorInputs label="Position" value={objectState?.position} onCommit={(axis, value) => onObjectPatch("position", axis, value)} /><NumberInput label="Uniform scale" value={objectState ? objectState.scale[0] / objectState.originalScale[0] : undefined} onCommit={(value) => onObjectPatch("scale", null, value)} /><p className="calibration-note">Scale {vector(objectState?.scale)} · original position {vector(objectState?.originalPosition)} · original scale {vector(objectState?.originalScale)}</p><div className="calibration-actions"><button disabled={!enabled} onClick={onObjectSave}>Save Selected Object</button><button disabled={!enabled || !file.objects?.[selectedObject]} onClick={onObjectLoad}>Load Saved Object</button><button disabled={!enabled} onClick={onObjectReset}>Reset Selected Object</button><button disabled={!enabled} onClick={onObjectsLoad}>Load All Saved Objects</button><button disabled={!enabled} onClick={onObjectsReset}>Reset All Devotional Objects</button></div></section>
     <p className={storageMode === "browser" ? "calibration-status warning" : "calibration-status"} role="status">{status}</p>
     {saved && <p className="calibration-saved">{selectedSlot} saved {new Date(saved.capturedAt).toLocaleString()}</p>}
   </aside>;

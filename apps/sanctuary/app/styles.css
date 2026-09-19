@@ -59,6 +59,7 @@ button:hover { filter: brightness(1.12); }
 .camera-calibration { position: fixed; z-index: 5; top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); width: min(23rem, calc(100vw - 2rem)); max-height: calc(100svh - 2rem); overflow: auto; padding: .85rem; color: #f4ebd9; background: #16120cf0; border: 1px solid #d3b78299; border-radius: .35rem; box-shadow: 0 1rem 3rem #0008; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .75rem; }
 .calibration-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
 .calibration-toggle { min-width: 3.5rem; padding: .35rem .55rem; font: inherit; font-weight: 700; }
+.calibration-collapse, .calibration-handle { margin-left: .35rem; padding: .35rem .55rem; font: inherit; }.calibration-handle { position: fixed; z-index: 5; right: 0; top: 50%; border-radius: .3rem 0 0 .3rem; }
 .calibration-toggle.is-on { color: #17130e; background: #e2c995; border-color: #e2c995; }
 .calibration-note, .calibration-status, .calibration-saved { margin: .65rem 0; color: #d5cab7; font-size: .73rem; line-height: 1.4; }
 .calibration-status.warning { color: #ffd18b; }
