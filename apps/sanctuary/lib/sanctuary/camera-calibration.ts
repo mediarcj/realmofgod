@@ -33,6 +33,8 @@ export type CalibrationPose = {
   viewport: [number, number];
   cameraType: string;
   viewOffset: CalibrationViewOffset | null;
+  focalLength?: number;
+  filmGauge?: number;
 };
 
 export type CalibrationRecord = CalibrationPose & {
@@ -100,7 +102,9 @@ export function isCalibrationRecord(value: unknown): value is CalibrationRecord 
     && ["fov", "near", "far", "aspect"].every((key) => isFiniteNumber(record[key]))
     && isVector(record.viewport, 2)
     && typeof record.cameraType === "string"
-    && isViewOffset(record.viewOffset);
+    && isViewOffset(record.viewOffset)
+    && (record.focalLength === undefined || isFiniteNumber(record.focalLength))
+    && (record.filmGauge === undefined || isFiniteNumber(record.filmGauge));
 }
 
 export function isCalibrationFile(value: unknown): value is CalibrationFile {

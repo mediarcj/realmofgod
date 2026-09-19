@@ -21,7 +21,9 @@ function savedTarget(camera: PerspectiveCamera): Vector3 {
   return camera.position.clone().add(camera.getWorldDirection(new Vector3()));
 }
 
-export function CameraCalibrationControls({ command, onCameraState }: { command: CalibrationCommand | null; onCameraState: (state: CalibrationPose) => void }) {
+export type CameraCalibrationMode = "navigate" | "lens" | "move" | "scale";
+
+export function CameraCalibrationControls({ command, mode, transformDragging, onCameraState }: { command: CalibrationCommand | null; mode: CameraCalibrationMode; transformDragging: boolean; onCameraState: (state: CalibrationPose) => void }) {
   const { camera, gl, size, invalidate } = useThree();
   const controls = useRef<OrbitControls | null>(null);
   const lastCommand = useRef(0);
@@ -49,6 +51,28 @@ export function CameraCalibrationControls({ command, onCameraState }: { command:
   }, [camera, gl, invalidate, onCameraState, size.height, size.width]);
 
   useEffect(() => {
+    if (!controls.current) return;
+    controls.current.enabled = !transformDragging;
+    controls.current.enableZoom = mode !== "lens";
+  }, [mode, transformDragging]);
+
+  useEffect(() => {
+    if (mode !== "lens" || !(camera instanceof PerspectiveCamera)) return;
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const orbit = controls.current;
+      if (!orbit || transformDragging) return;
+      camera.fov = Math.max(20, Math.min(100, camera.fov + event.deltaY * .035));
+      camera.updateProjectionMatrix();
+      onCameraState(captureCameraCalibrationPose(camera, orbit.target, [size.width, size.height]));
+      invalidate();
+    };
+    const element = gl.domElement;
+    element.addEventListener("wheel", onWheel, { passive: false });
+    return () => element.removeEventListener("wheel", onWheel);
+  }, [camera, gl, invalidate, mode, onCameraState, size.height, size.width, transformDragging]);
+
+  useEffect(() => {
     if (!command || command.id === lastCommand.current || !(camera instanceof PerspectiveCamera) || !controls.current) return;
     lastCommand.current = command.id;
     const orbit = controls.current;
@@ -62,7 +86,7 @@ export function CameraCalibrationControls({ command, onCameraState }: { command:
         position: command.patch.position ?? camera.position.toArray(),
         target: command.patch.target ?? orbit.target.toArray(),
         up: camera.up.toArray(),
-        fov: command.patch.fov ?? camera.fov,
+        fov: command.patch.fov === undefined ? camera.fov : Math.max(20, Math.min(100, command.patch.fov)),
         near: camera.near,
         far: camera.far,
         aspect: camera.aspect,

@@ -12,6 +12,7 @@ import {
   type CalibrationPose,
   type CalibrationSlot,
 } from "../../lib/sanctuary/camera-calibration";
+import type { CameraCalibrationMode } from "./CameraCalibrationControls";
 
 type VectorField = "position" | "target";
 
@@ -29,14 +30,16 @@ function VectorInputs({ label, value, onCommit }: { label: string; value: number
   return <div className="calibration-vector"><span>{label}</span><div>{["X", "Y", "Z"].map((axis, index) => <NumberInput key={axis} label={axis} value={value?.[index]} onCommit={(next) => onCommit(index, next)} />)}</div></div>;
 }
 
-export function CameraCalibrationPanel({ enabled, file, pose, selectedSlot, status, storageMode, onToggle, onSlot, onLoadCoded, onCapture, onCopyPose, onCopyAll, onSave, onLoadSaved, onPatch }: {
+export function CameraCalibrationPanel({ enabled, mode, file, pose, selectedSlot, status, storageMode, onToggle, onMode, onSlot, onLoadCoded, onCapture, onCopyPose, onCopyAll, onSave, onLoadSaved, onPatch }: {
   enabled: boolean;
+  mode: CameraCalibrationMode;
   file: CalibrationFile;
   pose: CalibrationPose | null;
   selectedSlot: CalibrationSlot;
   status: string;
   storageMode: "project" | "browser" | null;
   onToggle: () => void;
+  onMode: (mode: CameraCalibrationMode) => void;
   onSlot: (slot: CalibrationSlot) => void;
   onLoadCoded: () => void;
   onCapture: () => void;
@@ -50,6 +53,7 @@ export function CameraCalibrationPanel({ enabled, file, pose, selectedSlot, stat
   return <aside className="camera-calibration" aria-label="Camera calibration">
     <div className="calibration-heading"><strong>Camera Calibration</strong><button type="button" className={enabled ? "calibration-toggle is-on" : "calibration-toggle"} role="switch" aria-checked={enabled} onClick={onToggle}>{enabled ? "ON" : "OFF"}</button></div>
     <p className="calibration-note">Development only. Calibration suspends the guided camera and uses the active Three.js camera directly.</p>
+    <fieldset className="calibration-modes" disabled={!enabled}><legend>Tool mode</legend>{(["navigate", "lens"] as const).map((choice) => <button key={choice} type="button" className={mode === choice ? "is-active" : ""} onClick={() => onMode(choice)}>{choice === "navigate" ? "Navigate" : "Lens / Perspective"}</button>)}</fieldset>
     <label className="calibration-slot"><span>Destination slot</span><select value={selectedSlot} onChange={(event) => onSlot(event.target.value as CalibrationSlot)}>{calibrationSlots.map((slot) => <option key={slot} value={slot}>{calibrationSlotLabels[slot]}</option>)}</select></label>
     <div className="calibration-actions">
       <button type="button" disabled={!enabled} onClick={onLoadCoded}>Load Current Coded View</button>
@@ -63,6 +67,7 @@ export function CameraCalibrationPanel({ enabled, file, pose, selectedSlot, stat
       <VectorInputs label="Position" value={pose?.position} onCommit={(axis, value) => onPatch("position", axis, value)} />
       <VectorInputs label="Target" value={pose?.target} onCommit={(axis, value) => onPatch("target", axis, value)} />
       <NumberInput label="FOV" value={pose?.fov} onCommit={(value) => onPatch("fov", null, value)} />
+      <p className="calibration-lens">Focal length {number(pose?.focalLength)} mm · Film gauge {number(pose?.filmGauge)} mm</p>
     </div>
     <dl className="calibration-readout">
       <div><dt>Euler rad</dt><dd>{vector(pose?.rotationRadians)}</dd></div>

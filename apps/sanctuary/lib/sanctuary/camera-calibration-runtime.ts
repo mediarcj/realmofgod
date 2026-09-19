@@ -32,6 +32,8 @@ export function captureCameraCalibrationPose(camera: PerspectiveCamera, target: 
     viewport,
     cameraType: camera.type,
     viewOffset: view,
+    focalLength: camera.getFocalLength(),
+    filmGauge: camera.filmGauge,
   };
 }
 
