@@ -5,6 +5,7 @@
 
 export type SanctuaryView = "entry" | "kneel" | "bible" | "prayer";
 type Point = [number, number, number];
+export function cameraDuration(reducedMotion: boolean) { return reducedMotion ? 0 : 1.6; }
 export function cameraPose(view: SanctuaryView, aspect: number, entry: Point, bible: Point, prayer: Point, centralCross: Point) {
   const portrait = aspect < .85;
   const fov = portrait ? 78 : 64;
