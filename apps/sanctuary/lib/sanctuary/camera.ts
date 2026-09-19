@@ -8,6 +8,16 @@ export type SanctuaryView = "entry" | "kneel" | "bible" | "prayer";
 export function cameraDuration(reducedMotion: boolean) { return reducedMotion ? 0 : 1.6; }
 export type CameraPose = { position: Point3; target: Point3; up: Point3; fov: number; offset: [number, number] };
 
+// Desktop composition transcribed from the owner's Blender viewport references.
+// Browser-space geometry still supplies the room-safety and responsive checks.
+const OWNER_ENTRY_DESKTOP: CameraPose = {
+  position: [0, 1.68, 4.6],
+  target: [0, 2.5, -3.88],
+  up: [0, 1, 0],
+  fov: 90,
+  offset: [0, 0],
+};
+
 function architecturalFov(aspect: number) { return aspect < .75 ? 64 : 68; }
 function bibleFov(aspect: number) { return aspect < .6 ? 76 : aspect < 1 ? 60 : 46; }
 function fitBibleDistance(aspect: number, fov: number) {
@@ -34,7 +44,7 @@ export function cameraPose(view: SanctuaryView, aspect: number): CameraPose {
     const ceilingLift = (geometry.ceiling.min[1] - geometry.centralCross.max[1]) * .45;
     return { position: adultPosition, target: [cross[0], geometry.centralCross.max[1] + ceilingLift, cross[2]], up: [0, 1, 0], fov: architecturalFov(aspect), offset: [0, 0] };
   }
-  return { position: [0, geometry.adultEyeY, geometry.rearSafeZ], target: cross, up: [0, 1, 0], fov: architecturalFov(aspect), offset: [0, 0] };
+  return OWNER_ENTRY_DESKTOP;
 }
 
 export function transitionEase(progress: number) {

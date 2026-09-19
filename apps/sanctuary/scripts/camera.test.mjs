@@ -22,6 +22,13 @@ test("entry and devotional poses use adult height from the finished floor", () =
   assert.equal(cameraPose("kneel", 1.78).position[1], expected);
   assert(cameraPose("kneel", 1.78).position[2] < cameraPose("entry", 1.78).position[2]);
 });
+test("owner entry calibration stays centered and inside the sanctuary", () => {
+  const pose = cameraPose("entry", 1.78);
+  assert.deepEqual(pose.position, [0, sanctuaryCameraGeometry.floorY + 1.68, 4.6]);
+  assert.deepEqual(pose.target, [0, 2.5, -3.88]);
+  assert.equal(pose.fov, 90);
+  assert(pose.position[2] < sanctuaryCameraGeometry.floor.max[2]);
+});
 test("Bible fitting keeps every source-bound corner in frame at useful coverage", () => {
   for (const aspect of [.45, .75, 1.78]) {
     const pose = cameraPose("bible", aspect);
