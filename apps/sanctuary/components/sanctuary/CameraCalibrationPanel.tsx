@@ -33,7 +33,7 @@ function VectorInputs({ label, value, onCommit }: { label: string; value: number
   return <div className="calibration-vector"><span>{label}</span><div>{["X", "Y", "Z"].map((axis, index) => <NumberInput key={axis} label={axis} value={value?.[index]} onCommit={(next) => onCommit(index, next)} />)}</div></div>;
 }
 
-export function CameraCalibrationPanel({ collapsed, onCollapse, enabled, mode, file, pose, selectedSlot, status, storageMode, selectedObject, objectState, onToggle, onMode, onSlot, onObject, onLoadCoded, onCapture, onCopyPose, onCopyAll, onSave, onLoadSaved, onPatch, onObjectPatch, onObjectSave, onObjectLoad, onObjectReset, onObjectsLoad, onObjectsReset }: {
+export function CameraCalibrationPanel({ collapsed, onCollapse, enabled, mode, file, pose, selectedSlot, status, storageMode, selectedObject, objectState, onToggle, onMode, onSlot, onObject, onLoadCoded, onCapture, onCopyPose, onCopyAll, onSave, onLoadSaved, onPatch, onLevelCamera, onObjectPatch, onObjectSave, onObjectLoad, onObjectReset, onObjectsLoad, onObjectsReset }: {
   collapsed: boolean; onCollapse: () => void;
   enabled: boolean;
   mode: CameraCalibrationMode;
@@ -54,6 +54,7 @@ export function CameraCalibrationPanel({ collapsed, onCollapse, enabled, mode, f
   onSave: () => void;
   onLoadSaved: () => void;
   onPatch: (field: VectorField | "fov", axis: number | null, value: number) => void;
+  onLevelCamera: () => void;
   onObjectPatch: (field: "position" | "scale", axis: number | null, value: number) => void; onObjectSave: () => void; onObjectLoad: () => void; onObjectReset: () => void; onObjectsLoad: () => void; onObjectsReset: () => void;
 }) {
   const saved = file.slots[selectedSlot];
@@ -65,7 +66,7 @@ export function CameraCalibrationPanel({ collapsed, onCollapse, enabled, mode, f
     <p className="calibration-note">Development only. Calibration suspends the guided camera and uses the active Three.js camera directly.</p>
     <fieldset className="calibration-modes" disabled={!enabled}><legend>Tool mode</legend>{(["navigate", "lens", "move", "scale"] as const).map((choice) => <button key={choice} type="button" className={mode === choice ? "is-active" : ""} onClick={() => onMode(choice)}>{choice === "navigate" ? "Navigate" : choice === "lens" ? "Lens / Perspective" : choice === "move" ? "Move Object" : "Scale Object"}</button>)}</fieldset>
     <p className="calibration-active">{active}</p>
-    {mode === "navigate" && <section className="calibration-context"><strong>NAVIGATE CAMERA</strong><p>Left drag: Look around<br />Right drag: Move sideways/up/down<br />Two-finger scroll: Move forward/backward</p></section>}
+    {mode === "navigate" && <section className="calibration-context"><strong>NAVIGATE CAMERA</strong><p>Left drag: Look around<br />Right drag: Move sideways/up/down<br />Two-finger scroll: Move forward/backward</p><p>Camera roll: {number(pose?.rotationDegrees?.[2])}° <button type="button" onClick={onLevelCamera}>LEVEL CAMERA</button></p></section>}
     {mode === "lens" && <section className="calibration-context"><strong>PERSPECTIVE</strong><p>Two-finger scroll adjusts lens depth only.<br />Lower FOV: flatter perspective<br />Higher FOV: stronger/wider perspective</p><label className="calibration-slider"><span>FLATTER</span><input type="range" min="20" max="100" step="0.1" value={pose?.fov ?? 55} onChange={(event) => onPatch("fov", null, Number(event.currentTarget.value))} /><span>WIDER</span></label><p>FOV: {number(pose?.fov)}° · Lens: {number(pose?.focalLength)} mm</p></section>}
     {(mode === "navigate" || mode === "lens") && <section className="calibration-camera-main"><label className="calibration-slot"><span>Destination slot</span><select value={selectedSlot} onChange={(event) => onSlot(event.target.value as CalibrationSlot)}>{calibrationSlots.map((slot) => <option key={slot} value={slot}>{calibrationSlotLabels[slot]}</option>)}</select></label><div className="calibration-actions">
       <button type="button" disabled={!enabled} onClick={onLoadCoded}>Load Current Coded View</button>

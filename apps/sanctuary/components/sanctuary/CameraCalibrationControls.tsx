@@ -93,7 +93,7 @@ export function CameraCalibrationControls({ command, mode, transformDragging, on
       orbit.target.copy(applyCameraCalibrationPose(camera, {
         position: command.patch.position ?? camera.position.toArray(),
         target: command.patch.target ?? orbit.target.toArray(),
-        up: camera.up.toArray(),
+        up: command.patch.up ?? camera.up.toArray(),
         fov: command.patch.fov === undefined ? camera.fov : Math.max(20, Math.min(100, command.patch.fov)),
         near: camera.near,
         far: camera.far,

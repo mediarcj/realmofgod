@@ -50,12 +50,12 @@ export type DevotionalObjectRecord = { sourceName: string; position: Calibration
 export type CalibrationCommand =
   | { id: number; type: "load-coded"; view: CalibrationView }
   | { id: number; type: "load-saved"; record: CalibrationRecord }
-  | { id: number; type: "patch"; patch: Partial<Pick<CalibrationPose, "position" | "target" | "fov">> };
+  | { id: number; type: "patch"; patch: Partial<Pick<CalibrationPose, "position" | "target" | "up" | "fov">> };
 
 export type CalibrationCommandDraft =
   | { type: "load-coded"; view: CalibrationView }
   | { type: "load-saved"; record: CalibrationRecord }
-  | { type: "patch"; patch: Partial<Pick<CalibrationPose, "position" | "target" | "fov">> };
+  | { type: "patch"; patch: Partial<Pick<CalibrationPose, "position" | "target" | "up" | "fov">> };
 
 export type CalibrationFile = {
   version: 1;
