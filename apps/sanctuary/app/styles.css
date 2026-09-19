@@ -50,6 +50,8 @@ h1 {
 }
 
 .scene-frame { height: 100svh; min-height: 22rem; width: 100%; }
+.home-control { position: fixed; z-index: 3; top: max(1rem, env(safe-area-inset-top)); left: max(1rem, env(safe-area-inset-left)); display: grid; width: 2.25rem; height: 2.25rem; padding: .48rem; place-items: center; color: #f4e8d4; background: #17130e82; border: 1px solid #d3b78266; border-radius: .25rem; box-shadow: 0 .25rem 1rem #0003; }
+.home-control svg { width: 100%; height: 100%; fill: currentColor; }
 .loading-mark { position: absolute; left: calc(50% - 2.5rem); bottom: 2rem; width: 5rem; height: 2px; background: #17130f80; overflow: hidden; }
 .loading-mark span { display: block; height: 100%; background: #e2c995; transform-origin: left; }
 .scene-message { position: absolute; top: 45%; width: 100%; padding: 1.5rem; text-align: center; }

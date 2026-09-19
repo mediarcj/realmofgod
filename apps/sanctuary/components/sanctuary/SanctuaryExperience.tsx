@@ -7,9 +7,10 @@
 import dynamic from "next/dynamic";
 import { Component, useCallback, useEffect, useReducer, useState, type ReactNode } from "react";
 import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
-import { initialJourney, journeyTransition } from "../../lib/sanctuary/journey";
+import { devotionalLabels, eligibleObjects, initialJourney, journeyTransition } from "../../lib/sanctuary/journey";
 import { ScripturePanel } from "./ScripturePanel";
 import { PrayerPanel } from "./PrayerPanel";
+import { HomeControl } from "./HomeControl";
 
 const SanctuaryCanvas = dynamic(() => import("./SanctuaryCanvas"), {
   ssr: false,
@@ -33,6 +34,7 @@ export function SanctuaryExperience() {
   const onActivate = useCallback((object: string) => dispatch({ type: "activate", object }), []);
   const onSettled = useCallback((revision: number) => dispatch({ type: "settled", revision }), []);
   const onPray = useCallback(() => dispatch({ type: "pray" }), []);
+  const onReturn = useCallback(() => dispatch({ type: "home" }), []);
   const [loaded, setLoaded] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(true);
   useEffect(() => {
@@ -41,9 +43,20 @@ export function SanctuaryExperience() {
     update(); query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
   }, []);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && (journey.view === "bible" || journey.view === "prayer")) onReturn();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [journey.view, onReturn]);
   const ready = loaded === sanctuaryUnits.length;
   return <>
     <div className="scene-frame" data-view={journey.view} data-moving={journey.moving}><RenderBoundary><SanctuaryCanvas view={journey.view} reducedMotion={reducedMotion} onProgress={setLoaded} revision={journey.revision} onSettled={onSettled} interactive={ready && !journey.moving} onActivate={onActivate} /></RenderBoundary></div>
+    <HomeControl onReturn={onReturn} />
+    {!journey.moving && <nav className="visually-hidden" aria-label="Devotional interactions">
+      {eligibleObjects(journey.view).map((object) => <button key={object} type="button" onClick={() => onActivate(object)}>{devotionalLabels[object]}</button>)}
+    </nav>}
     {!ready && <div className="loading-mark" role="progressbar" aria-label="Loading sanctuary" aria-valuemin={0} aria-valuemax={sanctuaryUnits.length} aria-valuenow={loaded}><span style={{ transform: `scaleX(${loaded / sanctuaryUnits.length})` }} /></div>}
     {journey.view === "bible" && !journey.moving && <ScripturePanel onPray={onPray} />}
     {journey.view === "prayer" && !journey.moving && <PrayerPanel />}

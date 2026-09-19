@@ -28,3 +28,6 @@ test("home interrupts any state and stale completion is ignored", () => {
     assert.equal(journeyTransition(home,{type:"settled",revision:5}).moving,false);
   }
 });
+test("home is quiet when already at the sanctuary entrance", () => {
+  assert.equal(journeyTransition(initialJourney, { type: "home" }), initialJourney);
+});
