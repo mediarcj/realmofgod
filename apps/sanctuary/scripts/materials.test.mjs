@@ -5,7 +5,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { resolveSanctuaryMaterial } from "../lib/sanctuary/materials.ts";
+import { materialProjectionMode, materialTextureSet, resolveSanctuaryMaterial } from "../lib/sanctuary/materials.ts";
 
 test("major construction units resolve to distinct intentional material families", () => {
   assert.equal(resolveSanctuaryMaterial("floor", "ROG_V2_Floor_Planks_AUTH_Mesh.001").family, "floorWood");
@@ -30,4 +30,13 @@ test("window semantics distinguish glazing from accepted joinery names", () => {
 test("only the named ceiling cross receives two-sided rendering", () => {
   assert.equal(resolveSanctuaryMaterial("ceiling-structure", "ROG_V2_CeilingCross_CLEAN_Mesh.001").family, "ceilingCross");
   assert.equal(resolveSanctuaryMaterial("ceiling-structure", "Cube.001").family, "ceilingWood");
+});
+
+test("wood families use distinct cached PBR sources and UV-less wood uses projection", () => {
+  assert.equal(materialTextureSet("floorWood"), "floor");
+  assert.equal(materialTextureSet("wallWood"), "fine");
+  assert.equal(materialTextureSet("ceilingWood"), "walnut");
+  assert.equal(materialProjectionMode("tableWood", false), "triplanar");
+  assert.equal(materialProjectionMode("wallWood", true), "authored-uv");
+  assert.equal(materialProjectionMode("plasterBody", false), "none");
 });

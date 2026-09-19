@@ -75,10 +75,10 @@ export function SanctuaryAtmosphere({ reducedMotion }: { reducedMotion: boolean 
   const dust = anchorByRole("DUST_VOLUME");
   const sunBanks = byRole("SUNRAY_SOURCE_BANK");
   return <>
-    <hemisphereLight args={["#ffe8c8", "#70513a", 1.36]} />
+    <hemisphereLight args={["#e7edf2", "#5b4031", .58]} />
     <Sunlight />
     <CeilingCrossLight />
-    {sunBanks.map((anchor) => <spotLight key={anchor.name} position={point(anchor.position)} color="#ffd5a3" intensity={.28} angle={.48} penumbra={1} distance={12} decay={1.4} />)}
+    {sunBanks.map((anchor) => <spotLight key={anchor.name} position={point(anchor.position)} color="#e7edf2" intensity={.22} angle={.48} penumbra={1} distance={12} decay={1.4} />)}
     <CandleLights reducedMotion={reducedMotion} />
     <ParticleField points={smoke} spread={[.035, .24, .035]} count={12} color="#cfc0ac" size={.045} opacity={.12} reducedMotion={reducedMotion} seed={2} />
     <ParticleField points={[dust.position]} spread={[2.05, 1.75, 2.25]} count={88} color="#f7ddb1" size={.026} opacity={.15} reducedMotion={reducedMotion} seed={7} />

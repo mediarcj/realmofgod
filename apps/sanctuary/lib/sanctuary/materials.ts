@@ -3,7 +3,7 @@
 // Purpose: Keeps Blender geometry and semantic zones authoritative while giving runtime surfaces intentional response.
 // Notes: Texture-bearing maps are only added to derivatives with authored compatible UVs.
 
-import { Color, DoubleSide, FrontSide, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace, TextureLoader, type Material, type Side } from "three";
+import { Color, DoubleSide, FrontSide, MeshPhysicalMaterial, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace, TextureLoader, Vector2, type Material, type Side, type Texture } from "three";
 
 export type SanctuaryMaterialFamily =
   | "ceilingWood"
@@ -28,21 +28,72 @@ export type MaterialResolution = { family: SanctuaryMaterialFamily; source: stri
 const ceilingCrossMesh = "ROG_V2_CeilingCross_CLEAN_Mesh.001";
 const windowWoodTerms = ["casing", "sash", "stop", "astragal", "mullion", "frame"];
 const woodFamilies = new Set<SanctuaryMaterialFamily>(["ceilingWood", "wallWood", "trimWood", "floorWood", "tableWood", "kneelingWood", "windowWood"]);
-let woodTextures: { albedo: ReturnType<TextureLoader["load"]>; normal: ReturnType<TextureLoader["load"]>; arm: ReturnType<TextureLoader["load"]> } | undefined;
-function getWoodTextures() {
-  if (woodTextures) return woodTextures;
-  const textureLoader = new TextureLoader();
-  const albedo = textureLoader.load("/textures/polyhaven/wood_floor/wood_floor_diff_1k.jpg");
-  albedo.colorSpace = SRGBColorSpace;
-  const normal = textureLoader.load("/textures/polyhaven/wood_floor/wood_floor_nor_gl_1k.jpg");
-  const arm = textureLoader.load("/textures/polyhaven/wood_floor/wood_floor_arm_1k.jpg");
-  for (const texture of [albedo, normal, arm]) {
-    texture.wrapS = RepeatWrapping;
-    texture.wrapT = RepeatWrapping;
-    texture.repeat.set(2, 2);
+type TextureSet = "floor" | "fine" | "walnut";
+type PbrTextures = { albedo: Texture; normal: Texture; roughness: Texture };
+const texturePaths: Record<TextureSet, { albedo: string; normal: string; roughness: string; repeat: number }> = {
+  floor: { albedo: "/textures/polyhaven/wood_floor/wood_floor_diff_1k.jpg", normal: "/textures/polyhaven/wood_floor/wood_floor_nor_gl_1k.jpg", roughness: "/textures/polyhaven/wood_floor/wood_floor_arm_1k.jpg", repeat: 2.8 },
+  fine: { albedo: "/textures/polyhaven/fine_grained_wood/fine_grained_wood_col_2k.jpg", normal: "/textures/polyhaven/fine_grained_wood/fine_grained_wood_nor_gl_2k.jpg", roughness: "/textures/polyhaven/fine_grained_wood/fine_grained_wood_rough_2k.jpg", repeat: 2.15 },
+  walnut: { albedo: "/textures/polyhaven/walnut_veneer/walnut_veneer_diff_2k.jpg", normal: "/textures/polyhaven/walnut_veneer/walnut_veneer_nor_gl_2k.jpg", roughness: "/textures/polyhaven/walnut_veneer/walnut_veneer_rough_2k.jpg", repeat: 1.45 },
+};
+const textureSetForFamily: Record<SanctuaryMaterialFamily, TextureSet | null> = {
+  wallWood: "fine", ceilingWood: "walnut", trimWood: "fine", floorWood: "floor", tableWood: "walnut", kneelingWood: "fine", windowWood: "walnut",
+  ceilingCross: "walnut", plasterBody: null, plasterMolding: null, plasterRecess: null, altarStone: null, bibleLeather: null, windowGlass: null, candleWax: null, fallback: null,
+};
+let pbrTextures: Partial<Record<TextureSet, PbrTextures>> = {};
+function getPbrTextures(textureSet: TextureSet): PbrTextures {
+  const cached = pbrTextures[textureSet];
+  if (cached) return cached;
+  const loader = new TextureLoader();
+  const paths = texturePaths[textureSet];
+  const albedo = loader.load(paths.albedo); albedo.colorSpace = SRGBColorSpace;
+  const normal = loader.load(paths.normal);
+  const roughness = loader.load(paths.roughness);
+  for (const texture of [albedo, normal, roughness]) {
+    texture.wrapS = RepeatWrapping; texture.wrapT = RepeatWrapping; texture.repeat.set(paths.repeat, paths.repeat);
   }
-  woodTextures = { albedo, normal, arm };
-  return woodTextures;
+  const loaded = { albedo, normal, roughness };
+  pbrTextures = { ...pbrTextures, [textureSet]: loaded };
+  return loaded;
+}
+
+function seedFromName(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index++) hash = Math.imul(hash ^ value.charCodeAt(index), 16777619);
+  return (hash >>> 0) / 4294967295;
+}
+
+function addProjectedPbr(material: MeshStandardMaterial, textures: PbrTextures, meshName: string, scale: number) {
+  const seed = seedFromName(meshName);
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.realmBaseMap = { value: textures.albedo };
+    shader.uniforms.realmNormalMap = { value: textures.normal };
+    shader.uniforms.realmRoughnessMap = { value: textures.roughness };
+    shader.uniforms.realmProjectionScale = { value: scale * (0.92 + seed * .16) };
+    shader.uniforms.realmProjectionOffset = { value: new Vector2(seed * 13.7, seed * 7.3) };
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 realmWorldPosition;\nvarying vec3 realmWorldNormal;")
+      .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nrealmWorldPosition = worldPosition.xyz;\nrealmWorldNormal = normalize(mat3(modelMatrix) * objectNormal);");
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", `#include <common>
+varying vec3 realmWorldPosition;
+varying vec3 realmWorldNormal;
+uniform sampler2D realmBaseMap;
+uniform sampler2D realmNormalMap;
+uniform sampler2D realmRoughnessMap;
+uniform float realmProjectionScale;
+uniform vec2 realmProjectionOffset;
+vec3 realmTriSample(sampler2D image, vec3 position, vec3 normal) {
+  vec3 weights = abs(normal); weights = max(weights, vec3(0.0001)); weights /= (weights.x + weights.y + weights.z);
+  vec2 xy = position.xy * realmProjectionScale + realmProjectionOffset;
+  vec2 xz = position.xz * realmProjectionScale + realmProjectionOffset.yx;
+  vec2 yz = position.yz * realmProjectionScale + realmProjectionOffset;
+  return texture2D(image, yz).rgb * weights.x + texture2D(image, xz).rgb * weights.y + texture2D(image, xy).rgb * weights.z;
+}`)
+      .replace("#include <map_fragment>", "vec3 realmBaseColor = pow(realmTriSample(realmBaseMap, realmWorldPosition, realmWorldNormal), vec3(2.2));\ndiffuseColor.rgb *= realmBaseColor;")
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor *= mix(0.72, 1.18, realmTriSample(realmRoughnessMap, realmWorldPosition, realmWorldNormal).g);")
+      .replace("#include <normal_fragment_begin>", "#include <normal_fragment_begin>\nvec3 realmDetailNormal = realmTriSample(realmNormalMap, realmWorldPosition, realmWorldNormal) * 2.0 - 1.0;\nnormal = normalize(normal + realmDetailNormal * 0.055);");
+  };
+  material.customProgramCacheKey = () => "realm-triplanar-pbr-v1";
 }
 
 const byUnit: Partial<Record<string, SanctuaryMaterialFamily>> = {
@@ -92,30 +143,42 @@ export function resolveSanctuaryMaterial(unit: string, meshName: string, sourceM
   return { family: byUnit[unit] ?? "fallback", source: byUnit[unit] ? "semantic unit" : "unclassified unit" };
 }
 
-type MaterialRecipe = { color: string; roughness: number; metalness?: number; side?: Side; envMapIntensity?: number; transparent?: boolean; opacity?: number };
+type MaterialRecipe = { color: string; roughness: number; metalness?: number; side?: Side; envMapIntensity?: number; transparent?: boolean; opacity?: number; projectionScale?: number };
 
 const recipes: Record<SanctuaryMaterialFamily, MaterialRecipe> = {
-  ceilingWood: { color: "#4a2b1d", roughness: .54, envMapIntensity: .3 },
-  ceilingCross: { color: "#6a4028", roughness: .42, side: DoubleSide, envMapIntensity: .42 },
-  wallWood: { color: "#3f2418", roughness: .58, envMapIntensity: .28 },
-  trimWood: { color: "#5b3622", roughness: .44, envMapIntensity: .42 },
-  floorWood: { color: "#4a2b1c", roughness: .47, envMapIntensity: .36 },
+  ceilingWood: { color: "#5b3725", roughness: .58, envMapIntensity: .3, projectionScale: 1.1 },
+  ceilingCross: { color: "#6a4028", roughness: .42, side: DoubleSide, envMapIntensity: .42, projectionScale: 1.55 },
+  wallWood: { color: "#4d2b1d", roughness: .64, envMapIntensity: .28, projectionScale: .78 },
+  trimWood: { color: "#70462d", roughness: .46, envMapIntensity: .42, projectionScale: 1.8 },
+  floorWood: { color: "#552f1e", roughness: .5, envMapIntensity: .36, projectionScale: 1.05 },
   plasterBody: { color: "#cbb995", roughness: .72, envMapIntensity: .14 },
   plasterMolding: { color: "#e1d1ae", roughness: .63, envMapIntensity: .18 },
   plasterRecess: { color: "#a89170", roughness: .8, envMapIntensity: .08 },
   altarStone: { color: "#d8c49f", roughness: .48, envMapIntensity: .24 },
-  tableWood: { color: "#3b2014", roughness: .32, envMapIntensity: .55 },
-  bibleLeather: { color: "#5e3420", roughness: .48, envMapIntensity: .3 },
-  kneelingWood: { color: "#321b13", roughness: .38, envMapIntensity: .44 },
+  tableWood: { color: "#4a2919", roughness: .36, envMapIntensity: .55, projectionScale: 1.25 },
+  bibleLeather: { color: "#5e3420", roughness: .5, envMapIntensity: .3 },
+  kneelingWood: { color: "#382016", roughness: .43, envMapIntensity: .44, projectionScale: 1.45 },
   windowGlass: { color: "#d7e1df", roughness: .13, metalness: .02, transparent: true, opacity: .32, envMapIntensity: .85 },
-  windowWood: { color: "#4f2d1e", roughness: .47, envMapIntensity: .38 },
+  windowWood: { color: "#633b25", roughness: .5, envMapIntensity: .38, projectionScale: 2.1 },
   candleWax: { color: "#ead6a4", roughness: .42, envMapIntensity: .22 },
   fallback: { color: "#98866f", roughness: .68, envMapIntensity: .16 },
 };
 
 /** Creates a new material so one mesh's runtime changes cannot leak into another accepted unit. */
-export function createSanctuaryMaterial(resolution: MaterialResolution, hasAuthoredUv: boolean): MeshStandardMaterial {
+export function materialTextureSet(family: SanctuaryMaterialFamily) { return textureSetForFamily[family]; }
+export function materialProjectionMode(family: SanctuaryMaterialFamily, hasAuthoredUv: boolean) {
+  return woodFamilies.has(family) ? hasAuthoredUv ? "authored-uv" : "triplanar" : "none";
+}
+
+/** Creates runtime material instances without changing accepted mesh data. */
+export function createSanctuaryMaterial(resolution: MaterialResolution, hasAuthoredUv: boolean, meshName: string): MeshStandardMaterial | MeshPhysicalMaterial {
   const recipe = recipes[resolution.family];
+  if (resolution.family === "windowGlass") {
+    const glass = new MeshPhysicalMaterial({ color: new Color(recipe.color), roughness: .28, metalness: 0, transmission: .44, thickness: .045, ior: 1.45, transparent: true, opacity: .76, side: FrontSide });
+    glass.name = `runtime:${resolution.family}:${resolution.source}`;
+    glass.envMapIntensity = recipe.envMapIntensity ?? 1;
+    return glass;
+  }
   const material = new MeshStandardMaterial({
     color: new Color(recipe.color),
     roughness: recipe.roughness,
@@ -126,12 +189,16 @@ export function createSanctuaryMaterial(resolution: MaterialResolution, hasAutho
   });
   material.name = `runtime:${resolution.family}:${resolution.source}`;
   material.envMapIntensity = recipe.envMapIntensity ?? 1;
-  if (hasAuthoredUv && woodFamilies.has(resolution.family)) {
-    const textures = getWoodTextures();
+  const textureSet = textureSetForFamily[resolution.family];
+  if (hasAuthoredUv && textureSet) {
+    const textures = getPbrTextures(textureSet);
     material.map = textures.albedo;
     material.normalMap = textures.normal;
-    material.roughnessMap = textures.arm;
+    material.roughnessMap = textures.roughness;
     material.roughness = 1;
+    material.normalScale.set(.45, .45);
+  } else if (textureSet && woodFamilies.has(resolution.family)) {
+    addProjectedPbr(material, getPbrTextures(textureSet), meshName, recipe.projectionScale ?? 1);
   }
   return material;
 }

@@ -8,7 +8,7 @@ import { useEffect, useMemo } from "react";
 import { Mesh, Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
-import { createSanctuaryMaterial, resolveSanctuaryMaterial, sourceMaterialName } from "../../lib/sanctuary/materials";
+import { createSanctuaryMaterial, materialProjectionMode, materialTextureSet, resolveSanctuaryMaterial, sourceMaterialName } from "../../lib/sanctuary/materials";
 
 
 export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, calibrationKey, calibrationSourceName, onCalibrationObject }: { unit: string; onLoaded?: (unit: string) => void; interactiveName?: string; onActivate: (name: string) => void; calibrationKey?: string; calibrationSourceName?: string; onCalibrationObject?: (key: string, object: Object3D | null) => void }) {
@@ -17,13 +17,13 @@ export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, ca
     const copy = gltf.scene.clone(true);
     copy.traverse((object) => {
       if (!(object instanceof Mesh)) return;
-      const material = createSanctuaryMaterial(
-        resolveSanctuaryMaterial(unit, object.name, sourceMaterialName(object.material)),
-        Boolean(object.geometry.getAttribute("uv")),
-      );
+      const hasAuthoredUv = Boolean(object.geometry.getAttribute("uv"));
+      const resolution = resolveSanctuaryMaterial(unit, object.name, sourceMaterialName(object.material));
+      const material = createSanctuaryMaterial(resolution, hasAuthoredUv, object.name);
       object.material = material;
+      object.userData.sanctuaryMaterial = { unit, family: resolution.family, source: resolution.source, uv: hasAuthoredUv, projection: materialProjectionMode(resolution.family, hasAuthoredUv), textureSet: materialTextureSet(resolution.family) };
       object.receiveShadow = true;
-      object.castShadow = unit.startsWith("altar-") || unit === "table" || unit === "bible" || unit === "kneeling-rest";
+      object.castShadow = unit.startsWith("altar-") || unit === "table" || unit === "bible" || unit === "kneeling-rest" || unit === "ceiling-structure" || unit === "ceiling-coffers" || unit.endsWith("wall") || unit.endsWith("wall-panels") || unit === "baseboard" || unit.endsWith("stringcourse");
     });
     return copy;
   }, [gltf, unit]);
