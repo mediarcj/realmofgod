@@ -78,8 +78,8 @@ export function resolveSanctuaryMaterial(unit: string, meshName: string, sourceM
   const source = sourceMaterialName.toLowerCase();
   if (meshName === ceilingCrossMesh) return { family: "ceilingCross", source: "ceiling-cross mesh" };
   if (unit.includes("window")) {
-    if (mesh.includes("glaz") || source.includes("glass")) return { family: "windowGlass", source: "window glazing" };
     if (windowWoodTerms.some((term) => mesh.includes(term))) return { family: "windowWood", source: "window joinery" };
+    if (source.includes("glass")) return { family: "windowGlass", source: sourceMaterialName };
     return { family: "windowWood", source: "window unit" };
   }
   if (source.includes("plaster_recess")) return { family: "plasterRecess", source: sourceMaterialName };

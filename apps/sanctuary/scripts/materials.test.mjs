@@ -22,8 +22,9 @@ test("accepted source material labels retain plaster zone distinctions", () => {
 });
 
 test("window semantics distinguish glazing from accepted joinery names", () => {
-  assert.equal(resolveSanctuaryMaterial("north-window-1", "ROG_V2_NorthClerestory_1_AUTH_LeafL_GlazingStop_R1C1_REPAIR_Mesh.001").family, "windowGlass");
+  assert.equal(resolveSanctuaryMaterial("north-window-1", "ROG_V2_NorthClerestory_1_AUTH_LeafL_GlazingStop_R1C1_REPAIR_Mesh.001").family, "windowWood");
   assert.equal(resolveSanctuaryMaterial("north-window-1", "ROG_V2_NorthClerestory_1_AUTH_Casing_Mesh.002").family, "windowWood");
+  assert.equal(resolveSanctuaryMaterial("north-window-1", "Cube.001", "MAT_GLASS_ARCHITECTURE_CLEAR").family, "windowGlass");
 });
 
 test("only the named ceiling cross receives two-sided rendering", () => {
