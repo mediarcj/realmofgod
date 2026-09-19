@@ -19,6 +19,7 @@ __pycache__/
 
 # Owner camera calibration is intentionally local development data.
 apps/sanctuary/.camera-calibration.local.json
+apps/sanctuary/.lookdev-calibration.local.json
 
 # Keep operating-system metadata out of the repository.
 .DS_Store

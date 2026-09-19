@@ -7,8 +7,9 @@ import { useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { PMREMGenerator, type Material } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import type { LookdevProfile } from "../../lib/sanctuary/lookdev";
 
-export function SanctuaryEnvironment() {
+export function SanctuaryEnvironment({ lookdev }: { lookdev: LookdevProfile }) {
   const { gl, scene } = useThree();
   const environment = useMemo(() => {
     const generator = new PMREMGenerator(gl);
@@ -25,8 +26,8 @@ export function SanctuaryEnvironment() {
   useEffect(() => {
     const previous = scene.environment;
     scene.environment = environment;
-    scene.environmentIntensity = .28;
+    scene.environmentIntensity = lookdev.environment;
     return () => { scene.environment = previous; environment.dispose(); };
-  }, [environment, scene]);
+  }, [environment, lookdev.environment, scene]);
   return null;
 }

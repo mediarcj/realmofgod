@@ -25,6 +25,8 @@ import { HomeControl } from "./HomeControl";
 import { CameraCalibrationPanel } from "./CameraCalibrationPanel";
 import type { CameraCalibrationMode } from "./CameraCalibrationControls";
 import type { ObjectCalibrationCommand, ObjectCalibrationState } from "./DevotionalObjectControls";
+import { defaultLookdev, type LookdevProfile } from "../../lib/sanctuary/lookdev";
+import { LookdevControls } from "./LookdevControls";
 
 const SanctuaryCanvas = dynamic(() => import("./SanctuaryCanvas"), {
   ssr: false,
@@ -58,6 +60,8 @@ export function SanctuaryExperience() {
   const [selectedSlot, setSelectedSlot] = useState<CalibrationSlot>("angle1");
   const [calibrationStatus, setCalibrationStatus] = useState("No local calibration saved.");
   const [storageMode, setStorageMode] = useState<"project" | "browser" | null>(null);
+  const [lookdev, setLookdev] = useState<LookdevProfile>(defaultLookdev);
+  const [lookdevStatus, setLookdevStatus] = useState("Default lookdev profile.");
   const onObjectState = useCallback((key: DevotionalCalibrationKey, state: ObjectCalibrationState) => setObjectStates((current) => ({ ...current, [key]: state })), []);
   const issueCommand = useCallback((command: CalibrationCommandDraft) => setCalibrationCommand({ ...command, id: Date.now() }), []);
   const onActivate = useCallback((object: string) => { if (!calibrationEnabled) dispatch({ type: "activate", object }); }, [calibrationEnabled]);
@@ -71,6 +75,13 @@ export function SanctuaryExperience() {
     const update = () => setReducedMotion(query.matches);
     update(); query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" || new URLSearchParams(window.location.search).get("calibrate") !== "1") return;
+    fetch("/api/lookdev-calibration", { cache: "no-store" }).then((response) => response.ok ? response.json() as Promise<LookdevProfile> : Promise.reject()).then((profile) => { setLookdev(profile); setLookdevStatus("Local lookdev profile loaded."); }).catch(() => {
+      try { const saved = window.localStorage.getItem("realm-of-god-lookdev"); if (saved) setLookdev(JSON.parse(saved) as LookdevProfile); } catch { /* Defaults remain valid. */ }
+      setLookdevStatus("Local profile unavailable; browser-only fallback is active.");
+    });
   }, []);
   useEffect(() => {
     if (process.env.NODE_ENV === "production" || new URLSearchParams(window.location.search).get("calibrate") !== "1") return;
@@ -110,6 +121,10 @@ export function SanctuaryExperience() {
       setCalibrationFile(next); setStorageMode("browser"); setCalibrationStatus("Saved only in browser storage. Copy a backup before closing.");
     }
   }, []);
+  const saveLookdev = useCallback(async () => {
+    try { const response = await fetch("/api/lookdev-calibration", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(lookdev) }); if (!response.ok) throw new Error(); setLookdevStatus("Lookdev saved locally."); }
+    catch { window.localStorage.setItem("realm-of-god-lookdev", JSON.stringify(lookdev)); setLookdevStatus("Lookdev saved in browser storage."); }
+  }, [lookdev]);
   const copy = useCallback(async (value: unknown, message: string) => {
     try { await navigator.clipboard.writeText(JSON.stringify(value, null, 2)); setCalibrationStatus(message); }
     catch { setCalibrationStatus("Clipboard unavailable. Select values from the panel and copy manually."); }
@@ -133,7 +148,7 @@ export function SanctuaryExperience() {
   const patchObject = useCallback((field: "position" | "scale", axis: number | null, value: number) => { const current = objectStates[selectedObject]; if (!current) return; if (field === "scale" && axis === null) issueObject({ type: "patch", key: selectedObject, position: current.position, scale: current.originalScale.map((base) => base * value) as [number, number, number] }); else { const next = [...current[field]] as [number, number, number]; if (axis !== null) next[axis] = value; issueObject({ type: "patch", key: selectedObject, position: field === "position" ? next : current.position, scale: field === "scale" ? next : current.scale }); } }, [issueObject, objectStates, selectedObject]);
   const saveObject = useCallback(() => { const state = objectStates[selectedObject]; if (!state) return; const now = new Date().toISOString(); void persistCalibration({ ...calibrationFile, updatedAt: now, objects: { ...calibrationFile.objects, [selectedObject]: { sourceName: devotionalCalibrationSources[selectedObject], position: state.position, scale: state.scale, savedAt: now } } }); }, [calibrationFile, objectStates, persistCalibration, selectedObject]);
   return <>
-    <div className="scene-frame" data-view={journey.view} data-moving={journey.moving}><RenderBoundary><SanctuaryCanvas view={journey.view} reducedMotion={reducedMotion} onProgress={setLoaded} revision={journey.revision} onSettled={onSettled} interactive={ready && !journey.moving && !calibrationEnabled} onActivate={onActivate} calibrationEnabled={calibrationEnabled} calibrationMode={calibrationMode} calibrationCommand={calibrationCommand} onCameraState={setCameraPose} selectedObject={selectedObject} objectCommand={objectCommand} onObjectState={onObjectState} /></RenderBoundary></div>
+    <div className="scene-frame" data-view={journey.view} data-moving={journey.moving}><RenderBoundary><SanctuaryCanvas view={journey.view} reducedMotion={reducedMotion} onProgress={setLoaded} revision={journey.revision} onSettled={onSettled} interactive={ready && !journey.moving && !calibrationEnabled} onActivate={onActivate} calibrationEnabled={calibrationEnabled} calibrationMode={calibrationMode} calibrationCommand={calibrationCommand} onCameraState={setCameraPose} selectedObject={selectedObject} objectCommand={objectCommand} onObjectState={onObjectState} lookdev={lookdev} /></RenderBoundary></div>
     <HomeControl onReturn={onReturn} />
     {!calibrationEnabled && !journey.moving && <nav className="visually-hidden" aria-label="Devotional interactions">
       {eligibleObjects(journey.view).map((object) => <button key={object} type="button" onClick={() => onActivate(object)}>{devotionalLabels[object]}</button>)}
@@ -142,6 +157,7 @@ export function SanctuaryExperience() {
     {!calibrationEnabled && journey.view === "bible" && !journey.moving && <ScripturePanel onPray={onPray} />}
     {!calibrationEnabled && journey.view === "prayer" && !journey.moving && <PrayerPanel />}
     {calibrationAvailable && <CameraCalibrationPanel collapsed={calibrationCollapsed} onCollapse={() => setCalibrationCollapsed((value) => !value)} enabled={calibrationEnabled} mode={calibrationMode} file={calibrationFile} pose={cameraPose} selectedSlot={selectedSlot} selectedObject={selectedObject} objectState={objectStates[selectedObject] ?? null} status={calibrationStatus} storageMode={storageMode} onToggle={() => setCalibrationEnabled((current) => !current)} onMode={setCalibrationMode} onSlot={setSelectedSlot} onObject={setSelectedObject} onLoadCoded={() => issueCommand({ type: "load-coded", view: calibrationViewForSlot[selectedSlot] })} onCapture={() => setCalibrationStatus("Pose captured. Save this slot when ready.")} onCopyPose={() => { if (cameraPose) void copy({ ...cameraPose, slot: selectedSlot, view: calibrationViewForSlot[selectedSlot] }, "Current pose copied."); }} onCopyAll={() => void copy(calibrationFile, "All calibration slots copied.")} onSave={saveCalibration} onLoadSaved={() => { const record = calibrationFile.slots[selectedSlot]; if (record) issueCommand({ type: "load-saved", record }); }} onPatch={patchCamera} onLevelCamera={() => issueCommand({ type: "patch", patch: { up: [0, 1, 0] } })} onObjectPatch={patchObject} onObjectSave={saveObject} onObjectLoad={() => { const value = calibrationFile.objects?.[selectedObject]; if (value) issueObject({ type: "load", key: selectedObject, position: value.position, scale: value.scale }); }} onObjectReset={() => issueObject({ type: "reset", key: selectedObject })} onObjectsLoad={() => issueObject({ type: "load-all", values: calibrationFile.objects })} onObjectsReset={() => issueObject({ type: "reset-all" })} />}
+    {calibrationAvailable && calibrationEnabled && <LookdevControls profile={lookdev} onChange={setLookdev} onSave={() => void saveLookdev()} status={lookdevStatus} />}
     <p className="visually-hidden" role="status">{ready ? "The sanctuary is ready." : "The sanctuary is loading."}</p>
   </>;
 }

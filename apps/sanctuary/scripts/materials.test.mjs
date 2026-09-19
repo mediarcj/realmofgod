@@ -7,6 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { materialProjectionMode, materialTextureSet, materialTint, resolveSanctuaryMaterial } from "../lib/sanctuary/materials.ts";
+import { defaultLookdev, isLookdevProfile } from "../lib/sanctuary/lookdev.ts";
 
 test("major construction units resolve to distinct intentional material families", () => {
   assert.equal(resolveSanctuaryMaterial("floor", "ROG_V2_Floor_Planks_AUTH_Mesh.001").family, "floorWood");
@@ -66,4 +67,12 @@ test("referenced material texture assets exist and material debug remains calibr
   ]) assert(existsSync(new URL(file, import.meta.url)));
   const canvas = readFileSync(new URL("../components/sanctuary/SanctuaryCanvas.tsx", import.meta.url), "utf8");
   assert.match(canvas, /calibrationEnabled && <MaterialDebugReadout/);
+});
+
+test("lookdev defaults stay bounded and local-profile support remains production-isolated", () => {
+  assert(isLookdevProfile(defaultLookdev));
+  const experience = readFileSync(new URL("../components/sanctuary/SanctuaryExperience.tsx", import.meta.url), "utf8");
+  const route = readFileSync(new URL("../app/api/lookdev-calibration/route.ts", import.meta.url), "utf8");
+  assert.match(experience, /calibrationAvailable && calibrationEnabled && <LookdevControls/);
+  assert.match(route, /NODE_ENV !== "production"/);
 });
