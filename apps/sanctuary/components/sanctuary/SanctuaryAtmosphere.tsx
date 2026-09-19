@@ -6,7 +6,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, PointLight, Points } from "three";
-import { anchorByRole, point, runtimeAnchors } from "../../lib/sanctuary/runtime";
+import { anchorByRole, point, runtimeAnchors, sourceObjectCenter } from "../../lib/sanctuary/runtime";
 
 const byRole = (role: string) => runtimeAnchors.filter((anchor) => anchor.role === role);
 
@@ -65,6 +65,11 @@ function Sunlight() {
   />;
 }
 
+function CeilingCrossLight() {
+  const [x, y, z] = sourceObjectCenter("ROG_V2_CeilingCross_CLEAN");
+  return <pointLight position={[x, y - .26, z]} color="#f6ce82" intensity={.62} distance={2.3} decay={2} />;
+}
+
 export function SanctuaryAtmosphere({ reducedMotion }: { reducedMotion: boolean }) {
   const smoke = byRole("CANDLE_SMOKE_ANCHOR").map((anchor) => anchor.position);
   const dust = anchorByRole("DUST_VOLUME");
@@ -72,6 +77,7 @@ export function SanctuaryAtmosphere({ reducedMotion }: { reducedMotion: boolean 
   return <>
     <hemisphereLight args={["#ffe8c8", "#70513a", 1.36]} />
     <Sunlight />
+    <CeilingCrossLight />
     {sunBanks.map((anchor) => <spotLight key={anchor.name} position={point(anchor.position)} color="#ffd5a3" intensity={.28} angle={.48} penumbra={1} distance={12} decay={1.4} />)}
     <CandleLights reducedMotion={reducedMotion} />
     <ParticleField points={smoke} spread={[.035, .24, .035]} count={12} color="#cfc0ac" size={.045} opacity={.12} reducedMotion={reducedMotion} seed={2} />
