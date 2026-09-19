@@ -1,20 +1,20 @@
 // File: apps/sanctuary/lib/sanctuary/camera.ts
 // Description: Defines the sanctuary's bounded, guided camera views.
 // Purpose: Frames the source objects without free-roam or geometry changes.
-// Notes: Every endpoint is fitted from accepted browser-space geometry bounds.
+// Notes: Owner-locked desktop endpoints use saved local calibration poses; geometry remains safety-only.
 
 import { sanctuaryCameraGeometry as geometry, type Point3 } from "./camera-geometry.ts";
 export type SanctuaryView = "entry" | "kneel" | "bible" | "prayer";
 export function cameraDuration(reducedMotion: boolean) { return reducedMotion ? 0 : 1.6; }
 export type CameraPose = { position: Point3; target: Point3; up: Point3; fov: number; offset: [number, number] };
 
-// Desktop composition transcribed from the owner's Blender viewport references.
-// Browser-space geometry still supplies the room-safety and responsive checks.
+// OWNER CAMERA DESKTOP LOCK: Angle 1 / Entry, promoted verbatim from the
+// Git-ignored local calibration record. Do not derive or refit this endpoint.
 const OWNER_ENTRY_DESKTOP: CameraPose = {
-  position: [0, 1.68, 4.6],
-  target: [0, 2.5, -3.88],
+  position: [-0.11269881499354367, 3.3045042935398734, 9.063174840923534],
+  target: [0.05896333736516662, 2.1607696616746113, -3.3778820839605586],
   up: [0, 1, 0],
-  fov: 90,
+  fov: 43.1,
   offset: [0, 0],
 };
 

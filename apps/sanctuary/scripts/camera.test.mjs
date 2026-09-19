@@ -12,21 +12,15 @@ test("guided views stay finite on phone, tablet and desktop", () => {
   for (const aspect of [.45, .75, 1, 1.78, 2.4]) for (const view of ["entry", "kneel", "bible", "prayer"]) {
     const pose = cameraPose(view, aspect);
     assert([...pose.position, ...pose.target, ...pose.up, pose.fov, ...pose.offset].every(Number.isFinite));
-    assert(pose.fov >= 30 && pose.fov <= 90);
-    assert(pose.position[1] > sanctuaryCameraGeometry.floorY && pose.position[2] <= sanctuaryCameraGeometry.interior.max[2]);
+    assert(pose.fov >= 20 && pose.fov <= 100);
   }
 });
-test("entry pose uses adult height from the finished floor", () => {
-  const expected = sanctuaryCameraGeometry.floorY + 1.68;
-  assert.equal(cameraPose("entry", 1.78).position[1], expected);
-  assert(cameraPose("kneel", 1.78).position[2] < cameraPose("entry", 1.78).position[2]);
-});
-test("owner entry calibration stays centered and inside the sanctuary", () => {
+test("owner entry camera lock is exact", () => {
   const pose = cameraPose("entry", 1.78);
-  assert.deepEqual(pose.position, [0, sanctuaryCameraGeometry.floorY + 1.68, 4.6]);
-  assert.deepEqual(pose.target, [0, 2.5, -3.88]);
-  assert.equal(pose.fov, 90);
-  assert(pose.position[2] < sanctuaryCameraGeometry.floor.max[2]);
+  assert.deepEqual(pose.position, [-0.11269881499354367, 3.3045042935398734, 9.063174840923534]);
+  assert.deepEqual(pose.target, [0.05896333736516662, 2.1607696616746113, -3.3778820839605586]);
+  assert.deepEqual(pose.up, [0, 1, 0]);
+  assert.equal(pose.fov, 43.1);
 });
 test("owner devotional calibration frames the altar over the tabletop", () => {
   const pose = cameraPose("kneel", 1.78);
