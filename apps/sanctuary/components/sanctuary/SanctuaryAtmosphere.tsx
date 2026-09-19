@@ -5,7 +5,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, PointLight, Points, RectAreaLight } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, PointLight, Points, RectAreaLight, Sprite } from "three";
 import { anchorByRole, point, runtimeAnchors, sourceObjectCenter } from "../../lib/sanctuary/runtime";
 import type { LookdevProfile } from "../../lib/sanctuary/lookdev";
 
@@ -46,6 +46,35 @@ function CandleLights({ reducedMotion, intensity }: { reducedMotion: boolean; in
     lights.current.forEach((light, index) => { light.intensity = intensity + Math.sin(state.clock.elapsedTime * (2.1 + index * .13) + index) * .055; });
   });
   return <>{anchors.map((anchor, index) => <pointLight key={anchor.name} position={point(anchor.position)} color="#ffbf72" intensity={intensity} distance={4.1} decay={2} ref={(light) => { if (light) lights.current[index] = light; }} />)}</>;
+}
+
+function FlameSprite({ position, index, reducedMotion }: { position: [number, number, number]; index: number; reducedMotion: boolean }) {
+  const sprite = useRef<Sprite>(null);
+  const texture = useMemo(() => {
+    const canvas = document.createElement("canvas"); canvas.width = 64; canvas.height = 128;
+    const context = canvas.getContext("2d");
+    if (!context) return new CanvasTexture(canvas);
+    const glow = context.createRadialGradient(32, 86, 1, 32, 86, 31);
+    glow.addColorStop(0, "rgba(255,249,205,1)"); glow.addColorStop(.2, "rgba(255,189,72,.98)"); glow.addColorStop(.58, "rgba(255,103,20,.46)"); glow.addColorStop(1, "rgba(255,80,0,0)");
+    context.fillStyle = glow; context.fillRect(0, 43, 64, 75);
+    context.beginPath(); context.moveTo(32, 7); context.quadraticCurveTo(48, 54, 32, 98); context.quadraticCurveTo(16, 54, 32, 7); context.fillStyle = "rgba(255,174,45,.76)"; context.fill();
+    return new CanvasTexture(canvas);
+  }, []);
+  useEffect(() => () => texture.dispose(), [texture]);
+  useFrame((state) => {
+    if (!sprite.current || reducedMotion) return;
+    const flutter = 1 + Math.sin(state.clock.elapsedTime * (5.1 + index * .2) + index) * .12;
+    sprite.current.scale.set(.075 * flutter, .14 * (2 - flutter), 1);
+    sprite.current.position.x = position[0] + Math.sin(state.clock.elapsedTime * 3.3 + index) * .004;
+  });
+  return <sprite ref={sprite} position={[position[0], position[1] + .035, position[2]]} scale={[.075, .14, 1]} renderOrder={2}>
+    <spriteMaterial map={texture} color="#ffd27d" transparent opacity={.9} depthWrite={false} blending={AdditiveBlending} />
+  </sprite>;
+}
+
+function CandleFlames({ reducedMotion }: { reducedMotion: boolean }) {
+  const anchors = byRole("CANDLE_FLAME_ANCHOR");
+  return <>{anchors.map((anchor, index) => <FlameSprite key={anchor.name} position={point(anchor.position)} index={index} reducedMotion={reducedMotion} />)}</>;
 }
 
 function Sunlight() {
@@ -94,6 +123,7 @@ export function SanctuaryAtmosphere({ reducedMotion, lookdev }: { reducedMotion:
     <CeilingCrossLight intensity={lookdev.crossLight} />
     {sunBanks.map((anchor) => <WindowDaylight key={anchor.name} position={point(anchor.position)} intensity={lookdev.windowDaylight} />)}
     <CandleLights reducedMotion={reducedMotion} intensity={lookdev.candleLight} />
+    <CandleFlames reducedMotion={reducedMotion} />
     <ParticleField points={smoke} spread={[.035, .24, .035]} count={12} color="#cfc0ac" size={.045} opacity={.12} reducedMotion={reducedMotion} seed={2} />
     <ParticleField points={[dust.position]} spread={[2.05, 1.75, 2.25]} count={88} color="#f7ddb1" size={.026} opacity={.15} reducedMotion={reducedMotion} seed={7} />
   </>;
