@@ -1,34 +1,40 @@
 // File: apps/sanctuary/lib/sanctuary/camera.ts
 // Description: Defines the sanctuary's bounded, guided camera views.
 // Purpose: Frames the source objects without free-roam or geometry changes.
-// Notes: Runtime offsets are deliberate viewing choices relative to authored anchors.
+// Notes: Every endpoint is fitted from accepted browser-space geometry bounds.
 
+import { sanctuaryCameraGeometry as geometry, type Point3 } from "./camera-geometry.ts";
 export type SanctuaryView = "entry" | "kneel" | "bible" | "prayer";
-type Point = [number, number, number];
 export function cameraDuration(reducedMotion: boolean) { return reducedMotion ? 0 : 1.6; }
-export function cameraPose(view: SanctuaryView, aspect: number, entry: Point, bible: Point, prayer: Point, centralCross: Point) {
-  const portrait = aspect < .85;
-  const fov = portrait ? 78 : 64;
-  if (view === "kneel") return {
-    // The source table rises above the kneeling-rest anchor. Keep the viewer
-    // modestly lower than entry, but above its measured top surface.
-    position: [prayer[0], bible[1] + .24, prayer[2] + .75] as Point,
-    target: centralCross, fov, offset: [0, 0],
-  };
-  if (view === "bible") return {
-    position: [bible[0], bible[1] + .16, bible[2] + (portrait ? 1.4 : 1.8)] as Point,
-    target: [bible[0], bible[1] - .08, bible[2]] as Point,
-    fov: portrait ? 62 : 48, offset: portrait ? [0, .08] : [-.15, 0],
-  };
-  if (view === "prayer") return {
-    position: [prayer[0], bible[1] + .28, prayer[2] + .75] as Point,
-    target: [centralCross[0], centralCross[1] + 1.35, centralCross[2]] as Point,
-    fov: portrait ? 74 : 58, offset: [0, 0],
-  };
-  return {
-    position: [entry[0], entry[1] + .65, entry[2] + .6] as Point,
-    target: [0, 1.8, -2.8] as Point, fov, offset: [0, 0],
-  };
+export type CameraPose = { position: Point3; target: Point3; up: Point3; fov: number; offset: [number, number] };
+
+function architecturalFov(aspect: number) { return aspect < .75 ? 64 : 68; }
+function bibleFov(aspect: number) { return aspect < .6 ? 76 : aspect < 1 ? 60 : 46; }
+function fitBibleDistance(aspect: number, fov: number) {
+  const bible = geometry.bible;
+  const [width, , depth] = geometry.size(bible);
+  const vertical = fov * Math.PI / 180;
+  const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * aspect);
+  const coverage = .8;
+  const halfThickness = (bible.max[1] - bible.min[1]) / 2;
+  return Math.max(width / 2 / (coverage * Math.tan(horizontal / 2)), depth / 2 / (coverage * Math.tan(vertical / 2))) + halfThickness + .08;
+}
+
+export function cameraPose(view: SanctuaryView, aspect: number): CameraPose {
+  const cross = geometry.center(geometry.centralCross);
+  const bible = geometry.center(geometry.bible);
+  const adultPosition: Point3 = [0, geometry.adultEyeY, geometry.devotionalZ];
+  const devotionalTarget: Point3 = [cross[0], geometry.centralCross.min[1] + geometry.size(geometry.centralCross)[1] * .72, cross[2]];
+  if (view === "kneel") return { position: adultPosition, target: devotionalTarget, up: [0, 1, 0], fov: architecturalFov(aspect), offset: [0, 0] };
+  if (view === "bible") {
+    const fov = bibleFov(aspect);
+    return { position: [bible[0], bible[1] + fitBibleDistance(aspect, fov), bible[2]], target: bible, up: [0, 0, -1], fov, offset: [0, 0] };
+  }
+  if (view === "prayer") {
+    const ceilingLift = (geometry.ceiling.min[1] - geometry.centralCross.max[1]) * .45;
+    return { position: adultPosition, target: [cross[0], geometry.centralCross.max[1] + ceilingLift, cross[2]], up: [0, 1, 0], fov: architecturalFov(aspect), offset: [0, 0] };
+  }
+  return { position: [0, geometry.adultEyeY, geometry.rearSafeZ], target: cross, up: [0, 1, 0], fov: architecturalFov(aspect), offset: [0, 0] };
 }
 
 export function transitionEase(progress: number) {

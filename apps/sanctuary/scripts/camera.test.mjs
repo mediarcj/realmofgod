@@ -5,13 +5,36 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { PerspectiveCamera, Vector3 } from "three";
 import { cameraDuration, cameraPose, transitionEase } from "../lib/sanctuary/camera.ts";
+import { boundsCorners, sanctuaryCameraGeometry } from "../lib/sanctuary/camera-geometry.ts";
 test("guided views stay finite on phone, tablet and desktop", () => {
   for (const aspect of [.45, .75, 1, 1.78, 2.4]) for (const view of ["entry", "kneel", "bible", "prayer"]) {
-    const pose = cameraPose(view, aspect, [0,1.75,4], [0,2,-.44], [0,.32,1.59], [0,3.15,-3.88]);
-    assert([...pose.position, ...pose.target, pose.fov, ...pose.offset].every(Number.isFinite));
+    const pose = cameraPose(view, aspect);
+    assert([...pose.position, ...pose.target, ...pose.up, pose.fov, ...pose.offset].every(Number.isFinite));
     assert(pose.fov >= 40 && pose.fov <= 90);
-    assert(pose.position[1] > .5 && pose.position[2] <= 4.8);
+    assert(pose.position[1] > sanctuaryCameraGeometry.floorY && pose.position[2] <= sanctuaryCameraGeometry.interior.max[2]);
+  }
+});
+test("entry and devotional poses use adult height from the finished floor", () => {
+  const expected = sanctuaryCameraGeometry.floorY + 1.68;
+  assert.equal(cameraPose("entry", 1.78).position[1], expected);
+  assert.equal(cameraPose("kneel", 1.78).position[1], expected);
+  assert(cameraPose("kneel", 1.78).position[2] < cameraPose("entry", 1.78).position[2]);
+});
+test("Bible fitting keeps every source-bound corner in frame at useful coverage", () => {
+  for (const aspect of [.45, .75, 1.78]) {
+    const pose = cameraPose("bible", aspect);
+    const camera = new PerspectiveCamera(pose.fov, aspect, .05, 60);
+    camera.position.set(...pose.position); camera.up.set(...pose.up); camera.lookAt(new Vector3(...pose.target)); camera.updateMatrixWorld();
+    const projected = boundsCorners(sanctuaryCameraGeometry.bible).map((corner) => new Vector3(...corner).project(camera));
+    const xs = projected.map((point) => point.x), ys = projected.map((point) => point.y);
+    assert(Math.min(...xs) > -1 && Math.max(...xs) < 1 && Math.min(...ys) > -1 && Math.max(...ys) < 1);
+    const width = (Math.max(...xs) - Math.min(...xs)) / 2;
+    const height = (Math.max(...ys) - Math.min(...ys)) / 2;
+    assert(Math.max(width, height) >= .75 && Math.max(width, height) <= .85);
+    assert(Math.abs((Math.max(...xs) + Math.min(...xs)) / 2) < .05);
+    assert(Math.abs((Math.max(...ys) + Math.min(...ys)) / 2) < .05);
   }
 });
 test("transition easing is bounded and monotonic", () => {
