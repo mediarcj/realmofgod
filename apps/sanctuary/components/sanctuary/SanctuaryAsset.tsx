@@ -17,7 +17,10 @@ export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, ca
     const copy = gltf.scene.clone(true);
     copy.traverse((object) => {
       if (!(object instanceof Mesh)) return;
-      const material = createSanctuaryMaterial(resolveSanctuaryMaterial(unit, object.name, sourceMaterialName(object.material)));
+      const material = createSanctuaryMaterial(
+        resolveSanctuaryMaterial(unit, object.name, sourceMaterialName(object.material)),
+        Boolean(object.geometry.getAttribute("uv")),
+      );
       object.material = material;
       object.receiveShadow = true;
       object.castShadow = unit.startsWith("altar-") || unit === "table" || unit === "bible" || unit === "kneeling-rest";

@@ -3,7 +3,7 @@
 // Purpose: Keeps Blender geometry and semantic zones authoritative while giving runtime surfaces intentional response.
 // Notes: Texture-bearing maps are only added to derivatives with authored compatible UVs.
 
-import { Color, DoubleSide, FrontSide, MeshStandardMaterial, type Material, type Side } from "three";
+import { Color, DoubleSide, FrontSide, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace, TextureLoader, type Material, type Side } from "three";
 
 export type SanctuaryMaterialFamily =
   | "ceilingWood"
@@ -27,6 +27,23 @@ export type MaterialResolution = { family: SanctuaryMaterialFamily; source: stri
 
 const ceilingCrossMesh = "ROG_V2_CeilingCross_CLEAN_Mesh.001";
 const windowWoodTerms = ["casing", "sash", "stop", "astragal", "mullion", "frame"];
+const woodFamilies = new Set<SanctuaryMaterialFamily>(["ceilingWood", "wallWood", "trimWood", "floorWood", "tableWood", "kneelingWood", "windowWood"]);
+let woodTextures: { albedo: ReturnType<TextureLoader["load"]>; normal: ReturnType<TextureLoader["load"]>; arm: ReturnType<TextureLoader["load"]> } | undefined;
+function getWoodTextures() {
+  if (woodTextures) return woodTextures;
+  const textureLoader = new TextureLoader();
+  const albedo = textureLoader.load("/textures/polyhaven/wood_floor/wood_floor_diff_1k.jpg");
+  albedo.colorSpace = SRGBColorSpace;
+  const normal = textureLoader.load("/textures/polyhaven/wood_floor/wood_floor_nor_gl_1k.jpg");
+  const arm = textureLoader.load("/textures/polyhaven/wood_floor/wood_floor_arm_1k.jpg");
+  for (const texture of [albedo, normal, arm]) {
+    texture.wrapS = RepeatWrapping;
+    texture.wrapT = RepeatWrapping;
+    texture.repeat.set(2, 2);
+  }
+  woodTextures = { albedo, normal, arm };
+  return woodTextures;
+}
 
 const byUnit: Partial<Record<string, SanctuaryMaterialFamily>> = {
   floor: "floorWood",
@@ -97,7 +114,7 @@ const recipes: Record<SanctuaryMaterialFamily, MaterialRecipe> = {
 };
 
 /** Creates a new material so one mesh's runtime changes cannot leak into another accepted unit. */
-export function createSanctuaryMaterial(resolution: MaterialResolution): MeshStandardMaterial {
+export function createSanctuaryMaterial(resolution: MaterialResolution, hasAuthoredUv: boolean): MeshStandardMaterial {
   const recipe = recipes[resolution.family];
   const material = new MeshStandardMaterial({
     color: new Color(recipe.color),
@@ -109,6 +126,13 @@ export function createSanctuaryMaterial(resolution: MaterialResolution): MeshSta
   });
   material.name = `runtime:${resolution.family}:${resolution.source}`;
   material.envMapIntensity = recipe.envMapIntensity ?? 1;
+  if (hasAuthoredUv && woodFamilies.has(resolution.family)) {
+    const textures = getWoodTextures();
+    material.map = textures.albedo;
+    material.normalMap = textures.normal;
+    material.roughnessMap = textures.arm;
+    material.roughness = 1;
+  }
   return material;
 }
 
