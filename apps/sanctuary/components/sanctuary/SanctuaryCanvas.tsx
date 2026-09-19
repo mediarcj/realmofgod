@@ -6,7 +6,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useCallback, useState } from "react";
-import type { Object3D } from "three";
+import { ACESFilmicToneMapping, SRGBColorSpace, type Object3D } from "three";
 import { SanctuaryScene } from "./SanctuaryScene";
 import { GuidedCamera } from "./GuidedCamera";
 import { CameraCalibrationControls, type CameraCalibrationMode } from "./CameraCalibrationControls";
@@ -24,6 +24,8 @@ export default function SanctuaryCanvas({ view, reducedMotion, onProgress, revis
       aria-label="Sanctuary interior"
       frameloop="demand"
       dpr={[1, 1.5]}
+      shadows
+      gl={{ toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace, antialias: true }}
       camera={{ position: [0, 1.75, 4], fov: 55, near: 0.05, far: 60 }}
       fallback={<p className="scene-message">The sanctuary view needs WebGL support.</p>}
     >

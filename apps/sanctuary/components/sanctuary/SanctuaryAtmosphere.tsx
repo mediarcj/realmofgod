@@ -49,7 +49,20 @@ function CandleLights({ reducedMotion }: { reducedMotion: boolean }) {
 
 function Sunlight() {
   const sun = anchorByRole("SUNLIGHT_PRIMARY");
-  return <directionalLight position={point(sun.direction.map((value) => -value * 12))} intensity={sun.detail.energy} color="#ffcc94" />;
+  return <directionalLight
+    castShadow
+    position={point(sun.direction.map((value) => -value * 12))}
+    intensity={(sun.detail.energy ?? 1) * .82}
+    color="#ffe1b6"
+    shadow-mapSize={[1024, 1024]}
+    shadow-camera-near={.5}
+    shadow-camera-far={30}
+    shadow-camera-left={-7}
+    shadow-camera-right={7}
+    shadow-camera-top={7}
+    shadow-camera-bottom={-7}
+    shadow-bias={-.00015}
+  />;
 }
 
 export function SanctuaryAtmosphere({ reducedMotion }: { reducedMotion: boolean }) {
@@ -57,7 +70,7 @@ export function SanctuaryAtmosphere({ reducedMotion }: { reducedMotion: boolean 
   const dust = anchorByRole("DUST_VOLUME");
   const sunBanks = byRole("SUNRAY_SOURCE_BANK");
   return <>
-    <hemisphereLight args={["#fff4df", "#40382c", 1.1]} />
+    <hemisphereLight args={["#ffe8c8", "#70513a", 1.36]} />
     <Sunlight />
     {sunBanks.map((anchor) => <spotLight key={anchor.name} position={point(anchor.position)} color="#ffd5a3" intensity={.28} angle={.48} penumbra={1} distance={12} decay={1.4} />)}
     <CandleLights reducedMotion={reducedMotion} />
