@@ -51,10 +51,20 @@ test("wood families use distinct cached PBR sources and UV-less wood uses projec
 });
 
 test("textured material families keep photographic albedo energy", () => {
-  for (const family of ["wallWood", "trimWood", "ceilingWood", "floorWood", "tableWood", "kneelingWood", "windowWood", "bibleLeather", "plasterBody"]) {
+  for (const family of ["wallWood", "trimWood", "ceilingWood", "floorWood", "windowWood", "bibleLeather", "plasterBody"]) {
     assert.equal(materialTint(family), "#fffaf3");
   }
+  assert.equal(materialTint("tableWood"), "#f3eee6");
+  assert.equal(materialTint("kneelingWood"), "#f3eee6");
   assert.equal(materialTint("agedMetal"), "#6b4e31");
+});
+
+test("prepared semantic material labels take precedence over object-name fallback", () => {
+  assert.equal(resolveSanctuaryMaterial("bible", "ROG_BIBLE_HYPER3D_MASTER", "MAT_BIBLE_PAGE_PAPER").family, "biblePages");
+  assert.equal(resolveSanctuaryMaterial("bible", "ROG_BIBLE_HYPER3D_MASTER", "MAT_BIBLE_PAGE_EDGES").family, "biblePageEdges");
+  assert.equal(resolveSanctuaryMaterial("bible", "ROG_BIBLE_HYPER3D_MASTER", "MAT_BIBLE_COVER_LEATHER").family, "bibleCover");
+  assert.equal(resolveSanctuaryMaterial("altar-candles-large", "ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER", "MAT_CANDLE_METAL_AGED").family, "candleMetal");
+  assert.equal(resolveSanctuaryMaterial("kneeling-rest", "ROG_KNEE_REST_HYPER3D_MASTER", "MAT_KNEELER_CUSHION").family, "kneelingCushion");
 });
 
 test("referenced material texture assets exist and material debug remains calibration-gated", () => {

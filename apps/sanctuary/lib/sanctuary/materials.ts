@@ -18,10 +18,18 @@ export type SanctuaryMaterialFamily =
   | "agedMetal"
   | "tableWood"
   | "bibleLeather"
+  | "biblePages"
+  | "biblePageEdges"
+  | "bibleCover"
+  | "bibleBinding"
   | "kneelingWood"
+  | "kneelingCushion"
+  | "kneelingOrnament"
   | "windowGlass"
   | "windowWood"
   | "candleWax"
+  | "candleMetal"
+  | "candleWick"
   | "fallback";
 
 export type MaterialResolution = { family: SanctuaryMaterialFamily; source: string };
@@ -40,7 +48,7 @@ const texturePaths: Record<TextureSet, { albedo: string; normal: string; roughne
 };
 const textureSetForFamily: Record<SanctuaryMaterialFamily, TextureSet | null> = {
   wallWood: "fine", ceilingWood: "walnut", trimWood: "fine", floorWood: "floor", tableWood: "walnut", kneelingWood: "fine", windowWood: "walnut",
-  ceilingCross: "walnut", plasterBody: "plaster", plasterMolding: "plaster", plasterRecess: "plaster", altarStone: "plaster", agedMetal: null, bibleLeather: "leather", windowGlass: null, candleWax: null, fallback: null,
+  ceilingCross: "walnut", plasterBody: "plaster", plasterMolding: "plaster", plasterRecess: "plaster", altarStone: "plaster", agedMetal: null, bibleLeather: "leather", biblePages: null, biblePageEdges: null, bibleCover: "leather", bibleBinding: "leather", kneelingCushion: "leather", kneelingOrnament: null, windowGlass: null, candleWax: null, candleMetal: null, candleWick: null, fallback: null,
 };
 let pbrTextures: Partial<Record<TextureSet, PbrTextures>> = {};
 function getPbrTextures(textureSet: TextureSet): PbrTextures {
@@ -73,6 +81,7 @@ function addProjectedPbr(material: MeshStandardMaterial, textures: PbrTextures, 
     shader.uniforms.realmRoughnessMap = { value: textures.roughness };
     shader.uniforms.realmProjectionScale = { value: scale * (0.92 + seed * .16) };
     shader.uniforms.realmProjectionOffset = { value: new Vector2(seed * 13.7, seed * 7.3) };
+    shader.uniforms.realmProjectionTone = { value: .93 + seed * .14 };
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\nvarying vec3 realmWorldPosition;\nvarying vec3 realmWorldNormal;")
       .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nrealmWorldPosition = worldPosition.xyz;\nrealmWorldNormal = normalize(mat3(modelMatrix) * objectNormal);");
@@ -85,6 +94,7 @@ uniform sampler2D realmNormalMap;
 uniform sampler2D realmRoughnessMap;
 uniform float realmProjectionScale;
 uniform vec2 realmProjectionOffset;
+uniform float realmProjectionTone;
 vec3 realmTriSample(sampler2D image, vec3 position, vec3 normal) {
   vec3 weights = abs(normal); weights = max(weights, vec3(0.0001)); weights /= (weights.x + weights.y + weights.z);
   vec2 xy = position.xy * realmProjectionScale + realmProjectionOffset;
@@ -92,7 +102,7 @@ vec3 realmTriSample(sampler2D image, vec3 position, vec3 normal) {
   vec2 yz = position.yz * realmProjectionScale + realmProjectionOffset;
   return texture2D(image, yz).rgb * weights.x + texture2D(image, xz).rgb * weights.y + texture2D(image, xy).rgb * weights.z;
 }`)
-      .replace("#include <map_fragment>", "vec3 realmBaseColor = pow(realmTriSample(realmBaseMap, realmWorldPosition, realmWorldNormal), vec3(2.2));\ndiffuseColor.rgb *= realmBaseColor;")
+      .replace("#include <map_fragment>", "vec3 realmBaseColor = pow(realmTriSample(realmBaseMap, realmWorldPosition, realmWorldNormal), vec3(2.2));\ndiffuseColor.rgb *= realmBaseColor * realmProjectionTone;")
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor *= mix(0.72, 1.18, realmTriSample(realmRoughnessMap, realmWorldPosition, realmWorldNormal).g);")
       .replace("#include <normal_fragment_begin>", "#include <normal_fragment_begin>\nvec3 realmDetailNormal = realmTriSample(realmNormalMap, realmWorldPosition, realmWorldNormal) * 2.0 - 1.0;\nnormal = normalize(normal + realmDetailNormal * 0.055);");
   };
@@ -141,6 +151,15 @@ export function resolveSanctuaryMaterial(unit: string, meshName: string, sourceM
   if (source.includes("plaster_ivory_molding")) return { family: "plasterMolding", source: sourceMaterialName };
   if (source.includes("plaster_ivory")) return { family: "plasterBody", source: sourceMaterialName };
   if (source.includes("leather_bible")) return { family: "bibleLeather", source: sourceMaterialName };
+  if (source.includes("bible_page_edges")) return { family: "biblePageEdges", source: sourceMaterialName };
+  if (source.includes("bible_page")) return { family: "biblePages", source: sourceMaterialName };
+  if (source.includes("bible_cover")) return { family: "bibleCover", source: sourceMaterialName };
+  if (source.includes("bible_binding")) return { family: "bibleBinding", source: sourceMaterialName };
+  if (source.includes("candle_metal")) return { family: "candleMetal", source: sourceMaterialName };
+  if (source.includes("candle_wick")) return { family: "candleWick", source: sourceMaterialName };
+  if (source.includes("candle_wax")) return { family: "candleWax", source: sourceMaterialName };
+  if (source.includes("kneeler_cushion")) return { family: "kneelingCushion", source: sourceMaterialName };
+  if (source.includes("kneeler_ornament")) return { family: "kneelingOrnament", source: sourceMaterialName };
   if (source.includes("wood_table")) return { family: "tableWood", source: sourceMaterialName };
   if (source.includes("wood_knee")) return { family: "kneelingWood", source: sourceMaterialName };
   if (source.includes("stone_altar")) return { family: "altarStone", source: sourceMaterialName };
@@ -154,25 +173,36 @@ const recipes: Record<SanctuaryMaterialFamily, MaterialRecipe> = {
   ceilingCross: { color: "#6a4028", roughness: .42, side: DoubleSide, envMapIntensity: .42, projectionScale: 1.55 },
   wallWood: { color: "#4d2b1d", roughness: .64, envMapIntensity: .28, projectionScale: .78 },
   trimWood: { color: "#70462d", roughness: .46, envMapIntensity: .42, projectionScale: 1.8 },
-  floorWood: { color: "#552f1e", roughness: .5, envMapIntensity: .36, projectionScale: 1.05 },
+  floorWood: { color: "#552f1e", roughness: .57, envMapIntensity: .32, projectionScale: .52 },
   plasterBody: { color: "#cbb995", roughness: .72, envMapIntensity: .14, projectionScale: 1.3 },
   plasterMolding: { color: "#e1d1ae", roughness: .63, envMapIntensity: .18, projectionScale: 2.2 },
   plasterRecess: { color: "#a89170", roughness: .8, envMapIntensity: .08, projectionScale: 1.75 },
   altarStone: { color: "#d8c49f", roughness: .48, envMapIntensity: .24, projectionScale: 1.8 },
   agedMetal: { color: "#6b4e31", roughness: .43, metalness: .78, envMapIntensity: .62 },
-  tableWood: { color: "#4a2919", roughness: .36, envMapIntensity: .55, projectionScale: 1.25 },
+  tableWood: { color: "#4a2919", roughness: .58, envMapIntensity: .34, projectionScale: .94 },
   bibleLeather: { color: "#68402a", roughness: .53, envMapIntensity: .3, projectionScale: 3.4 },
-  kneelingWood: { color: "#382016", roughness: .43, envMapIntensity: .44, projectionScale: 1.45 },
+  biblePages: { color: "#ead8b2", roughness: .88, envMapIntensity: .12 },
+  biblePageEdges: { color: "#a97948", roughness: .82, envMapIntensity: .12 },
+  bibleCover: { color: "#4a2a19", roughness: .62, envMapIntensity: .24, projectionScale: 2.7 },
+  bibleBinding: { color: "#352015", roughness: .69, envMapIntensity: .18, projectionScale: 3.1 },
+  kneelingWood: { color: "#382016", roughness: .58, envMapIntensity: .32, projectionScale: 1.18 },
+  kneelingCushion: { color: "#5b3425", roughness: .74, envMapIntensity: .18, projectionScale: 2.6 },
+  kneelingOrnament: { color: "#715034", roughness: .45, metalness: .72, envMapIntensity: .5 },
   windowGlass: { color: "#d7e1df", roughness: .13, metalness: .02, transparent: true, opacity: .32, envMapIntensity: .85 },
   windowWood: { color: "#633b25", roughness: .5, envMapIntensity: .38, projectionScale: 2.1 },
   candleWax: { color: "#ead6a4", roughness: .42, envMapIntensity: .22 },
+  candleMetal: { color: "#6c4c2e", roughness: .43, metalness: .82, envMapIntensity: .62 },
+  candleWick: { color: "#17120e", roughness: .92, envMapIntensity: .04 },
   fallback: { color: "#98866f", roughness: .68, envMapIntensity: .16 },
 };
 
 /** Creates a new material so one mesh's runtime changes cannot leak into another accepted unit. */
 export function materialTextureSet(family: SanctuaryMaterialFamily) { return textureSetForFamily[family]; }
 /** Textured families keep a near-neutral multiplier so photographic albedo controls surface value. */
-export function materialTint(family: SanctuaryMaterialFamily) { return textureSetForFamily[family] ? "#fffaf3" : recipes[family].color; }
+export function materialTint(family: SanctuaryMaterialFamily) {
+  if (family === "tableWood" || family === "kneelingWood") return "#f3eee6";
+  return textureSetForFamily[family] ? "#fffaf3" : recipes[family].color;
+}
 export function materialProjectionMode(family: SanctuaryMaterialFamily, hasAuthoredUv: boolean) {
   return textureSetForFamily[family] ? hasAuthoredUv ? "authored-uv" : "triplanar" : "none";
 }
@@ -192,6 +222,12 @@ export function createSanctuaryMaterial(resolution: MaterialResolution, hasAutho
     wax.name = `runtime:${resolution.family}:${resolution.source}`;
     wax.envMapIntensity = recipe.envMapIntensity ?? 1;
     return wax;
+  }
+  if (resolution.family === "biblePages" || resolution.family === "biblePageEdges") {
+    const paper = new MeshPhysicalMaterial({ color: new Color(recipe.color), roughness: recipe.roughness, metalness: 0, transmission: .025, thickness: .012, ior: 1.46 });
+    paper.name = `runtime:${resolution.family}:${resolution.source}`;
+    paper.envMapIntensity = recipe.envMapIntensity ?? 1;
+    return paper;
   }
   const material = new MeshStandardMaterial({
     color: new Color(materialTint(resolution.family)),
