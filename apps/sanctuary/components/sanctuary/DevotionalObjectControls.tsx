@@ -1,7 +1,7 @@
 // File: apps/sanctuary/components/sanctuary/DevotionalObjectControls.tsx
 // Description: Restricts development transform controls to the three devotional roots.
 // Purpose: Supports local owner calibration without changing Blender or GLB transforms.
-// Notes: Only Move and uniform Scale are exposed.
+// Notes: Move and independent X/Y/Z scale calibration are exposed locally.
 "use client";
 import { useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
