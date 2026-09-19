@@ -27,6 +27,19 @@ export function CameraCalibrationControls({ command, mode, transformDragging, on
   const { camera, gl, size, invalidate } = useThree();
   const controls = useRef<OrbitControls | null>(null);
   const lastCommand = useRef(0);
+  const latest = useRef<CalibrationPose | null>(null);
+  const lastPanelUpdate = useRef(0);
+  const pendingPanelUpdate = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const emit = (exact = false) => {
+    const orbit = controls.current;
+    if (!(camera instanceof PerspectiveCamera) || !orbit) return;
+    camera.userData.sanctuaryTarget = orbit.target.toArray();
+    latest.current = captureCameraCalibrationPose(camera, orbit.target, [size.width, size.height]);
+    invalidate();
+    const now = performance.now();
+    if (exact || now - lastPanelUpdate.current >= 100) { lastPanelUpdate.current = now; onCameraState(latest.current); return; }
+    if (!pendingPanelUpdate.current) pendingPanelUpdate.current = setTimeout(() => { pendingPanelUpdate.current = null; lastPanelUpdate.current = performance.now(); if (latest.current) onCameraState(latest.current); }, 100);
+  };
 
   useEffect(() => {
     if (!(camera instanceof PerspectiveCamera)) return;
@@ -36,15 +49,11 @@ export function CameraCalibrationControls({ command, mode, transformDragging, on
     orbit.screenSpacePanning = true;
     orbit.target.copy(savedTarget(camera));
     controls.current = orbit;
-    const emit = () => {
-      camera.userData.sanctuaryTarget = orbit.target.toArray();
-      onCameraState(captureCameraCalibrationPose(camera, orbit.target, [size.width, size.height]));
-      invalidate();
-    };
-    orbit.addEventListener("change", emit);
-    emit();
+    const changed = () => emit(); const ended = () => emit(true);
+    orbit.addEventListener("change", changed); gl.domElement.addEventListener("pointerup", ended);
+    emit(true);
     return () => {
-      orbit.removeEventListener("change", emit);
+      orbit.removeEventListener("change", changed); gl.domElement.removeEventListener("pointerup", ended); if (pendingPanelUpdate.current) clearTimeout(pendingPanelUpdate.current);
       orbit.dispose();
       controls.current = null;
     };
@@ -64,13 +73,12 @@ export function CameraCalibrationControls({ command, mode, transformDragging, on
       if (!orbit || transformDragging) return;
       camera.fov = Math.max(20, Math.min(100, camera.fov + event.deltaY * .035));
       camera.updateProjectionMatrix();
-      onCameraState(captureCameraCalibrationPose(camera, orbit.target, [size.width, size.height]));
-      invalidate();
+      emit();
     };
     const element = gl.domElement;
     element.addEventListener("wheel", onWheel, { passive: false });
     return () => element.removeEventListener("wheel", onWheel);
-  }, [camera, gl, invalidate, mode, onCameraState, size.height, size.width, transformDragging]);
+  }, [camera, gl, mode, transformDragging]);
 
   useEffect(() => {
     if (!command || command.id === lastCommand.current || !(camera instanceof PerspectiveCamera) || !controls.current) return;
@@ -102,8 +110,7 @@ export function CameraCalibrationControls({ command, mode, transformDragging, on
     }
     orbit.update();
     camera.userData.sanctuaryTarget = orbit.target.toArray();
-    onCameraState(captureCameraCalibrationPose(camera, orbit.target, [size.width, size.height]));
-    invalidate();
+    emit(true);
   }, [camera, command, invalidate, onCameraState, size.height, size.width]);
 
   return null;

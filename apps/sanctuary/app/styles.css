@@ -67,6 +67,7 @@ button:hover { filter: brightness(1.12); }
 .calibration-slot select, .calibration-number input { width: 100%; min-height: 2rem; color: #f4ebd9; background: #292219; border: 1px solid #bfa87d88; border-radius: .2rem; font: inherit; }
 .calibration-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; }
 .calibration-modes { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; margin: .65rem 0; padding: .5rem 0 0; border: 0; border-top: 1px solid #d3b78244; }.calibration-modes legend { grid-column: 1 / -1; padding: 0; color: #d5cab7; }.calibration-modes button { padding: .38rem; font: inherit; font-size: .68rem; }.calibration-modes .is-active { color: #17130e; background: #e2c995; border-color: #e2c995; }
+.calibration-active { margin: .55rem 0; padding: .55rem; color: #17130e; background: #e2c995; border: 2px solid #fff1bd; font-weight: 800; text-align: center; }.calibration-context { margin: .55rem 0; padding: .55rem; border: 1px solid #d3b78288; background: #251d14; }.calibration-context p { margin: .35rem 0 0; font-size: .74rem; line-height: 1.45; }.calibration-slider { display: grid; grid-template-columns: auto 1fr auto; gap: .35rem; align-items: center; margin-top: .55rem; font-size: .65rem; }.calibration-slider input { width: 100%; accent-color: #e2c995; }.calibration-object-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: .3rem; margin: .55rem 0; }.calibration-object-buttons button { padding: .45rem .2rem; font: inherit; font-size: .62rem; }.calibration-object-buttons .is-active { color: #17130e; background: #e2c995; border: 2px solid #fff1bd; }.calibration-nudges { display: flex; gap: .3rem; margin: .5rem 0; }.calibration-nudges span { display: flex; }.calibration-nudges button { padding: .3rem .4rem; font: inherit; font-size: .68rem; }.calibration-advanced { margin-top: .7rem; color: #d5cab7; }.calibration-advanced summary { cursor: pointer; }
 .calibration-actions button { padding: .42rem; font: inherit; font-size: .7rem; }
 .calibration-actions button:disabled { cursor: not-allowed; opacity: .5; }
 .calibration-editable { display: grid; gap: .45rem; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid #d3b78244; }
@@ -76,6 +77,7 @@ button:hover { filter: brightness(1.12); }
 .calibration-number input { min-width: 0; padding: .25rem; }
 .calibration-readout { display: grid; gap: .35rem; margin: .8rem 0 0; padding-top: .7rem; border-top: 1px solid #d3b78244; }
 .calibration-lens { margin: 0; color: #d5cab7; font-size: .7rem; }
+.camera-calibration[data-mode="move"] .calibration-editable, .camera-calibration[data-mode="scale"] .calibration-editable { display: none; }.camera-calibration[data-mode="navigate"] .calibration-lens { display: none; }
 .calibration-readout div { display: grid; grid-template-columns: 5.8rem 1fr; gap: .45rem; }
 .calibration-readout dt { color: #d5cab7; }.calibration-readout dd { min-width: 0; margin: 0; overflow-wrap: anywhere; }
 @media (max-width: 600px) {
