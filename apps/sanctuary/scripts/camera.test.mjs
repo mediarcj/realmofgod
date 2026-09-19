@@ -35,6 +35,14 @@ test("owner devotional calibration frames the altar over the tabletop", () => {
   assert.equal(pose.fov, 36);
   assert(pose.position[2] < cameraPose("entry", 1.78).position[2]);
 });
+test("owner Bible calibration is page-facing and centered", () => {
+  const pose = cameraPose("bible", 1.78);
+  assert.deepEqual(pose.up, [0, 0, -1]);
+  assert.equal(pose.fov, 46);
+  assert.equal(pose.position[0], pose.target[0]);
+  assert.equal(pose.position[2], pose.target[2]);
+  assert(pose.position[1] > sanctuaryCameraGeometry.bible.max[1]);
+});
 test("Bible fitting keeps every source-bound corner in frame at useful coverage", () => {
   for (const aspect of [.45, .75, 1.78]) {
     const pose = cameraPose("bible", aspect);
