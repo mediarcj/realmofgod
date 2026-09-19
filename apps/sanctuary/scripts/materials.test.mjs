@@ -6,7 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { materialProjectionMode, materialTextureSet, resolveSanctuaryMaterial } from "../lib/sanctuary/materials.ts";
+import { materialProjectionMode, materialTextureSet, materialTint, resolveSanctuaryMaterial } from "../lib/sanctuary/materials.ts";
 
 test("major construction units resolve to distinct intentional material families", () => {
   assert.equal(resolveSanctuaryMaterial("floor", "ROG_V2_Floor_Planks_AUTH_Mesh.001").family, "floorWood");
@@ -47,6 +47,13 @@ test("wood families use distinct cached PBR sources and UV-less wood uses projec
   assert.equal(materialTextureSet("plasterBody"), "plaster");
   assert.equal(materialProjectionMode("wallWood", true), "authored-uv");
   assert.equal(materialProjectionMode("plasterBody", false), "triplanar");
+});
+
+test("textured material families keep photographic albedo energy", () => {
+  for (const family of ["wallWood", "trimWood", "ceilingWood", "floorWood", "tableWood", "kneelingWood", "windowWood", "bibleLeather", "plasterBody"]) {
+    assert.equal(materialTint(family), "#fffaf3");
+  }
+  assert.equal(materialTint("agedMetal"), "#6b4e31");
 });
 
 test("referenced material texture assets exist and material debug remains calibration-gated", () => {

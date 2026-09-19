@@ -171,6 +171,8 @@ const recipes: Record<SanctuaryMaterialFamily, MaterialRecipe> = {
 
 /** Creates a new material so one mesh's runtime changes cannot leak into another accepted unit. */
 export function materialTextureSet(family: SanctuaryMaterialFamily) { return textureSetForFamily[family]; }
+/** Textured families keep a near-neutral multiplier so photographic albedo controls surface value. */
+export function materialTint(family: SanctuaryMaterialFamily) { return textureSetForFamily[family] ? "#fffaf3" : recipes[family].color; }
 export function materialProjectionMode(family: SanctuaryMaterialFamily, hasAuthoredUv: boolean) {
   return textureSetForFamily[family] ? hasAuthoredUv ? "authored-uv" : "triplanar" : "none";
 }
@@ -178,6 +180,7 @@ export function materialProjectionMode(family: SanctuaryMaterialFamily, hasAutho
 /** Creates runtime material instances without changing accepted mesh data. */
 export function createSanctuaryMaterial(resolution: MaterialResolution, hasAuthoredUv: boolean, meshName: string): MeshStandardMaterial | MeshPhysicalMaterial {
   const recipe = recipes[resolution.family];
+  const textureSet = textureSetForFamily[resolution.family];
   if (resolution.family === "windowGlass") {
     const glass = new MeshPhysicalMaterial({ color: new Color(recipe.color), roughness: .28, metalness: 0, transmission: .44, thickness: .045, ior: 1.45, transparent: true, opacity: .76, side: FrontSide });
     glass.name = `runtime:${resolution.family}:${resolution.source}`;
@@ -191,7 +194,7 @@ export function createSanctuaryMaterial(resolution: MaterialResolution, hasAutho
     return wax;
   }
   const material = new MeshStandardMaterial({
-    color: new Color(recipe.color),
+    color: new Color(materialTint(resolution.family)),
     roughness: recipe.roughness,
     metalness: recipe.metalness ?? 0,
     side: recipe.side ?? FrontSide,
@@ -200,7 +203,6 @@ export function createSanctuaryMaterial(resolution: MaterialResolution, hasAutho
   });
   material.name = `runtime:${resolution.family}:${resolution.source}`;
   material.envMapIntensity = recipe.envMapIntensity ?? 1;
-  const textureSet = textureSetForFamily[resolution.family];
   if (hasAuthoredUv && textureSet) {
     const textures = getPbrTextures(textureSet);
     material.map = textures.albedo;
