@@ -35,6 +35,13 @@ test("owner Bible camera lock is exact", () => {
   assert.deepEqual(pose.up, [0, 1, 0]);
   assert.equal(pose.fov, 49.2);
 });
+test("owner prayer camera lock is exact", () => {
+  const pose = cameraPose("prayer", 1.78);
+  assert.deepEqual(pose.position, [0.007128735040103533, 2.1547926392109815, 1.4569803586793368]);
+  assert.deepEqual(pose.target, [0.005757616056300196, 4.068051109055716, -0.12509942565052734]);
+  assert.deepEqual(pose.up, [0, 1, 0]);
+  assert.equal(pose.fov, 49.2);
+});
 test("transition easing is bounded and monotonic", () => {
   assert.equal(transitionEase(-1), 0);
   assert.equal(transitionEase(2), 1);
