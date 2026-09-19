@@ -27,35 +27,19 @@ const OWNER_DEVOTIONAL_DESKTOP: CameraPose = {
 };
 
 const OWNER_BIBLE_DESKTOP: CameraPose = {
-  position: [0.012919425964355469, 4.4277093727340535, -0.4406667798757553],
-  target: [0.012919425964355469, 2.00636488199234, -0.4406667798757553],
-  up: [0, 0, -1],
-  fov: 46,
+  position: [0.00037665110056488724, 3.991898100773323, -0.3558153850886138],
+  target: [0.0005360429555142286, 1.0832682689439963, -0.41188717984421014],
+  up: [0, 1, 0],
+  fov: 49.2,
   offset: [0, 0],
 };
 
 function architecturalFov(aspect: number) { return aspect < .75 ? 64 : 68; }
-function bibleFov(aspect: number) { return aspect < .6 ? 76 : aspect < 1 ? 60 : 46; }
-function fitBibleDistance(aspect: number, fov: number) {
-  const bible = geometry.bible;
-  const [width, , depth] = geometry.size(bible);
-  const vertical = fov * Math.PI / 180;
-  const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * aspect);
-  const coverage = .8;
-  const halfThickness = (bible.max[1] - bible.min[1]) / 2;
-  return Math.max(width / 2 / (coverage * Math.tan(horizontal / 2)), depth / 2 / (coverage * Math.tan(vertical / 2))) + halfThickness + .08;
-}
-
 export function cameraPose(view: SanctuaryView, aspect: number): CameraPose {
   const cross = geometry.center(geometry.centralCross);
-  const bible = geometry.center(geometry.bible);
   const adultPosition: Point3 = [0, geometry.adultEyeY, geometry.devotionalZ];
   if (view === "kneel") return OWNER_DEVOTIONAL_DESKTOP;
-  if (view === "bible") {
-    if (aspect >= 1.4) return OWNER_BIBLE_DESKTOP;
-    const fov = bibleFov(aspect);
-    return { position: [bible[0], bible[1] + fitBibleDistance(aspect, fov), bible[2]], target: bible, up: [0, 0, -1], fov, offset: [0, 0] };
-  }
+  if (view === "bible") return OWNER_BIBLE_DESKTOP;
   if (view === "prayer") {
     const ceilingLift = (geometry.ceiling.min[1] - geometry.centralCross.max[1]) * .45;
     return { position: adultPosition, target: [cross[0], geometry.centralCross.max[1] + ceilingLift, cross[2]], up: [0, 1, 0], fov: architecturalFov(aspect), offset: [0, 0] };

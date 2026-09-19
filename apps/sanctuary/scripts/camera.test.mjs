@@ -5,9 +5,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { PerspectiveCamera, Vector3 } from "three";
 import { cameraDuration, cameraPose, transitionEase } from "../lib/sanctuary/camera.ts";
-import { boundsCorners, sanctuaryCameraGeometry } from "../lib/sanctuary/camera-geometry.ts";
 test("guided views stay finite on phone, tablet and desktop", () => {
   for (const aspect of [.45, .75, 1, 1.78, 2.4]) for (const view of ["entry", "kneel", "bible", "prayer"]) {
     const pose = cameraPose(view, aspect);
@@ -30,28 +28,12 @@ test("owner devotional camera lock is exact", () => {
   assert.equal(pose.fov, 49.2);
   assert(pose.position[2] < cameraPose("entry", 1.78).position[2]);
 });
-test("owner Bible calibration is page-facing and centered", () => {
+test("owner Bible camera lock is exact", () => {
   const pose = cameraPose("bible", 1.78);
-  assert.deepEqual(pose.up, [0, 0, -1]);
-  assert.equal(pose.fov, 46);
-  assert.equal(pose.position[0], pose.target[0]);
-  assert.equal(pose.position[2], pose.target[2]);
-  assert(pose.position[1] > sanctuaryCameraGeometry.bible.max[1]);
-});
-test("Bible fitting keeps every source-bound corner in frame at useful coverage", () => {
-  for (const aspect of [.45, .75, 1.78]) {
-    const pose = cameraPose("bible", aspect);
-    const camera = new PerspectiveCamera(pose.fov, aspect, .05, 60);
-    camera.position.set(...pose.position); camera.up.set(...pose.up); camera.lookAt(new Vector3(...pose.target)); camera.updateMatrixWorld();
-    const projected = boundsCorners(sanctuaryCameraGeometry.bible).map((corner) => new Vector3(...corner).project(camera));
-    const xs = projected.map((point) => point.x), ys = projected.map((point) => point.y);
-    assert(Math.min(...xs) > -1 && Math.max(...xs) < 1 && Math.min(...ys) > -1 && Math.max(...ys) < 1);
-    const width = (Math.max(...xs) - Math.min(...xs)) / 2;
-    const height = (Math.max(...ys) - Math.min(...ys)) / 2;
-    assert(Math.max(width, height) >= .75 && Math.max(width, height) <= .85);
-    assert(Math.abs((Math.max(...xs) + Math.min(...xs)) / 2) < .05);
-    assert(Math.abs((Math.max(...ys) + Math.min(...ys)) / 2) < .05);
-  }
+  assert.deepEqual(pose.position, [0.00037665110056488724, 3.991898100773323, -0.3558153850886138]);
+  assert.deepEqual(pose.target, [0.0005360429555142286, 1.0832682689439963, -0.41188717984421014]);
+  assert.deepEqual(pose.up, [0, 1, 0]);
+  assert.equal(pose.fov, 49.2);
 });
 test("transition easing is bounded and monotonic", () => {
   assert.equal(transitionEase(-1), 0);
