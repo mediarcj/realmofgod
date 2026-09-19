@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "scope": "visible mixed-material hero assets and window construction",
+  "objects": [
+    {"object": "ROG_BIBLE_HYPER3D_MASTER", "category": "DEVOTIONAL_BIBLE", "components": 1, "material_slots": ["MAT_LEATHER_BIBLE_AGED_TAN"], "uv_layers": [], "vertex_groups": [], "status": "DERIVATIVE_SEGMENTATION_NEEDS_VISUAL_SELECTION", "expected_zones": ["BIBLE_PAGES", "BIBLE_PAGE_EDGES", "BIBLE_COVER", "BIBLE_BINDING"]},
+    {"object": "ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER", "category": "ALTAR_CANDLE_ASSEMBLY", "components": 1, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "DERIVATIVE_SEGMENTATION_NEEDS_VISUAL_SELECTION", "expected_zones": ["WAX", "METAL_HOLDER", "WICK"]},
+    {"object": "ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER", "category": "ALTAR_CANDLE_ASSEMBLY", "components": 1, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "DERIVATIVE_SEGMENTATION_NEEDS_VISUAL_SELECTION", "expected_zones": ["WAX", "METAL_HOLDER", "WICK"]},
+    {"object": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER", "category": "ALTAR_CANDLE_ASSEMBLY", "components": 1, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "DERIVATIVE_SEGMENTATION_NEEDS_VISUAL_SELECTION", "expected_zones": ["WAX", "METAL_HOLDER", "WICK"]},
+    {"object": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER", "category": "ALTAR_CANDLE_ASSEMBLY", "components": 1, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "DERIVATIVE_SEGMENTATION_NEEDS_VISUAL_SELECTION", "expected_zones": ["WAX", "METAL_HOLDER", "WICK"]},
+    {"object": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER", "category": "ALTAR_CANDLE_ASSEMBLY", "components": 1, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "DERIVATIVE_SEGMENTATION_NEEDS_VISUAL_SELECTION", "expected_zones": ["WAX", "METAL_HOLDER", "WICK"]},
+    {"object": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER", "category": "ALTAR_CANDLE_ASSEMBLY", "components": 1, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "DERIVATIVE_SEGMENTATION_NEEDS_VISUAL_SELECTION", "expected_zones": ["WAX", "METAL_HOLDER", "WICK"]},
+    {"object": "ROG_KNEE_REST_HYPER3D_MASTER", "category": "DEVOTIONAL_KNEE_REST", "components": 1, "material_slots": ["MAT_WOOD_KNEE_REST_DARK_WALNUT"], "uv_layers": [], "vertex_groups": [], "status": "DERIVATIVE_SEGMENTATION_NEEDS_VISUAL_SELECTION", "expected_zones": ["WOOD", "CUSHION", "ORNAMENT"]},
+    {"object": "ROG_TABLE_HYPER3D_MASTER", "category": "DEVOTIONAL_TABLE", "components": 1, "material_slots": ["MAT_WOOD_TABLE_DARK_WALNUT"], "uv_layers": [], "vertex_groups": [], "status": "SEMANTICALLY_READY", "expected_zones": ["WOOD"]},
+    {"object": "ALTAR_ACC_HYPER3D_CROSS_CENTER_MASTER", "category": "ALTAR_CROSS", "components": 1, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "AMBIGUOUS_DO_NOT_GUESS", "expected_zones": ["CROSS", "PEDESTAL_OR_STAND"]},
+    {"object": "ALTAR_ACC_HYPER3D_CROSS_LEFT_MASTER", "category": "ALTAR_CROSS", "components": 1, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "AMBIGUOUS_DO_NOT_GUESS", "expected_zones": ["CROSS", "PEDESTAL_OR_STAND"]},
+    {"object": "ALTAR_ACC_HYPER3D_CROSS_RIGHT_MASTER", "category": "ALTAR_CROSS", "components": 2, "material_slots": ["MAT_STONE_ALTAR_WARM_IVORY"], "uv_layers": [], "vertex_groups": [], "status": "AMBIGUOUS_DO_NOT_GUESS", "expected_zones": ["CROSS", "PEDESTAL_OR_STAND"]},
+    {"object": "clerestory window units", "category": "ARCH_WINDOW", "components": "separate frame, sash, muntin, stop, and glass objects", "material_slots": ["MAT_GLASS_ARCHITECTURE_CLEAR", "unassigned joinery objects"], "uv_layers": ["UVMap on glazing"], "vertex_groups": [], "status": "SEMANTICALLY_READY", "expected_zones": ["GLASS", "WOOD_JOINERY"]}
+  ],
+  "derivative": {"status": "PENDING_BLENDER_STARTUP", "allowed_mutation": "semantic material slots and visually verified face assignments only", "automatic_face_classification": false},
+  "remaining_ambiguous": ["altar cross and stand composition requires visual confirmation before any separation"]
+}
