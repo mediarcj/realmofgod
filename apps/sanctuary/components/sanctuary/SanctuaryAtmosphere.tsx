@@ -6,7 +6,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, PointLight, Points, RectAreaLight, Sprite } from "three";
-import { anchorByRole, point, runtimeAnchors, sourceObjectCenter } from "../../lib/sanctuary/runtime";
+import { anchorByRole, point, runtimeAnchors } from "../../lib/sanctuary/runtime";
 import type { LookdevProfile } from "../../lib/sanctuary/lookdev";
 
 const byRole = (role: string) => runtimeAnchors.filter((anchor) => anchor.role === role);
@@ -97,15 +97,6 @@ function Sunlight() {
   />;
 }
 
-function CeilingCrossLight({ intensity }: { intensity: number }) {
-  const [x, y, z] = sourceObjectCenter("ROG_V2_CeilingCross_CLEAN");
-  return <>
-    <pointLight position={[x, y - .26, z]} color="#f6ce82" intensity={intensity * .68} distance={2.7} decay={2} />
-    <pointLight position={[x - .34, y - .2, z]} color="#c98543" intensity={intensity * .18} distance={1.7} decay={2} />
-    <pointLight position={[x + .34, y - .2, z]} color="#c98543" intensity={intensity * .18} distance={1.7} decay={2} />
-  </>;
-}
-
 function WindowDaylight({ position, intensity }: { position: [number, number, number]; intensity: number }) {
   const light = useRef<RectAreaLight>(null);
   useEffect(() => {
@@ -122,7 +113,6 @@ export function SanctuaryAtmosphere({ reducedMotion, lookdev }: { reducedMotion:
   return <>
     <hemisphereLight args={["#e7edf2", "#5b4031", .58]} />
     <Sunlight />
-    <CeilingCrossLight intensity={lookdev.crossLight} />
     {sunBanks.map((anchor) => <WindowDaylight key={anchor.name} position={point(anchor.position)} intensity={lookdev.windowDaylight} />)}
     <CandleLights reducedMotion={reducedMotion} intensity={lookdev.candleLight} />
     {runtimeFlamesEnabled && <CandleFlames reducedMotion={reducedMotion} />}

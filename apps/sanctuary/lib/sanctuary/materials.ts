@@ -30,6 +30,7 @@ export type SanctuaryMaterialFamily =
   | "candleWax"
   | "candleMetal"
   | "candleWick"
+  | "candleFlame"
   | "fallback";
 
 export type MaterialResolution = { family: SanctuaryMaterialFamily; source: string };
@@ -48,7 +49,7 @@ const texturePaths: Record<TextureSet, { albedo: string; normal: string; roughne
 };
 const textureSetForFamily: Record<SanctuaryMaterialFamily, TextureSet | null> = {
   wallWood: "fine", ceilingWood: "walnut", trimWood: "fine", floorWood: "floor", tableWood: "walnut", kneelingWood: "fine", windowWood: "walnut",
-  ceilingCross: "walnut", plasterBody: "plaster", plasterMolding: "plaster", plasterRecess: "plaster", altarStone: "plaster", agedMetal: null, bibleLeather: "leather", biblePages: null, biblePageEdges: null, bibleCover: "leather", bibleBinding: "leather", kneelingCushion: "leather", kneelingOrnament: null, windowGlass: null, candleWax: null, candleMetal: null, candleWick: null, fallback: null,
+  ceilingCross: "walnut", plasterBody: "plaster", plasterMolding: "plaster", plasterRecess: "plaster", altarStone: "plaster", agedMetal: null, bibleLeather: "leather", biblePages: null, biblePageEdges: null, bibleCover: "leather", bibleBinding: "leather", kneelingCushion: "leather", kneelingOrnament: null, windowGlass: null, candleWax: null, candleMetal: null, candleWick: null, candleFlame: null, fallback: null,
 };
 let pbrTextures: Partial<Record<TextureSet, PbrTextures>> = {};
 function getPbrTextures(textureSet: TextureSet): PbrTextures {
@@ -131,6 +132,7 @@ const byUnit: Partial<Record<string, SanctuaryMaterialFamily>> = {
   "altar-cross-sides": "agedMetal",
   "altar-candles-large": "candleWax",
   "altar-candles-medium": "candleWax",
+  "altar-candles-runtime": "candleWax",
   table: "tableWood",
   bible: "bibleLeather",
   "kneeling-rest": "kneelingWood",
@@ -155,6 +157,7 @@ export function resolveSanctuaryMaterial(unit: string, meshName: string, sourceM
   if (source.includes("bible_page")) return { family: "biblePages", source: sourceMaterialName };
   if (source.includes("bible_cover")) return { family: "bibleCover", source: sourceMaterialName };
   if (source.includes("bible_binding")) return { family: "bibleBinding", source: sourceMaterialName };
+  if (source.includes("candle_flame_source")) return { family: "candleFlame", source: sourceMaterialName };
   if (source.includes("candle_metal")) return { family: "candleMetal", source: sourceMaterialName };
   if (source.includes("candle_wick")) return { family: "candleWick", source: sourceMaterialName };
   if (source.includes("candle_wax")) return { family: "candleWax", source: sourceMaterialName };
@@ -193,6 +196,7 @@ const recipes: Record<SanctuaryMaterialFamily, MaterialRecipe> = {
   candleWax: { color: "#ead6a4", roughness: .42, envMapIntensity: .22 },
   candleMetal: { color: "#6c4c2e", roughness: .43, metalness: .82, envMapIntensity: .62 },
   candleWick: { color: "#17120e", roughness: .92, envMapIntensity: .04 },
+  candleFlame: { color: "#ffb05a", roughness: .28, envMapIntensity: .08 },
   fallback: { color: "#98866f", roughness: .68, envMapIntensity: .16 },
 };
 
@@ -216,6 +220,18 @@ export function createSanctuaryMaterial(resolution: MaterialResolution, hasAutho
     glass.name = `runtime:${resolution.family}:${resolution.source}`;
     glass.envMapIntensity = recipe.envMapIntensity ?? 1;
     return glass;
+  }
+  if (resolution.family === "candleFlame") {
+    const flame = new MeshStandardMaterial({
+      color: new Color("#ffb05a"),
+      roughness: .28,
+      metalness: 0,
+      emissive: new Color("#ff640f"),
+      emissiveIntensity: 3.4,
+    });
+    flame.name = `runtime:${resolution.family}:${resolution.source}`;
+    flame.envMapIntensity = .08;
+    return flame;
   }
   if (resolution.family === "candleWax") {
     const wax = new MeshPhysicalMaterial({ color: new Color(recipe.color), roughness: .62, metalness: 0, transmission: .08, thickness: .035, ior: 1.38 });

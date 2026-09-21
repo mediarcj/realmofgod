@@ -1,34 +1,34 @@
 {
-  "source_sha256": "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24",
+  "source_sha256": "118ac40912509b1242608fa88163476e0013ee9179f17942b3f8ed3273286e36",
   "blender_version": "5.2.2 LTS",
   "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
   "asset": "bible.glb",
-  "sha256": "53fbefa68b234864b0f3edbe2612e2c12a98927da346741bcf44a7333aae9cff",
-  "bytes": 2247592,
+  "sha256": "e8910a8a4c586f6fd067862dab4be0877cea1a53d45167e34b70df77ab5b4fe4",
+  "bytes": 18583848,
   "objects": [
     {
       "name": "ROG_BIBLE_HYPER3D_MASTER",
       "category": "DEVOTIONAL_BIBLE",
       "export_policy": "WEB_DERIVATIVE_RUNTIME_ADDRESSABLE",
-      "triangles": 100000,
+      "triangles": 1000000,
       "matrix_world_blender": [
         [
-          1.4157894849777222,
-          0,
-          0,
-          0.012919418513774872
+          1.4157795906066895,
+          0.004615644924342632,
+          0.00003301068863947876,
+          0.019161760807037354
         ],
         [
-          0,
-          9.329950501069106e-8,
-          -0.9957894682884216,
-          0.4406667649745941
+          -0.000046933408157201484,
+          0.02193492092192173,
+          -0.9956325888633728,
+          0.47033217549324036
         ],
         [
-          0,
-          1.23578941822052,
-          7.518001154949161e-8,
-          2.0063648223876953
+          -0.005287940613925457,
+          1.235586166381836,
+          0.017674988135695457,
+          1.9750683307647705
         ],
         [
           0,
@@ -39,37 +39,27 @@
       ],
       "bounds_blender": {
         "min": [
-          -1.3320846557617188,
-          -0.3004600703716278,
-          1.8901287317276
+          -1.3261098861694336,
+          -0.2719569802284241,
+          1.8477540016174316
         ],
         "max": [
-          1.3578929901123047,
-          1.1818257570266724,
-          2.1226396560668945
+          1.3638646602630615,
+          1.2103055715560913,
+          2.100135087966919
         ]
       },
       "materials": [
+        "ROG_BIBLE_NEUTRAL_REVIEW",
+        "MAT_BIBLE_PAGE_PAPER",
+        "MAT_BIBLE_PAGE_EDGES",
+        "MAT_BIBLE_BINDING",
+        "MAT_BIBLE_COVER",
         "MAT_LEATHER_BIBLE_AGED_TAN"
-      ],
-      "source_triangles": 1000000,
-      "sampled_surface_error_m": 0.0002960505662485957,
-      "source_bounds_blender": {
-        "min": [
-          -1.332080602645874,
-          -0.3005421459674835,
-          1.8901759386062622
-        ],
-        "max": [
-          1.357919454574585,
-          1.1818757057189941,
-          2.122553825378418
-        ]
-      },
-      "derivative_level": "WEB_HIGH"
+      ]
     }
   ],
-  "uncompressed_bytes": 11993312,
-  "uncompressed_sha256": "e5f514d34f802aa0d0ed43a21227c807f49faf227f34d375bbf364e034e88d57",
-  "optimization": "glTF Transform 4.4.2; 1024px textures, WebP q90, Meshopt medium, position 16 bits; no joining"
+  "uncompressed_bytes": 119646772,
+  "uncompressed_sha256": "94b8761f5bb9fda138ba9896089adc1a87fb2ede7ea0fed5fb7dd11fb6b5ccaa",
+  "optimization": "glTF Transform 4.4.2; one Meshopt medium pass, position 16 bits; no joining, texture conversion, or material collapse"
 }

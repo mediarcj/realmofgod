@@ -10,7 +10,7 @@ import { Matrix4, Vector3 } from "three";
 const [input, output, geometryOutput] = process.argv.slice(2);
 assert(input && output && geometryOutput, "Usage: build-runtime-contract.mjs inventory.json contract.json geometry.json");
 const source = JSON.parse(readFileSync(input));
-const expected = "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24";
+const expected = "118ac40912509b1242608fa88163476e0013ee9179f17942b3f8ed3273286e36";
 assert.equal(source.source.sha256, expected);
 assert.equal(source.scene.unit_scale, 1);
 const axis = new Matrix4().makeRotationX(-Math.PI / 2);

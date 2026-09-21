@@ -1,0 +1,313 @@
+{
+  "source_sha256": "9b6852358af32c625589d5108249c5da4947d1aeb31bcf8e30a398ece290fd6b",
+  "blender_version": "5.2.2 LTS",
+  "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
+  "asset": "altar-candles-runtime.glb",
+  "sha256": "dd727bffb6e30b97a9882acfc0ce683f3c9efaa511bfc82130d6e9d6a937ad3c",
+  "bytes": 282128,
+  "objects": [
+    {
+      "name": "WEB_ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER",
+      "category": "ALTAR_CANDLE_ASSEMBLY",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 9229,
+      "matrix_world_blender": [
+        [
+          2.951340675354004,
+          -0.0000978375828708522,
+          0.018372109159827232,
+          -1.2906380891799927
+        ],
+        [
+          -0.00009783759742276743,
+          2.9508962631225586,
+          0.08730937540531158,
+          3.153428316116333
+        ],
+        [
+          -0.011023265309631824,
+          -0.05238562449812889,
+          4.918126106262207,
+          1.7732598781585693
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -4.227015972137451,
+          2.518639087677002,
+          -0.08219192177057266
+        ],
+        "max": [
+          -3.011366128921509,
+          3.7571306228637695,
+          3.6039206981658936
+        ]
+      },
+      "materials": [
+        "MAT_CANDLE_WAX",
+        "MAT_CANDLE_METAL_AGED",
+        "MAT_CANDLE_WICK",
+        "MAT_CANDLE_FLAME_SOURCE"
+      ]
+    },
+    {
+      "name": "WEB_ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER",
+      "category": "ALTAR_CANDLE_ASSEMBLY",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 8600,
+      "matrix_world_blender": [
+        [
+          2.951340675354004,
+          -0.0000978375828708522,
+          0.018372109159827232,
+          1.3017560243606567
+        ],
+        [
+          -0.00009783759742276743,
+          2.9508962631225586,
+          0.08730937540531158,
+          3.1777045726776123
+        ],
+        [
+          -0.011023265309631824,
+          -0.05238562449812889,
+          4.918126106262207,
+          1.763144850730896
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          3.2062647342681885,
+          2.5019779205322266,
+          -0.10947257280349731
+        ],
+        "max": [
+          4.48994779586792,
+          3.809183120727539,
+          3.5845818519592285
+        ]
+      },
+      "materials": [
+        "MAT_CANDLE_WAX",
+        "MAT_CANDLE_METAL_AGED",
+        "MAT_CANDLE_WICK",
+        "MAT_CANDLE_FLAME_SOURCE"
+      ]
+    },
+    {
+      "name": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER",
+      "category": "ALTAR_CANDLE_ASSEMBLY",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 5869,
+      "matrix_world_blender": [
+        [
+          1.9675583839416504,
+          -0.00008896354847820476,
+          0.012778490781784058,
+          -0.77286297082901
+        ],
+        [
+          -0.00006522499461425468,
+          2.6832449436187744,
+          0.060726944357156754,
+          3.862137794494629
+        ],
+        [
+          -0.007348835933953524,
+          -0.04763415828347206,
+          3.420741081237793,
+          3.12764310836792
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -2.1481730937957764,
+          3.418928861618042,
+          1.8359295129776
+        ],
+        "max": [
+          -1.5663257837295532,
+          4.251039981842041,
+          3.902151107788086
+        ]
+      },
+      "materials": [
+        "MAT_CANDLE_WAX",
+        "MAT_CANDLE_METAL_AGED",
+        "MAT_CANDLE_WICK",
+        "MAT_CANDLE_FLAME_SOURCE"
+      ]
+    },
+    {
+      "name": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER",
+      "category": "ALTAR_CANDLE_ASSEMBLY",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 5869,
+      "matrix_world_blender": [
+        [
+          1.9675583839416504,
+          -0.00008896354847820476,
+          0.012778490781784058,
+          -2.263972043991089
+        ],
+        [
+          -0.00006522499461425468,
+          2.6832449436187744,
+          0.060726944357156754,
+          3.862187385559082
+        ],
+        [
+          -0.007348835933953524,
+          -0.04763415828347206,
+          3.420741081237793,
+          3.1332125663757324
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          -3.6392822265625,
+          3.418978452682495,
+          1.8414989709854126
+        ],
+        "max": [
+          -3.0574347972869873,
+          4.251089572906494,
+          3.9077205657958984
+        ]
+      },
+      "materials": [
+        "MAT_CANDLE_WAX",
+        "MAT_CANDLE_METAL_AGED",
+        "MAT_CANDLE_WICK",
+        "MAT_CANDLE_FLAME_SOURCE"
+      ]
+    },
+    {
+      "name": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER",
+      "category": "ALTAR_CANDLE_ASSEMBLY",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 5709,
+      "matrix_world_blender": [
+        [
+          1.9675583839416504,
+          -0.00008896354120224714,
+          0.012778490781784058,
+          0.7892983555793762
+        ],
+        [
+          -0.00006522499461425468,
+          2.6832449436187744,
+          0.060726944357156754,
+          3.862086057662964
+        ],
+        [
+          -0.007348835933953524,
+          -0.04763415828347206,
+          3.420741081237793,
+          3.1218085289001465
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          1.7005646228790283,
+          3.400845527648926,
+          1.821531057357788
+        ],
+        "max": [
+          2.2992074489593506,
+          4.256729602813721,
+          3.8855092525482178
+        ]
+      },
+      "materials": [
+        "MAT_CANDLE_WAX",
+        "MAT_CANDLE_METAL_AGED",
+        "MAT_CANDLE_WICK",
+        "MAT_CANDLE_FLAME_SOURCE"
+      ]
+    },
+    {
+      "name": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER",
+      "category": "ALTAR_CANDLE_ASSEMBLY",
+      "export_policy": "WEB_DERIVATIVE_STATIC",
+      "triangles": 5709,
+      "matrix_world_blender": [
+        [
+          1.9675583839416504,
+          -0.00008896354120224714,
+          0.012778490781784058,
+          2.2852694988250732
+        ],
+        [
+          -0.00006522499461425468,
+          2.6832449436187744,
+          0.060726944357156754,
+          3.8620364665985107
+        ],
+        [
+          -0.007348835933953524,
+          -0.04763415828347206,
+          3.420741081237793,
+          3.1162209510803223
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "bounds_blender": {
+        "min": [
+          3.19653582572937,
+          3.4007959365844727,
+          1.8159434795379639
+        ],
+        "max": [
+          3.7951784133911133,
+          4.256680011749268,
+          3.8799216747283936
+        ]
+      },
+      "materials": [
+        "MAT_CANDLE_WAX",
+        "MAT_CANDLE_METAL_AGED",
+        "MAT_CANDLE_WICK",
+        "MAT_CANDLE_FLAME_SOURCE"
+      ]
+    }
+  ],
+  "uncompressed_bytes": 624952,
+  "uncompressed_sha256": "b73f10515e16fbb860d5e2ee118dd7c1c564328a7d8b4182e0017cce3ddd3a1f",
+  "optimization": "glTF Transform 4.4.2; one Meshopt medium pass, position 16 bits; no joining, texture conversion, or material collapse"
+}

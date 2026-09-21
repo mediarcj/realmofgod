@@ -19,10 +19,12 @@ export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, ca
     copy.traverse((object) => {
       if (!(object instanceof Mesh)) return;
       const hasAuthoredUv = Boolean(object.geometry.getAttribute("uv"));
-      const resolution = resolveSanctuaryMaterial(unit, object.name, sourceMaterialName(object.material));
-      const material = createSanctuaryMaterial(resolution, hasAuthoredUv, object.name);
-      object.material = material;
-      object.userData.sanctuaryMaterial = { unit, family: resolution.family, source: resolution.source, uv: hasAuthoredUv, projection: materialProjectionMode(resolution.family, hasAuthoredUv), textureSet: materialTextureSet(resolution.family) };
+      const sourceMaterials = Array.isArray(object.material) ? object.material : [object.material];
+      const resolutions = sourceMaterials.map((material) => resolveSanctuaryMaterial(unit, object.name, sourceMaterialName(material)));
+      const runtimeMaterials = resolutions.map((resolution) => createSanctuaryMaterial(resolution, hasAuthoredUv, object.name));
+      object.material = Array.isArray(object.material) ? runtimeMaterials : runtimeMaterials[0];
+      const resolution = resolutions[0];
+      object.userData.sanctuaryMaterial = { unit, family: resolutions.map((item) => item.family).join("|"), source: resolutions.map((item) => item.source).join("|"), uv: hasAuthoredUv, projection: materialProjectionMode(resolution.family, hasAuthoredUv), textureSet: materialTextureSet(resolution.family) };
       object.receiveShadow = true;
       object.castShadow = unit.startsWith("altar-") || unit === "table" || unit === "bible" || unit === "kneeling-rest" || unit === "ceiling-structure" || unit === "ceiling-coffers" || unit.endsWith("wall") || unit.endsWith("wall-panels") || unit === "baseboard" || unit.endsWith("stringcourse");
     });

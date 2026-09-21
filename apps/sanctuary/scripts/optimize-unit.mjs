@@ -18,10 +18,7 @@ const cli = fileURLToPath(new URL("../node_modules/.bin/gltf-transform", import.
 const temporary = mkdtempSync(join(tmpdir(), "sanctuary-opt-"));
 try {
   mkdirSync(dirname(output), { recursive: true });
-  const resized = join(temporary, "resized.glb"), textured = join(temporary, "textured.glb");
-  execFileSync(cli, ["resize", input, resized, "--width", "1024", "--height", "1024"], { stdio: "inherit" });
-  execFileSync(cli, ["webp", resized, textured, "--quality", "90"], { stdio: "inherit" });
-  execFileSync(cli, ["meshopt", textured, output, "--level", "medium", "--quantize-position", "16"], { stdio: "inherit" });
+  execFileSync(cli, ["meshopt", input, output, "--level", "medium", "--quantize-position", "16"], { stdio: "inherit" });
   execFileSync(cli, ["validate", output], { stdio: "inherit" });
   const bytes = readFileSync(output);
   const manifest = JSON.parse(readFileSync(input.replace(/\.glb$/, ".json")));
@@ -30,7 +27,7 @@ try {
   manifest.bytes = bytes.length;
   manifest.asset = basename(output);
   manifest.sha256 = createHash("sha256").update(bytes).digest("hex");
-  manifest.optimization = "glTF Transform 4.4.2; 1024px textures, WebP q90, Meshopt medium, position 16 bits; no joining";
+  manifest.optimization = "glTF Transform 4.4.2; one Meshopt medium pass, position 16 bits; no joining, texture conversion, or material collapse";
   writeFileSync(output.replace(/\.glb$/, ".json"), JSON.stringify(manifest, null, 2) + "\n");
 } finally {
   // Remove only the fresh temporary directory owned by this invocation.

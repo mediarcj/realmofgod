@@ -14,12 +14,15 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
 await MeshoptDecoder.ready;
 
 const base = process.argv[2] ? pathToFileURL(resolve(process.argv[2]) + "/") : new URL("../public/models/sanctuary/", import.meta.url);
+const architectureSourceSha = "118ac40912509b1242608fa88163476e0013ee9179f17942b3f8ed3273286e36";
+const candleSourceSha = "9b6852358af32c625589d5108249c5da4947d1aeb31bcf8e30a398ece290fd6b";
 const seen = new Set();
 let triangles = 0, bytes = 0;
 for (const file of readdirSync(base).filter((name) => name.endsWith(".glb"))) {
   const data = readFileSync(new URL(file, base));
   const contract = JSON.parse(readFileSync(new URL(file.replace(".glb", ".json"), base)));
-  assert.equal(contract.source_sha256, "fc0357a2335e3ed7205a4035d2baf2bedae5ac8e5b7934dd24382d19b89a1c24");
+  const expectedSourceSha = file === "altar-candles-runtime.glb" ? candleSourceSha : architectureSourceSha;
+  assert.equal(contract.source_sha256, expectedSourceSha, `Wrong source authority: ${file}`);
   assert.equal(createHash("sha256").update(data).digest("hex"), contract.sha256);
   assert.equal(data.readUInt32LE(0), 0x46546c67);
   assert.equal(data.readUInt32LE(8), data.length);
