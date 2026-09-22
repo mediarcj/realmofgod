@@ -9,9 +9,8 @@ Notes: The contract applies to every Sanctuary V2 change.
 
 ## Visual source and assets
 
-- Sanctuary architecture, altar/reredos, walls, floor, trim, upper windows, leveled ceiling, Bible, devotional table, kneeler, cameras, and every non-candle asset are derived only from `Realm_of_God_NEW_SANCTUARY_v2_CEILING_LEVEL_v28_4_4.blend`, SHA-256 `118ac40912509b1242608fa88163476e0013ee9179f17942b3f8ed3273286e36`.
-- Candle and candle-holder geometry are derived only from `Realm_of_God_NEW_SANCTUARY_v2_CANDLE_HOLDER_STRUCTURE_v28_3_0.blend`, SHA-256 `9b6852358af32c625589d5108249c5da4947d1aeb31bcf8e30a398ece290fd6b`.
-- Never merge those Blender files. Export and load them as separate browser asset groups, and record the actual source SHA in every adjacent asset contract.
+- Every active runtime asset, including candles and candle holders, is derived only from `Realm_of_God_NEW_SANCTUARY_v2_CEILING_LEVEL_v28_4_4.blend`, SHA-256 `118ac40912509b1242608fa88163476e0013ee9179f17942b3f8ed3273286e36`.
+- The production exporter and validators must fail closed unless this exact path and SHA are the active source. Never merge, append, link, or use another Blender source for active runtime work.
 - Never modify, save over, simplify, or export into the accepted Blender master. Browser assets are separate derivatives only.
 - Do not use the former v26.1.0 or rejected v26.2.0 files as visual or geometry sources.
 - Do not reuse historical browser-room geometry or placeholders. Historical branches may be inspected for non-visual utilities and lessons only.

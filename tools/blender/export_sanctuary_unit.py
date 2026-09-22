@@ -11,6 +11,8 @@ import struct
 from pathlib import Path
 
 import bpy
+
+APPROVED_SHA256 = "118ac40912509b1242608fa88163476e0013ee9179f17942b3f8ed3273286e36"
 def digest(path):
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
@@ -18,18 +20,17 @@ def digest(path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", type=Path, required=True)
-    parser.add_argument("--source-sha256", required=True)
+    parser.add_argument("--expected-source", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--objects", nargs="+", required=True)
     parser.add_argument("--max-triangles", type=int, default=0)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
-    source, output = args.source.resolve(), args.output.resolve()
+    source, output = args.expected_source.resolve(), args.output.resolve()
     if output == source or output.suffix != ".glb":
         raise ValueError("Output must be a separate GLB derivative.")
     if Path(bpy.data.filepath).resolve() != source:
         raise ValueError(f"Wrong open Blender file: {bpy.data.filepath}; expected {source}")
-    if digest(source) != args.source_sha256:
+    if digest(source) != APPROVED_SHA256:
         raise ValueError("Accepted master SHA-256 mismatch.")
     if len(set(args.objects)) != len(args.objects):
         raise ValueError("Duplicate selected object names.")
@@ -84,9 +85,9 @@ def main():
         exported = [node.get("name") for node in gltf.get("nodes", []) if "mesh" in node]
         if sorted(exported) != sorted(args.objects):
             raise RuntimeError(f"Exported mesh selection mismatch: {exported}")
-        if digest(source) != args.source_sha256:
+        if digest(source) != APPROVED_SHA256:
             raise RuntimeError("Master changed during export.")
-        manifest = {"source_sha256": args.source_sha256, "blender_version": bpy.app.version_string,
+        manifest = {"source_sha256": APPROVED_SHA256, "blender_version": bpy.app.version_string,
                     "coordinate_mapping": "Blender (x,y,z) -> glTF (x,z,-y), metres",
                     "asset": output.name, "sha256": digest(output), "bytes": output.stat().st_size,
                     "objects": records}

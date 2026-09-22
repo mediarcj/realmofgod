@@ -13,7 +13,7 @@
     {
       "name": "ROG_FX_CandleFlame_LARGE_LEFT",
       "role": "CANDLE_FLAME_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -52,7 +52,7 @@
     {
       "name": "ROG_FX_CandleFlame_LARGE_RIGHT",
       "role": "CANDLE_FLAME_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -91,7 +91,7 @@
     {
       "name": "ROG_FX_CandleFlame_MEDIUM_LEFT",
       "role": "CANDLE_FLAME_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -130,7 +130,7 @@
     {
       "name": "ROG_FX_CandleFlame_MEDIUM_LEFT_ARCH3",
       "role": "CANDLE_FLAME_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -169,7 +169,7 @@
     {
       "name": "ROG_FX_CandleFlame_MEDIUM_RIGHT",
       "role": "CANDLE_FLAME_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -208,7 +208,7 @@
     {
       "name": "ROG_FX_CandleFlame_MEDIUM_RIGHT_ARCH3",
       "role": "CANDLE_FLAME_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -247,7 +247,7 @@
     {
       "name": "ROG_FX_CandleSmoke_LARGE_LEFT",
       "role": "CANDLE_SMOKE_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -286,7 +286,7 @@
     {
       "name": "ROG_FX_CandleSmoke_LARGE_RIGHT",
       "role": "CANDLE_SMOKE_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -325,7 +325,7 @@
     {
       "name": "ROG_FX_CandleSmoke_MEDIUM_LEFT",
       "role": "CANDLE_SMOKE_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -364,7 +364,7 @@
     {
       "name": "ROG_FX_CandleSmoke_MEDIUM_LEFT_ARCH3",
       "role": "CANDLE_SMOKE_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -403,7 +403,7 @@
     {
       "name": "ROG_FX_CandleSmoke_MEDIUM_RIGHT",
       "role": "CANDLE_SMOKE_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -442,7 +442,7 @@
     {
       "name": "ROG_FX_CandleSmoke_MEDIUM_RIGHT_ARCH3",
       "role": "CANDLE_SMOKE_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER.001",
       "bank": null,
       "policy": "EXPORT_AS_GLTF_EMPTY",
       "position": [
@@ -715,7 +715,7 @@
     {
       "name": "ROG_LGT_Candle_LARGE_LEFT",
       "role": "CANDLE_LIGHT_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_LARGE_LEFT_MASTER.001",
       "bank": null,
       "policy": "RUNTIME_RECREATE_IN_R3F",
       "position": [
@@ -759,7 +759,7 @@
     {
       "name": "ROG_LGT_Candle_LARGE_RIGHT",
       "role": "CANDLE_LIGHT_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_LARGE_RIGHT_MASTER.001",
       "bank": null,
       "policy": "RUNTIME_RECREATE_IN_R3F",
       "position": [
@@ -803,7 +803,7 @@
     {
       "name": "ROG_LGT_Candle_MEDIUM_LEFT",
       "role": "CANDLE_LIGHT_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_LEFT_MASTER.001",
       "bank": null,
       "policy": "RUNTIME_RECREATE_IN_R3F",
       "position": [
@@ -847,7 +847,7 @@
     {
       "name": "ROG_LGT_Candle_MEDIUM_LEFT_ARCH3",
       "role": "CANDLE_LIGHT_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_LEFT_ARCH3_MASTER.001",
       "bank": null,
       "policy": "RUNTIME_RECREATE_IN_R3F",
       "position": [
@@ -891,7 +891,7 @@
     {
       "name": "ROG_LGT_Candle_MEDIUM_RIGHT",
       "role": "CANDLE_LIGHT_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_MASTER.001",
       "bank": null,
       "policy": "RUNTIME_RECREATE_IN_R3F",
       "position": [
@@ -935,7 +935,7 @@
     {
       "name": "ROG_LGT_Candle_MEDIUM_RIGHT_ARCH3",
       "role": "CANDLE_LIGHT_ANCHOR",
-      "host": "ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER",
+      "host": "WEB_ALTAR_ACC_HYPER3D_MEDIUM_RIGHT_ARCH3_MASTER.001",
       "bank": null,
       "policy": "RUNTIME_RECREATE_IN_R3F",
       "position": [

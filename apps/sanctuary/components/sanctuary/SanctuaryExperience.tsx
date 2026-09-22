@@ -7,7 +7,7 @@
 import dynamic from "next/dynamic";
 import { Component, useCallback, useEffect, useReducer, useState, type ReactNode } from "react";
 import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
-import { devotionalLabels, eligibleObjects, initialJourney, journeyTransition } from "../../lib/sanctuary/journey";
+import { initialJourney, journeyHotspots, journeyTransition, journeyViewForHotspot, type JourneyHotspot } from "../../lib/sanctuary/journey";
 import {
   calibrationViewForSlot,
   emptyCalibrationFile,
@@ -25,7 +25,7 @@ import { HomeControl } from "./HomeControl";
 import { CameraCalibrationPanel } from "./CameraCalibrationPanel";
 import type { CameraCalibrationMode } from "./CameraCalibrationControls";
 import type { ObjectCalibrationCommand, ObjectCalibrationState } from "./DevotionalObjectControls";
-import { defaultLookdev, type LookdevProfile } from "../../lib/sanctuary/lookdev";
+import { defaultLookdev, developmentLookdevProfile, type LookdevProfile } from "../../lib/sanctuary/lookdev";
 import { LookdevControls } from "./LookdevControls";
 
 const SanctuaryCanvas = dynamic(() => import("./SanctuaryCanvas"), {
@@ -64,7 +64,11 @@ export function SanctuaryExperience() {
   const [lookdevStatus, setLookdevStatus] = useState("Default lookdev profile.");
   const onObjectState = useCallback((key: DevotionalCalibrationKey, state: ObjectCalibrationState) => setObjectStates((current) => ({ ...current, [key]: state })), []);
   const issueCommand = useCallback((command: CalibrationCommandDraft) => setCalibrationCommand({ ...command, id: Date.now() }), []);
-  const onActivate = useCallback((object: string) => { if (!calibrationEnabled) dispatch({ type: "activate", object }); }, [calibrationEnabled]);
+  const onActivate = useCallback((hotspot: string) => {
+    if (calibrationEnabled) return;
+    const key = (Object.keys(journeyHotspots) as JourneyHotspot[]).find((candidate) => journeyHotspots[candidate] === hotspot);
+    if (key) dispatch({ type: "navigate", hotspot: key });
+  }, [calibrationEnabled]);
   const onSettled = useCallback((revision: number) => dispatch({ type: "settled", revision }), []);
   const onPray = useCallback(() => { if (!calibrationEnabled) dispatch({ type: "pray" }); }, [calibrationEnabled]);
   const onReturn = useCallback(() => { if (!calibrationEnabled) dispatch({ type: "home" }); }, [calibrationEnabled]);
@@ -75,6 +79,13 @@ export function SanctuaryExperience() {
     const update = () => setReducedMotion(query.matches);
     update(); query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    const reviewProfile = developmentLookdevProfile(window.location.search);
+    if (!reviewProfile) return;
+    setLookdev(reviewProfile);
+    setLookdevStatus(`Development ${new URLSearchParams(window.location.search).get("lookdev")} lookdev comparison active.`);
   }, []);
   useEffect(() => {
     if (process.env.NODE_ENV === "production" || new URLSearchParams(window.location.search).get("calibrate") !== "1") return;
@@ -150,8 +161,8 @@ export function SanctuaryExperience() {
   return <>
     <div className="scene-frame" data-view={journey.view} data-moving={journey.moving}><RenderBoundary><SanctuaryCanvas view={journey.view} reducedMotion={reducedMotion} onProgress={setLoaded} revision={journey.revision} onSettled={onSettled} interactive={ready && !journey.moving && !calibrationEnabled} onActivate={onActivate} calibrationEnabled={calibrationEnabled} calibrationMode={calibrationMode} calibrationCommand={calibrationCommand} onCameraState={setCameraPose} selectedObject={selectedObject} objectCommand={objectCommand} onObjectState={onObjectState} lookdev={lookdev} /></RenderBoundary></div>
     <HomeControl onReturn={onReturn} />
-    {!calibrationEnabled && !journey.moving && <nav className="visually-hidden" aria-label="Devotional interactions">
-      {eligibleObjects(journey.view).map((object) => <button key={object} type="button" onClick={() => onActivate(object)}>{devotionalLabels[object]}</button>)}
+    {!calibrationEnabled && <nav className="journey-controls" aria-label="Sanctuary journey">
+      {(Object.keys(journeyHotspots) as JourneyHotspot[]).map((hotspot) => <button key={hotspot} type="button" data-sanctuary-hotspot={journeyHotspots[hotspot]} aria-current={journey.view === journeyViewForHotspot[hotspot] ? "step" : undefined} disabled={journey.moving} onClick={() => onActivate(journeyHotspots[hotspot])}>{hotspot}</button>)}
     </nav>}
     {!ready && <div className="loading-mark" role="progressbar" aria-label="Loading sanctuary" aria-valuemin={0} aria-valuemax={sanctuaryUnits.length} aria-valuenow={loaded}><span style={{ transform: `scaleX(${loaded / sanctuaryUnits.length})` }} /></div>}
     {!calibrationEnabled && journey.view === "bible" && !journey.moving && <ScripturePanel onPray={onPray} />}

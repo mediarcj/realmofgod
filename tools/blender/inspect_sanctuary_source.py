@@ -5,9 +5,8 @@
 
 """Create a read-only, machine-readable inventory of an accepted sanctuary source.
 
-Example:
-  blender --background --factory-startup --python tools/blender/inspect_sanctuary_source.py -- \
-    --source accepted.blend --output /tmp/sanctuary-inventory.json --expected-sha256 <accepted-sha>
+Run only from Blender's GUI with the approved authority already open. This
+script deliberately never opens or saves a Blender file.
 """
 
 from __future__ import annotations
@@ -21,6 +20,9 @@ from typing import Any
 
 import bpy
 from mathutils import Vector
+
+
+APPROVED_SHA256 = "118ac40912509b1242608fa88163476e0013ee9179f17942b3f8ed3273286e36"
 
 
 # The inventory needs JSON-safe values even when Blender custom properties use ID types.
@@ -115,13 +117,12 @@ def object_record(object_: bpy.types.Object) -> dict[str, Any]:
 
 
 def parse_arguments() -> argparse.Namespace:
-    """Read only output and identity arguments after Blender's `--` separator."""
+    """Read only the derivative output after Blender's `--` separator."""
 
     arguments = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", required=True, type=Path)
+    parser.add_argument("--expected-source", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--expected-sha256", required=True)
     return parser.parse_args(arguments)
 
 
@@ -129,7 +130,7 @@ def main() -> None:
     """Validate the loaded master and write an inventory without saving it."""
 
     args = parse_arguments()
-    source_path = args.source.resolve()
+    source_path = args.expected_source.resolve()
     if args.output.resolve() == source_path or args.output.suffix.lower() != ".json":
         raise RuntimeError("Inventory output must be a separate JSON file.")
     if not source_path.is_file():
@@ -137,16 +138,16 @@ def main() -> None:
 
     # Stop before deriving any output if the named visual authority is not byte-for-byte accepted.
     actual_sha256 = sha256_file(source_path)
-    if actual_sha256.lower() != args.expected_sha256.lower():
+    if actual_sha256.lower() != APPROVED_SHA256:
         raise RuntimeError(
-            f"Accepted source SHA-256 mismatch: expected {args.expected_sha256}, got {actual_sha256}."
+            f"Approved source SHA-256 mismatch: expected {APPROVED_SHA256}, got {actual_sha256}."
         )
 
-    # Load only after the clean background runtime has started. This avoids relying on
-    # a local startup file and still changes only Blender's in-memory document.
-    bpy.ops.wm.open_mainfile(filepath=str(source_path), load_ui=False, use_scripts=False)
     if Path(bpy.data.filepath).resolve() != source_path:
-        raise RuntimeError("Blender did not load the requested source file.")
+        raise RuntimeError(
+            "Wrong Blender GUI file is open; expected "
+            f"{source_path}, got {Path(bpy.data.filepath).resolve()}."
+        )
 
     # Preserve all discovered names rather than imposing browser-oriented labels.
     collection_parents = {

@@ -5,7 +5,8 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { devotionalObjects, eligibleObjects, initialJourney, journeyTransition } from "../lib/sanctuary/journey.ts";
+import { cameraPose } from "../lib/sanctuary/camera.ts";
+import { devotionalObjects, eligibleObjects, initialJourney, journeyHotspots, journeyTransition, journeyViewForHotspot } from "../lib/sanctuary/journey.ts";
 test("each devotional object approaches the same kneeling state", () => {
   for (const object of Object.values(devotionalObjects)) assert.deepEqual(journeyTransition(initialJourney, {type: "activate", object}), {view:"kneel", revision:1, moving:true});
 });
@@ -30,4 +31,18 @@ test("home interrupts any state and stale completion is ignored", () => {
 });
 test("home is quiet when already at the sanctuary entrance", () => {
   assert.equal(journeyTransition(initialJourney, { type: "home" }), initialJourney);
+});
+test("stable semantic hotspots reach every owner-locked camera destination", () => {
+  for (const [hotspot, expectedView] of Object.entries(journeyViewForHotspot)) {
+    const source = expectedView === "entry" ? { view: "bible", revision: 0, moving: false } : initialJourney;
+    const moved = journeyTransition(source, { type: "navigate", hotspot });
+    assert.equal(moved.view, expectedView, hotspot);
+    assert.equal(moved.moving, true, hotspot);
+    const expected = cameraPose(expectedView, 16 / 9);
+    const actual = cameraPose(moved.view, 16 / 9);
+    assert.deepEqual(actual.position, expected.position, hotspot);
+    assert.deepEqual(actual.target, expected.target, hotspot);
+    assert.equal(actual.fov, expected.fov, hotspot);
+    assert.equal(journeyHotspots[hotspot], `sanctuary-hotspot-${hotspot}`);
+  }
 });

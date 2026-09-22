@@ -15,6 +15,20 @@ Notes: Texture maps are assigned only to derivatives with authored compatible UV
 - Use: repeating browser PBR maps only on sanctuary meshes that the derivative audit confirms have authored UVs. These files do not alter the accepted Blender geometry or source materials.
 - Downloaded variant: 1K JPG, selected to limit initial runtime texture transfer.
 
+## Old Wooden Floor 01
+
+- Source: Poly Haven, [Old Wooden Floor 01](https://polyhaven.com/a/old_wooden_floor_01)
+- License: CC0 1.0 Universal
+- Files: `polyhaven/old_wooden_floor_01/old_wooden_floor_01_diff_2k.jpg`, `old_wooden_floor_01_nor_gl_2k.jpg`, and `old_wooden_floor_01_rough_2k.jpg`
+- Use: the sanctuary floor semantic family. This 2K, 2m-wide aged varnished hardwood scan supplies its independent base color, normal, and roughness response.
+
+## Wood Cabinet Worn Long
+
+- Source: Poly Haven, [Wood Cabinet Worn Long](https://polyhaven.com/a/wood_cabinet_worn_long)
+- License: CC0 1.0 Universal
+- Files: `polyhaven/wood_cabinet_worn_long/wood_cabinet_worn_long_diff_2k.jpg`, `wood_cabinet_worn_long_nor_gl_2k.jpg`, and `wood_cabinet_worn_long_rough_2k.jpg`
+- Use: the sanctuary wall-walnut semantic family. This 2K, 1m-wide red-brown aged cabinet scan supplies a distinct interior panel surface from the floor and altar woods.
+
 ## Fine Grained Wood
 
 - Source: Poly Haven, [Fine Grained Wood](https://polyhaven.com/a/fine_grained_wood)

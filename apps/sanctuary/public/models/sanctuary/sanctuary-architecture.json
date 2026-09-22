@@ -34375,6 +34375,6 @@
     }
   ],
   "uncompressed_bytes": 62707112,
-  "uncompressed_sha256": "315bc45deec16b51f5265cef6cc9702e11cf8f93d871b18c9b2674533a5c0681",
+  "uncompressed_sha256": "6dccb51c7aa80bf14de0f3ff7c7ebec2c33e1bd00bb2777e5bce76b46c10ed89",
   "optimization": "glTF Transform 4.4.2; one Meshopt medium pass, position 16 bits; no joining, texture conversion, or material collapse"
 }

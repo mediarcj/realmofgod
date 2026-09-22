@@ -8,7 +8,7 @@ import { useEffect, useMemo } from "react";
 import { Mesh, Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
-import { createSanctuaryMaterial, materialProjectionMode, materialTextureSet, resolveSanctuaryMaterial, sourceMaterialName } from "../../lib/sanctuary/materials";
+import { auditMaterialResolution, createSanctuaryMaterial, materialProjectionMode, materialTextureSet, resolveSanctuaryMaterial, sourceMaterialName } from "../../lib/sanctuary/materials";
 import type { MaterialDebugInfo } from "./MaterialDebugReadout";
 
 
@@ -21,7 +21,11 @@ export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, ca
       const hasAuthoredUv = Boolean(object.geometry.getAttribute("uv"));
       const sourceMaterials = Array.isArray(object.material) ? object.material : [object.material];
       const resolutions = sourceMaterials.map((material) => resolveSanctuaryMaterial(unit, object.name, sourceMaterialName(material)));
-      const runtimeMaterials = resolutions.map((resolution) => createSanctuaryMaterial(resolution, hasAuthoredUv, object.name));
+      const runtimeMaterials = resolutions.map((resolution, index) => {
+        const runtimeMaterial = createSanctuaryMaterial(resolution, hasAuthoredUv, object.name);
+        auditMaterialResolution(sourceMaterialName(sourceMaterials[index]), resolution, runtimeMaterial);
+        return runtimeMaterial;
+      });
       object.material = Array.isArray(object.material) ? runtimeMaterials : runtimeMaterials[0];
       const resolution = resolutions[0];
       object.userData.sanctuaryMaterial = { unit, family: resolutions.map((item) => item.family).join("|"), source: resolutions.map((item) => item.source).join("|"), uv: hasAuthoredUv, projection: materialProjectionMode(resolution.family, hasAuthoredUv), textureSet: materialTextureSet(resolution.family) };
@@ -40,12 +44,12 @@ export function SanctuaryAsset({ unit, onLoaded, interactiveName, onActivate, ca
   useEffect(() => { return () => { document.body.style.cursor = ""; }; }, [interactiveName]);
   return <primitive object={scene} dispose={null}
     onClick={interactiveName ? (event: import("@react-three/fiber").ThreeEvent<MouseEvent>) => {
-      if (event.object.name === interactiveName) { event.stopPropagation(); document.body.style.cursor = ""; onActivate(interactiveName); }
+      event.stopPropagation(); document.body.style.cursor = ""; onActivate(interactiveName);
     } : undefined}
     onPointerOver={interactiveName || onMaterialDebug ? (event: import("@react-three/fiber").ThreeEvent<PointerEvent>) => {
       const info = event.object.userData.sanctuaryMaterial as Omit<MaterialDebugInfo, "mesh"> | undefined;
       if (info) onMaterialDebug?.({ ...info, mesh: event.object.name });
-      if (event.object.name === interactiveName) document.body.style.cursor = "pointer";
+      if (interactiveName) document.body.style.cursor = "pointer";
     } : undefined}
     onPointerOut={interactiveName ? () => { document.body.style.cursor = ""; } : undefined} />;
 }

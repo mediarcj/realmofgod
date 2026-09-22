@@ -9,7 +9,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:assets": "node scripts/verify-assets.mjs",
-    "test:source": "node scripts/verify-source.mjs",
+    "test:source": "node scripts/verify-single-authority.mjs && node scripts/verify-source.mjs",
     "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {

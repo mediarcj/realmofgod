@@ -12,6 +12,8 @@ import type { LookdevProfile } from "../../lib/sanctuary/lookdev";
 const byRole = (role: string) => runtimeAnchors.filter((anchor) => anchor.role === role);
 // Disabled until v27 visual material inspection establishes whether source flame geometry exists.
 const runtimeFlamesEnabled = false;
+// Static reference imagery does not establish animated smoke or glowing dust.
+const runtimeAtmosphericsEnabled = false;
 
 function particleGeometry(points: readonly number[][], spread: [number, number, number], count: number, seed: number) {
   const values = new Float32Array(points.length * count * 3);
@@ -47,7 +49,7 @@ function CandleLights({ reducedMotion, intensity }: { reducedMotion: boolean; in
     if (reducedMotion) return;
     lights.current.forEach((light, index) => { light.intensity = intensity + Math.sin(state.clock.elapsedTime * (2.1 + index * .13) + index) * .055; });
   });
-  return <>{anchors.map((anchor, index) => <pointLight key={anchor.name} position={point(anchor.position)} color="#ffbf72" intensity={intensity} distance={4.1} decay={2} ref={(light) => { if (light) lights.current[index] = light; }} />)}</>;
+  return <>{anchors.map((anchor, index) => <pointLight key={anchor.name} position={point(anchor.position)} color="#ffc57d" intensity={intensity} distance={3.35} decay={2} ref={(light) => { if (light) lights.current[index] = light; }} />)}</>;
 }
 
 function FlameSprite({ position, index, reducedMotion }: { position: [number, number, number]; index: number; reducedMotion: boolean }) {
@@ -84,16 +86,17 @@ function Sunlight() {
   return <directionalLight
     castShadow
     position={point(sun.direction.map((value) => -value * 12))}
-    intensity={(sun.detail.energy ?? 1) * .82}
-    color="#ffe1b6"
-    shadow-mapSize={[1024, 1024]}
+    intensity={(sun.detail.energy ?? 1) * .64}
+    color="#ffddae"
+    shadow-mapSize={[2048, 2048]}
     shadow-camera-near={.5}
     shadow-camera-far={30}
     shadow-camera-left={-7}
     shadow-camera-right={7}
     shadow-camera-top={7}
     shadow-camera-bottom={-7}
-    shadow-bias={-.00015}
+    shadow-bias={-.00012}
+    shadow-normalBias={.018}
   />;
 }
 
@@ -103,7 +106,7 @@ function WindowDaylight({ position, intensity }: { position: [number, number, nu
     if (!light.current) return;
     light.current.lookAt(0, 2.55, -1.7);
   }, []);
-  return <rectAreaLight ref={light} position={position} color="#fff4df" intensity={intensity * 2.1} width={2.9} height={1.35} />;
+  return <rectAreaLight ref={light} position={position} color="#f8ead2" intensity={intensity * 1.55} width={2.9} height={1.35} />;
 }
 
 export function SanctuaryAtmosphere({ reducedMotion, lookdev }: { reducedMotion: boolean; lookdev: LookdevProfile }) {
@@ -111,12 +114,14 @@ export function SanctuaryAtmosphere({ reducedMotion, lookdev }: { reducedMotion:
   const dust = anchorByRole("DUST_VOLUME");
   const sunBanks = byRole("SUNRAY_SOURCE_BANK");
   return <>
-    <hemisphereLight args={["#e7edf2", "#5b4031", .58]} />
+    <hemisphereLight args={["#b8c6d0", "#2b180f", .26]} />
     <Sunlight />
     {sunBanks.map((anchor) => <WindowDaylight key={anchor.name} position={point(anchor.position)} intensity={lookdev.windowDaylight} />)}
     <CandleLights reducedMotion={reducedMotion} intensity={lookdev.candleLight} />
     {runtimeFlamesEnabled && <CandleFlames reducedMotion={reducedMotion} />}
-    <ParticleField points={smoke} spread={[.035, .24, .035]} count={12} color="#cfc0ac" size={.045} opacity={.12} reducedMotion={reducedMotion} seed={2} />
-    <ParticleField points={[dust.position]} spread={[2.05, 1.75, 2.25]} count={88} color="#f7ddb1" size={.026} opacity={.15} reducedMotion={reducedMotion} seed={7} />
+    {runtimeAtmosphericsEnabled && <>
+      <ParticleField points={smoke} spread={[.035, .24, .035]} count={12} color="#cfc0ac" size={.045} opacity={.045} reducedMotion={reducedMotion} seed={2} />
+      <ParticleField points={[dust.position]} spread={[2.05, 1.75, 2.25]} count={72} color="#f1d7ac" size={.021} opacity={.07} reducedMotion={reducedMotion} seed={7} />
+    </>}
   </>;
 }

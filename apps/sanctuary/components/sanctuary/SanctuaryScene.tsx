@@ -7,7 +7,7 @@ import { sanctuaryUnits } from "../../lib/sanctuary/asset-manifest";
 import { SanctuaryAsset } from "./SanctuaryAsset";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import type { Object3D } from "three";
-import { devotionalObjects, eligibleObjects } from "../../lib/sanctuary/journey";
+import { devotionalObjects, eligibleObjects, journeyHotspots } from "../../lib/sanctuary/journey";
 import type { SanctuaryView } from "../../lib/sanctuary/camera";
 import type { MaterialDebugInfo } from "./MaterialDebugReadout";
 
@@ -24,7 +24,9 @@ export function SanctuaryScene({ onProgress, view, interactive, onActivate, onCa
   const visible = sanctuaryUnits.filter((unit) => unit === "sanctuary-architecture" || (loaded.has("sanctuary-architecture") && (!devotionalUnits.has(unit) || roomReady)));
   return <>{visible.map((unit) => {
     const name = devotionalObjects[unit as keyof typeof devotionalObjects];
-    const interactiveName = interactive && eligibleObjects(view).includes(name) ? name : undefined;
+    const interactiveName = interactive && eligibleObjects(view).includes(name)
+      ? unit === "bible" ? journeyHotspots.bible : journeyHotspots.devotional
+      : undefined;
     return <Suspense key={unit} fallback={null}><SanctuaryAsset unit={unit} onLoaded={onLoaded} interactiveName={interactiveName} onActivate={onActivate} calibrationKey={calibrationKeys[unit]} calibrationSourceName={name} onCalibrationObject={onCalibrationObject} onMaterialDebug={onMaterialDebug} /></Suspense>;
   })}</>;
 }

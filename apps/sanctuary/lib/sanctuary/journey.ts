@@ -15,8 +15,19 @@ export const devotionalLabels: Record<string, string> = {
   [devotionalObjects.table]: "Approach devotional table",
   [devotionalObjects.bible]: "Approach Bible",
 };
+/** Stable runtime IDs. These deliberately do not depend on a Blender mesh name. */
+export const journeyHotspots = {
+  entry: "sanctuary-hotspot-entry",
+  devotional: "sanctuary-hotspot-devotional",
+  bible: "sanctuary-hotspot-bible",
+  prayer: "sanctuary-hotspot-prayer",
+} as const;
+export type JourneyHotspot = keyof typeof journeyHotspots;
+export const journeyViewForHotspot: Record<JourneyHotspot, SanctuaryView> = {
+  entry: "entry", devotional: "kneel", bible: "bible", prayer: "prayer",
+};
 export type JourneyState = { view: SanctuaryView; revision: number; moving: boolean };
-export type JourneyAction = { type: "activate"; object: string } | { type: "home" } | { type: "pray" } | { type: "settled"; revision: number };
+export type JourneyAction = { type: "activate"; object: string } | { type: "navigate"; hotspot: JourneyHotspot } | { type: "home" } | { type: "pray" } | { type: "settled"; revision: number };
 export const initialJourney: JourneyState = { view: "entry", revision: 0, moving: false };
 export function eligibleObjects(view: SanctuaryView): readonly string[] {
   if (view === "entry") return Object.values(devotionalObjects);
@@ -25,6 +36,10 @@ export function eligibleObjects(view: SanctuaryView): readonly string[] {
 export function journeyTransition(state: JourneyState, action: JourneyAction): JourneyState {
   if (action.type === "settled") return action.revision === state.revision && state.moving ? { ...state, moving: false } : state;
   if (action.type === "home") return state.view === "entry" && !state.moving ? state : { view: "entry", revision: state.revision + 1, moving: true };
+  if (action.type === "navigate") {
+    const view = journeyViewForHotspot[action.hotspot];
+    return state.view === view && !state.moving ? state : { view, revision: state.revision + 1, moving: true };
+  }
   if (state.moving) return state;
   if (action.type === "pray") return state.view === "bible" ? { view: "prayer", revision: state.revision + 1, moving: true } : state;
   if (!eligibleObjects(state.view).includes(action.object)) return state;

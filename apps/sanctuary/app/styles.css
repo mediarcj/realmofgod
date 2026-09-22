@@ -29,8 +29,19 @@ body {
 }
 
 .scene-frame { height: 100svh; min-height: 22rem; width: 100%; }
+.photoreal-presentation, .beauty-frame, .beauty-frame img, .beauty-placeholder { display: block; width: 100%; height: 100%; }
+.photoreal-presentation { position: relative; overflow: hidden; background: #110e0a; }
+.beauty-frame { transform: scale(1); opacity: 1; filter: blur(0); transition: opacity 900ms ease, transform 900ms cubic-bezier(.2,.65,.2,1), filter 650ms ease; }
+.beauty-frame img { object-fit: cover; }
+.photoreal-presentation[data-moving="true"] .beauty-frame { opacity: .38; transform: scale(1.025); filter: blur(1.4px); }
+.beauty-placeholder { display: grid; place-items: center; padding: 2rem; background: radial-gradient(circle at 50% 42%, #342315 0, #17110c 55%, #0d0b09 100%); }
+.beauty-placeholder p { max-width: 28rem; color: #d8c8ae; font-size: .85rem; text-align: center; }
 .home-control { position: fixed; z-index: 3; top: max(1rem, env(safe-area-inset-top)); left: max(1rem, env(safe-area-inset-left)); display: grid; width: 2.25rem; height: 2.25rem; padding: .48rem; place-items: center; color: #f4e8d4; background: #17130e82; border: 1px solid #d3b78266; border-radius: .25rem; box-shadow: 0 .25rem 1rem #0003; }
 .home-control svg { width: 100%; height: 100%; fill: currentColor; }
+.journey-controls { position: fixed; z-index: 3; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); display: flex; gap: .35rem; padding: .35rem; background: #17130e82; border: 1px solid #d3b78244; border-radius: .3rem; box-shadow: 0 .25rem 1rem #0003; }
+.journey-controls button { padding: .38rem .55rem; color: #f4e8d4; background: transparent; border: 1px solid transparent; border-radius: .18rem; font: 500 .67rem/1.1 ui-serif, Georgia, serif; letter-spacing: .08em; text-transform: uppercase; }
+.journey-controls button[aria-current="step"] { color: #fff6e2; border-color: #d3b78288; }
+.journey-controls button:disabled { opacity: .55; }
 .loading-mark { position: absolute; left: calc(50% - 2.5rem); bottom: 2rem; width: 5rem; height: 2px; background: #17130f80; overflow: hidden; }
 .loading-mark span { display: block; height: 100%; background: #e2c995; transform-origin: left; }
 .scene-message { position: absolute; top: 45%; width: 100%; padding: 1.5rem; text-align: center; }
